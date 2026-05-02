@@ -27,10 +27,18 @@ export default function LoginPage() {
       const resultAction = await dispatch(loginUser({ email, password }));
       if (loginUser.fulfilled.match(resultAction)) {
         toast.success("Logged in successfully!");
-        router.push("/dashboard");
+        const user = resultAction.payload;
+        if (user.role === "ADMIN") {
+          router.push("/dashboard/admin");
+        } else {
+          router.push("/dashboard");
+        }
+      } else {
+        const errorMsg = resultAction.payload as string;
+        toast.error(errorMsg || "Login failed");
       }
     } catch (error) {
-      // Error handled in slice/toast
+      toast.error("An unexpected error occurred");
     }
   };
 

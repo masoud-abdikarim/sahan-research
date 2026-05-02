@@ -79,6 +79,8 @@ model Enrollment {
 
   progress Progress[]
 
+  createdAt DateTime @default(now())
+
   @@unique([userId, courseId])
 }
 

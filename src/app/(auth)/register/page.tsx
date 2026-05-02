@@ -35,9 +35,13 @@ export default function RegisterPage() {
       if (registerUser.fulfilled.match(resultAction)) {
         toast.success("Account created successfully!");
         router.push("/dashboard");
+      } else {
+        // Show the specific error message from the backend (e.g. "User already exists")
+        const errorMsg = resultAction.payload as string;
+        toast.error(errorMsg || "Registration failed");
       }
     } catch (error) {
-      toast.error("An error occurred during registration");
+      toast.error("An unexpected error occurred");
     }
   };
 

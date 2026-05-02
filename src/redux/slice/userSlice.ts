@@ -82,6 +82,7 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await axios.post("/api/auth/me");
+      localStorage.setItem("logout-event", Date.now().toString());
       return null;
     } catch (err: any) {
       return rejectWithValue("Failed to logout");

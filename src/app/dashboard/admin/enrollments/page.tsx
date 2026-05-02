@@ -25,7 +25,15 @@ export default function AdminEnrollmentsPage() {
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleString();
+    if (isNaN(date.getTime())) return "N/A";
+    
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (

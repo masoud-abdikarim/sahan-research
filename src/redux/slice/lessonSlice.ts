@@ -46,10 +46,40 @@ export const getLessonsByCourse = createAsyncThunk(
   "lesson/getLessonsByCourse",
   async (courseId: number, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`/api/user/lessons?courseId=${courseId}`);
+      const res = await axios.get(`/api/user/lessons${courseId ? `?courseId=${courseId}` : ""}`);
       return res.data.lessons;
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Failed to fetch lessons";
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+export const updateLesson = createAsyncThunk(
+  "lesson/updateLesson",
+  async ({ id, data }: { id: number; data: any }, { rejectWithValue }) => {
+    try {
+      const res = await axios.patch(`/api/admin/lessons/${id}`, data);
+      toast.success("Lesson updated successfully!");
+      return res.data.lesson;
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to update lesson";
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+export const deleteLesson = createAsyncThunk(
+  "lesson/deleteLesson",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await axios.delete(`/api/admin/lessons/${id}`);
+      toast.success("Lesson deleted successfully!");
+      return id;
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to delete lesson";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
     }
@@ -79,6 +109,18 @@ const lessonSlice = createSlice({
     builder.addCase(getLessonsByCourse.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
+    });
+
+    builder.addCase(updateLesson.pending, (state) => { state.loading = true; });
+    builder.addCase(updateLesson.fulfilled, (state, action: PayloadAction<Lesson>) => {
+      state.loading = false;
+      state.lessons = state.lessons.map(l => l.id === action.payload.id ? action.payload : l);
+    });
+
+    builder.addCase(deleteLesson.pending, (state) => { state.loading = true; });
+    builder.addCase(deleteLesson.fulfilled, (state, action: PayloadAction<number>) => {
+      state.loading = false;
+      state.lessons = state.lessons.filter(l => l.id !== action.payload);
     });
   },
 });

@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
 
   // 2. DEFINE PROTECTED ROUTES
   const isProtectedRoute = path.startsWith("/dashboard") || path.startsWith("/api/user") || path.startsWith("/api/admin");
-  const isAdminRoute = path.startsWith("/admin") || path.startsWith("/api/admin") || (path === "/api/user" && method === "GET");
+  const isAdminRoute = path.startsWith("/dashboard/admin") || path.startsWith("/api/admin") || (path === "/api/user" && method === "GET");
 
   if (isProtectedRoute) {
     if (!session) {
@@ -31,12 +31,19 @@ export async function middleware(request: NextRequest) {
     try {
       const { payload }: any = await jwtVerify(session, key, { algorithms: ["HS256"] });
       
-      // Admin check
+      // Admin check for admin-only routes
       if (isAdminRoute && payload.role !== "ADMIN") {
         if (path.startsWith("/api/")) {
           return NextResponse.json({ message: "Forbidden: Admin only" }, { status: 403 });
         }
         return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      // Student-only check (Optional: prevent Admins from student dashboard to enforce clean separation)
+      // The user requested: "The default /dashboard route must NOT show admin or super admin content"
+      // If Admin tries to visit /dashboard, redirect them to /dashboard/admin
+      if (path === "/dashboard" && payload.role === "ADMIN") {
+         return NextResponse.redirect(new URL("/dashboard/admin", request.url));
       }
       
       return NextResponse.next();
@@ -54,5 +61,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/api/user", "/api/user/:path*", "/api/admin", "/api/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/api/user", "/api/user/:path*", "/api/admin", "/api/admin/:path*"],
 };

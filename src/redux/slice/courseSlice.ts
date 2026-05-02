@@ -55,6 +55,36 @@ export const getCourses = createAsyncThunk(
   }
 );
 
+export const updateCourse = createAsyncThunk(
+  "course/updateCourse",
+  async ({ id, data }: { id: number; data: any }, { rejectWithValue }) => {
+    try {
+      const res = await axios.patch(`/api/admin/courses/${id}`, data);
+      toast.success("Course updated successfully!");
+      return res.data.course;
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to update course";
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+export const deleteCourse = createAsyncThunk(
+  "course/deleteCourse",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await axios.delete(`/api/admin/courses/${id}`);
+      toast.success("Course deleted successfully!");
+      return id;
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to delete course";
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
 const courseSlice = createSlice({
   name: "course",
   initialState,
@@ -78,6 +108,18 @@ const courseSlice = createSlice({
     builder.addCase(getCourses.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
+    });
+
+    builder.addCase(updateCourse.pending, (state) => { state.loading = true; });
+    builder.addCase(updateCourse.fulfilled, (state, action: PayloadAction<Course>) => {
+      state.loading = false;
+      state.courses = state.courses.map(c => c.id === action.payload.id ? action.payload : c);
+    });
+
+    builder.addCase(deleteCourse.pending, (state) => { state.loading = true; });
+    builder.addCase(deleteCourse.fulfilled, (state, action: PayloadAction<number>) => {
+      state.loading = false;
+      state.courses = state.courses.filter(c => c.id !== action.payload);
     });
   },
 });
