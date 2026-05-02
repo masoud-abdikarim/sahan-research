@@ -11,3 +11,44 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role{
+  user
+  admin
+}
+
+model user{
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  phone String @unique
+  password String
+  createdAt DateTime @default(now())
+  role Role @default(user)
+
+ course course[]
+}
+
+model course{
+  id Int @id @default(autoincrement())
+  name String
+  url String
+  description String
+  price Float
+  duration DateTime
+
+  studentId Int
+  student student @relation(fields: [studentId], references: [id])
+
+  userId Int
+  user user @relation(fields: [userId], references: [id])
+}
+model student{
+  id Int @id @default(autoincrement())
+  name String
+  email String
+  phone String @unique
+  password String
+
+course course[]
+}
