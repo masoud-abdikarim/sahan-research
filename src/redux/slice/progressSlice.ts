@@ -27,7 +27,7 @@ const initialState: ProgressState = {
 // ✅ MARK LESSON COMPLETE
 export const markLessonComplete = createAsyncThunk(
   "progress/markLessonComplete",
-  async (data: { enrollmentId: number; lessonId: number }, { rejectWithValue }) => {
+  async (data: { courseId: number; lessonId: number }, { rejectWithValue }) => {
     try {
       const res = await axios.post("/api/user/progress", data);
       toast.success("Lesson marked as complete!");

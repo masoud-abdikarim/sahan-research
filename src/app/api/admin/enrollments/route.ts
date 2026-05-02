@@ -10,7 +10,7 @@ export async function GET() {
     }
 
     const enrollments = await prisma.enrollment.findMany({
-      include: { course: true, user: { select: { name: true, email: true } } }
+      include: { course: true, user: { select: { name: true, email: true, phone: true } } }
     });
 
     return NextResponse.json({ enrollments });

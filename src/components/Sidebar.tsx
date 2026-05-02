@@ -12,13 +12,25 @@ import {
   TrendingUp,
   Users,
   Shield,
-  Settings
+  Settings,
+  LogOut
 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/redux/store";
+import { logoutUser } from "@/redux/slice/userSlice";
+import { useRouter } from "next/navigation";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const { currentUser } = useSelector((state: RootState) => state.user);
   const isAdmin = currentUser?.role === "ADMIN";
+
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    router.push("/login");
+  };
 
   const adminNav = [
     { name: "Admin Home", href: "/dashboard/admin", icon: Shield },
@@ -75,6 +87,19 @@ export default function Sidebar() {
             );
           })}
         </nav>
+      </div>
+
+      {/* Logout Section */}
+      <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+        <button
+          onClick={handleLogout}
+          className="flex-shrink-0 w-full group block"
+        >
+          <div className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 transition-colors">
+            <LogOut className="flex-shrink-0 mr-3 h-5 w-5 text-red-500 group-hover:text-red-600" aria-hidden="true" />
+            <span>Logout</span>
+          </div>
+        </button>
       </div>
     </div>
   );

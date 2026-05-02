@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@uploadthing/react/styles.css";
 import { ReduxProvider } from "@/redux/provider";
 import { Toaster } from "react-hot-toast";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "@/app/api/uploadthing/core";
+import SessionWatcher from "@/components/SessionWatcher";
+import AxiosInterceptor from "@/components/AxiosInterceptor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +36,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+        <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <ReduxProvider>
-          {children}
+          <AxiosInterceptor>
+            <SessionWatcher />
+            {children}
+          </AxiosInterceptor>
           <Toaster position="top-right" />
         </ReduxProvider>
       </body>

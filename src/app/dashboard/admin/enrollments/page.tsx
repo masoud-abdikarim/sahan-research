@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getAllEnrollments, approveEnrollment } from "@/redux/slice/enrollmentSlice";
 import Loader from "@/components/Loader";
-import { CheckCircle, XCircle, Clock, Search } from "lucide-react";
+import { CheckCircle, XCircle, Phone, Calendar } from "lucide-react";
 
 export default function AdminEnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,22 +22,25 @@ export default function AdminEnrollmentsPage() {
     dispatch(approveEnrollment({ id, status }));
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleString();
+  };
+
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manage Enrollments</h1>
-          <p className="text-gray-500 mt-1">Review and approve student enrollment requests.</p>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Manage Enrollments</h1>
+        <p className="text-gray-500 mt-1">Review and approve student enrollment requests.</p>
       </div>
 
-      {/* TABS */}
-      <div className="flex border-b border-gray-200 mb-8">
+      <div className="flex border-b border-gray-200 mb-8 overflow-x-auto">
         {(["PENDING", "APPROVED", "REJECTED"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === tab
                 ? "border-indigo-600 text-indigo-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -56,55 +59,63 @@ export default function AdminEnrollmentsPage() {
       {loading ? (
         <Loader />
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested At</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Contact Info</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Course</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Requested At</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {filteredEnrollments.map((enrollment: any) => (
-                  <tr key={enrollment.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{enrollment.user?.name}</div>
-                      <div className="text-xs text-gray-500">{enrollment.user?.email}</div>
+                  <tr key={enrollment.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="text-sm font-bold text-gray-900">{enrollment.user?.name}</div>
+                      <div className="text-xs text-gray-400">{enrollment.user?.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 font-medium">{enrollment.course?.name}</div>
-                      <div className="text-xs text-gray-500">ID: #{enrollment.courseId}</div>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone size={14} className="text-gray-400" />
+                        {enrollment.user?.phone || "No phone"}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(enrollment.createdAt).toLocaleDateString()}
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 font-bold">{enrollment.course?.name}</div>
+                      <div className="text-xs text-gray-400 font-medium">ID: #{enrollment.courseId}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Calendar size={14} className="text-gray-400" />
+                        {formatDate(enrollment.createdAt)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
                       {activeTab === "PENDING" ? (
                         <div className="flex justify-end gap-3">
                           <button
                             onClick={() => handleAction(enrollment.id, "APPROVED")}
-                            className="flex items-center gap-1 text-green-600 hover:text-green-800 transition-colors"
+                            className="bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-all flex items-center gap-1 font-bold border border-green-100"
                           >
-                            <CheckCircle size={16} />
-                            Approve
+                            <CheckCircle size={16} /> Approve
                           </button>
                           <button
                             onClick={() => handleAction(enrollment.id, "REJECTED")}
-                            className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors"
+                            className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-all flex items-center gap-1 font-bold border border-red-100"
                           >
-                            <XCircle size={16} />
-                            Reject
+                            <XCircle size={16} /> Reject
                           </button>
                         </div>
                       ) : (
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          activeTab === "APPROVED" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                          activeTab === "APPROVED" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                         }`}>
-                          {activeTab === "APPROVED" ? <CheckCircle size={12}/> : <XCircle size={12}/>}
-                          {activeTab.toLowerCase()}
+                          {activeTab === "APPROVED" ? <CheckCircle size={14}/> : <XCircle size={14}/>}
+                          {activeTab}
                         </span>
                       )}
                     </td>
@@ -112,8 +123,8 @@ export default function AdminEnrollmentsPage() {
                 ))}
                 {filteredEnrollments.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                      No {activeTab.toLowerCase()} enrollments found.
+                    <td colSpan={5} className="px-6 py-16 text-center text-gray-400 italic">
+                      No {activeTab.toLowerCase()} enrollment requests found.
                     </td>
                   </tr>
                 )}

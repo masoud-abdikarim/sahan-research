@@ -25,11 +25,19 @@ export default function AdminOverview() {
 
   if (loading) return <Loader />;
 
+  // Safety fallback
+  const displayStats = stats || {
+    totalUsers: 0,
+    totalCourses: 0,
+    pendingEnrollments: 0,
+    totalRevenue: 0
+  };
+
   const statCards = [
-    { label: "Total Students", value: stats.totalUsers, icon: Users, color: "bg-blue-500" },
-    { label: "Active Courses", value: stats.totalCourses, icon: BookOpen, color: "bg-indigo-500" },
-    { label: "Pending Approvals", value: stats.pendingEnrollments, icon: Clock, color: "bg-amber-500" },
-    { label: "Total Revenue", value: `$${stats.totalRevenue.toFixed(2)}`, icon: DollarSign, color: "bg-emerald-500" },
+    { label: "Total Students", value: displayStats.totalUsers, icon: Users, color: "bg-blue-500" },
+    { label: "Active Courses", value: displayStats.totalCourses, icon: BookOpen, color: "bg-indigo-500" },
+    { label: "Pending Approvals", value: displayStats.pendingEnrollments, icon: Clock, color: "bg-amber-500" },
+    { label: "Total Revenue", value: `$${(displayStats.totalRevenue || 0).toFixed(2)}`, icon: DollarSign, color: "bg-emerald-500" },
   ];
 
   return (
@@ -62,11 +70,11 @@ export default function AdminOverview() {
             <TrendingUp className="text-indigo-600" />
             <h2 className="text-xl font-bold text-gray-900">Platform Growth</h2>
           </div>
-          <p className="text-gray-500 text-sm mb-4">You have {stats.totalUsers} registered users across the platform.</p>
+          <p className="text-gray-500 text-sm mb-4">You have {displayStats.totalUsers} registered users across the platform.</p>
           <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden">
             <div 
               className="h-full bg-indigo-600 rounded-full" 
-              style={{ width: `${Math.min((stats.totalUsers / 100) * 100, 100)}%` }}
+              style={{ width: `${Math.min((displayStats.totalUsers / 100) * 100, 100)}%` }}
             ></div>
           </div>
           <p className="text-xs text-gray-400 mt-2">Target: 100 Students</p>

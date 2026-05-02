@@ -25,6 +25,22 @@ export async function POST(req: Request) {
 
     const { courseId } = await req.json();
 
+    // Check if already enrolled
+    const existingEnrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: session.id,
+          courseId: Number(courseId)
+        }
+      }
+    });
+
+    if (existingEnrollment) {
+      return NextResponse.json({ 
+        message: "You are already enrolled in this course." 
+      }, { status: 400 });
+    }
+
     const enrollment = await prisma.enrollment.create({
       data: {
         userId: session.id,

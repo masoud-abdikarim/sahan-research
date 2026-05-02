@@ -21,7 +21,9 @@ export async function GET() {
       include: { course: true }
     });
     
-    const totalRevenue = approvedEnrollments.reduce((acc, curr) => acc + (curr.course.price || 0), 0);
+    const totalRevenue = approvedEnrollments.reduce((acc, curr) => acc + (curr.course?.price || 0), 0);
+
+    console.log("[STATS_API] Calculated stats:", { totalCourses, totalUsers, pendingEnrollments, totalRevenue });
 
     return NextResponse.json({
       stats: {
@@ -31,8 +33,11 @@ export async function GET() {
         totalRevenue
       }
     });
-  } catch (error) {
-    console.error("Stats API Error:", error);
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[STATS_API_ERROR]", error.message || error);
+    return NextResponse.json({ 
+      message: "Internal server error", 
+      details: error.message 
+    }, { status: 500 });
   }
 }

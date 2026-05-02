@@ -7,9 +7,12 @@ import toast from "react-hot-toast";
 export interface Lesson {
   id: number;
   title: string;
+  videoType: "UPLOAD" | "URL";
   videoUrl: string;
   order: number;
   courseId: number;
+  unlocked?: boolean;
+  completed?: boolean;
 }
 
 interface LessonState {

@@ -6,7 +6,8 @@ import toast from "react-hot-toast";
 
 interface DashboardStats {
   totalCourses: number;
-  activeEnrollments: number;
+  activeCourses: number;
+  completedCourses: number;
   lessonsCompleted: number;
 }
 
@@ -19,7 +20,8 @@ interface DashboardState {
 const initialState: DashboardState = {
   stats: {
     totalCourses: 0,
-    activeEnrollments: 0,
+    activeCourses: 0,
+    completedCourses: 0,
     lessonsCompleted: 0,
   },
   loading: false,

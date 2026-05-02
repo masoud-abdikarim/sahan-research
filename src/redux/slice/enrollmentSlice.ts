@@ -11,6 +11,10 @@ export interface Enrollment {
   courseId: number;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: string;
+  course?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface EnrollmentState {

@@ -5,7 +5,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -21,6 +20,11 @@ enum EnrollmentStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum VideoType {
+  UPLOAD
+  URL
 }
 
 model User {
@@ -53,14 +57,15 @@ model Course {
 }
 
 model Lesson {
-  id        Int    @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   title     String
+  videoType VideoType @default(URL)
   videoUrl  String
   order     Int
 
- Progress Progress[]
+  Progress Progress[]
   courseId Int
-  course   Course @relation(fields: [courseId], references: [id])
+  course   Course    @relation(fields: [courseId], references: [id])
 }
 
 model Enrollment {
@@ -85,4 +90,6 @@ model Progress {
 
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
   lesson     Lesson     @relation(fields: [lessonId], references: [id])
+
+  @@unique([enrollmentId, lessonId])
 }

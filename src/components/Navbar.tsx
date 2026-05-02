@@ -2,8 +2,7 @@
 
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { logoutUser } from "@/redux/slice/userSlice";
-import { LogOut, User } from "lucide-react";
+import { User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
@@ -11,10 +10,7 @@ export default function Navbar() {
   const router = useRouter();
   const { currentUser } = useSelector((state: RootState) => state.user);
 
-  const handleLogout = async () => {
-    await dispatch(logoutUser());
-    router.push("/login");
-  };
+
 
   if (!currentUser) return null;
 
@@ -32,14 +28,6 @@ export default function Navbar() {
             <p className="text-xs text-gray-500">{currentUser.role}</p>
           </div>
         </div>
-        
-        <button 
-          onClick={handleLogout}
-          className="text-gray-500 hover:text-red-600 transition-colors flex items-center gap-2 text-sm font-medium"
-        >
-          <LogOut size={18} />
-          <span className="hidden sm:inline">Logout</span>
-        </button>
       </div>
     </nav>
   );
