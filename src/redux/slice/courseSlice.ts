@@ -46,7 +46,7 @@ export const getCourses = createAsyncThunk(
   "course/getCourses",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get("/api/public/courses");
+      const res = await axios.get("/api/courses");
       return res.data.courses;
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Failed to fetch courses";

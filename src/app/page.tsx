@@ -95,13 +95,14 @@ const testimonials = [
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await axios.get("/api/public/courses");
+        const res = await axios.get("/api/courses");
         setCourses(res.data.courses);
       } catch (error) {
         console.error("Failed to fetch courses:", error);
@@ -115,10 +116,36 @@ export default function LandingPage() {
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
+    
+    // Intersection Observer for active section highlighting
+    const sections = ["about", "courses", "features", "how", "testimonials"];
+    const observers: IntersectionObserver[] = [];
+
+    const observerOptions = {
+      root: null,
+      rootMargin: "-20% 0px -70% 0px", // Trigger when section is in the upper part of the viewport
+      threshold: 0
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
     // Enable smooth scrolling for all anchor links
     document.documentElement.style.scrollBehavior = "smooth";
     return () => {
       window.removeEventListener("scroll", onScroll);
+      observer.disconnect();
       document.documentElement.style.scrollBehavior = "";
     };
   }, []);
@@ -141,75 +168,108 @@ export default function LandingPage() {
 
       {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
       <header
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-white/95 backdrop-blur shadow-sm border-b border-slate-100" : "bg-transparent"
+        className={`fixed top-0 left-0 right-0 z-50 flex flex-col transition-all duration-500 ${
+          scrolled 
+            ? "bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50 py-3" 
+            : "bg-white/50 backdrop-blur-sm py-5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-              <FlaskConical size={18} className="text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900">
-              Sahan <span className="text-indigo-600">Research</span>
-            </span>
-          </Link>
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between w-full">
+            {/* Left: Logo & Nav */}
+            <div className="flex items-center gap-4 md:gap-8 lg:gap-12">
+              <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-100 group-hover:scale-105 transition-all duration-500">
+                  <FlaskConical size={20} className="text-white" />
+                </div>
+                <span className="text-lg sm:text-2xl font-black tracking-tighter text-slate-900 group-hover:text-indigo-600 transition-colors duration-300">
+                  Sahan <span className="text-indigo-600 group-hover:text-slate-900 transition-colors duration-300">Research</span>
+                </span>
+              </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {[
-              ["About", "#about"],
-              ["Courses", "#courses"],
-              ["Features", "#features"],
-              ["How It Works", "#how"],
-            ].map(([label, href]) => (
-              <a
-                key={label}
-                href={href}
-                onClick={(e) => handleNavClick(e, href)}
-                className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
+              {/* Desktop & Tablet nav - Visible on md and up */}
+              <nav className="hidden md:flex items-center gap-3 lg:gap-8">
+                {[
+                  ["About", "#about", "about"],
+                  ["Courses", "#courses", "courses"],
+                  ["Features", "#features", "features"],
+                  ["How It Works", "#how", "how"],
+                  ["Testimonials", "#testimonials", "testimonials"],
+                ].map(([label, href, id]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    onClick={(e) => handleNavClick(e, href)}
+                    className={`text-[10px] lg:text-[12px] font-black tracking-[0.1em] lg:tracking-[0.2em] transition-all duration-300 relative py-1 uppercase group whitespace-nowrap ${
+                      activeSection === id 
+                        ? "text-indigo-600" 
+                        : "text-slate-500 hover:text-indigo-600"
+                    }`}
+                  >
+                    {label}
+                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-indigo-600 rounded-full transition-all duration-500 ${activeSection === id ? "w-full" : "w-0 group-hover:w-full"}`} />
+                  </a>
+                ))}
+              </nav>
+            </div>
+
+            {/* Right: Auth Buttons & Mobile Toggle */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="hidden md:flex items-center gap-1 lg:gap-2">
+                <Link
+                  href="/login"
+                  className="text-[11px] lg:text-[13px] font-black tracking-widest text-slate-500 hover:text-indigo-600 transition-all px-4 lg:px-6 py-2.5 lg:py-3 rounded-2xl hover:bg-indigo-50/50 uppercase"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-[11px] lg:text-[13px] font-black tracking-widest text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 px-5 lg:px-8 py-2.5 lg:py-3.5 rounded-2xl shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-500 uppercase whitespace-nowrap"
+                >
+                  Sign Up
+                </Link>
+              </div>
+
+              {/* Mobile hamburger toggle - Hidden on md and up */}
+              <button 
+                className="md:hidden p-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" 
+                onClick={() => setMenuOpen(!menuOpen)} 
+                aria-label="Toggle menu"
               >
-                {label}
-              </a>
-            ))}
-          </nav>
-
-          {/* CTA buttons */}
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-slate-700 hover:text-indigo-600 transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 px-5 py-2.5 rounded-xl shadow-md hover:shadow-indigo-200 transition-all"
-            >
-              Get Started
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button className="md:hidden p-2" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
-            <div className="space-y-1.5">
-              <span className={`block h-0.5 w-6 bg-slate-700 transition-transform ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
-              <span className={`block h-0.5 w-6 bg-slate-700 transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
-              <span className={`block h-0.5 w-6 bg-slate-700 transition-transform ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+                <div className="space-y-1.5">
+                  <span className={`block h-0.5 w-6 bg-current transition-transform duration-300 ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
+                  <span className={`block h-0.5 w-6 bg-current transition-opacity duration-300 ${menuOpen ? "opacity-0" : ""}`} />
+                  <span className={`block h-0.5 w-6 bg-current transition-transform duration-300 ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+                </div>
+              </button>
             </div>
-          </button>
+          </div>
         </div>
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-3">
-            {[["About", "#about"], ["Courses", "#courses"], ["Features", "#features"], ["How It Works", "#how"]].map(([l, h]) => (
-              <a key={l} href={h} onClick={(e) => handleNavClick(e, h)} className="block text-sm font-medium text-slate-700 hover:text-indigo-600 py-1 cursor-pointer">{l}</a>
+          <div className="md:hidden bg-white/90 backdrop-blur-2xl border-t border-slate-100 px-6 py-8 space-y-6 shadow-2xl animate-in slide-in-from-top duration-500">
+            {[
+              ["About", "#about", "about"],
+              ["Courses", "#courses", "courses"],
+              ["Features", "#features", "features"],
+              ["How It Works", "#how", "how"],
+              ["Testimonials", "#testimonials", "testimonials"]
+            ].map(([label, href, id]) => (
+              <a 
+                key={label} 
+                href={href} 
+                onClick={(e) => handleNavClick(e, href)} 
+                className={`block text-lg font-black tracking-tighter transition-all ${
+                  activeSection === id ? "text-indigo-600 translate-x-2" : "text-slate-900 hover:text-indigo-600"
+                }`}
+              >
+                {label}
+              </a>
             ))}
-            <div className="pt-3 flex flex-col gap-2">
-              <Link href="/login" className="text-center text-sm font-semibold text-slate-700 border border-slate-200 rounded-xl py-2.5 hover:bg-slate-50">Sign In</Link>
-              <Link href="/register" className="text-center text-sm font-semibold text-white bg-indigo-600 rounded-xl py-2.5 hover:bg-indigo-700">Get Started</Link>
+            <div className="pt-6 flex flex-col gap-4 border-t border-slate-100">
+              <Link href="/login" className="text-center text-sm font-bold text-slate-700 border border-slate-200 rounded-2xl py-4 hover:bg-slate-50 transition-all">Login</Link>
+              <Link href="/register" className="text-center text-sm font-bold text-white bg-indigo-600 rounded-2xl py-4 hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">Sign Up</Link>
             </div>
           </div>
         )}
@@ -301,13 +361,16 @@ export default function LandingPage() {
       </section>
 
       {/* ── ABOUT ───────────────────────────────────────────────────────────── */}
-      <section id="about" className="py-24 bg-slate-50">
+      <section id="about" className="py-24 bg-slate-50 border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Text */}
             <div>
-              <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider mb-4">Our Mission</p>
-              <h2 className="text-4xl font-bold text-slate-900 leading-tight mb-6">
+              <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
+                <Users size={12} />
+                About Sahan Research
+              </div>
+              <h2 className="text-4xl font-black text-slate-900 leading-tight mb-6">
                 Democratising Academic Research for Everyone
               </h2>
               <p className="text-slate-500 text-lg leading-relaxed mb-6">
@@ -358,11 +421,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── COURSES SECTION ────────────────────────────────────────────────── */}
-      <section id="courses" className="py-24 bg-white">
+      <section id="courses" className="py-24 bg-white border-t border-slate-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider mb-4">Available Programs</p>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">Explore Our Research Courses</h2>
+            <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
+              <BookOpen size={12} />
+              Academic Programs
+            </div>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">Explore Our Research Courses</h2>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Choose from a wide range of structured academic courses designed to elevate your research skills.
             </p>
@@ -395,11 +461,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── FEATURES ────────────────────────────────────────────────────────── */}
-      <section id="features" className="py-24 bg-white">
+      <section id="features" className="py-24 bg-white border-t border-slate-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider mb-4">Platform Features</p>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">Everything You Need to Excel</h2>
+            <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
+              <TrendingUp size={12} />
+              Platform Excellence
+            </div>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">Everything You Need to Excel</h2>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Designed specifically for research-oriented learning, our tools help you go deeper, learn faster, and achieve more.
             </p>
@@ -427,11 +496,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
-      <section id="how" className="py-24 bg-slate-50">
+      <section id="how" className="py-24 bg-slate-50 border-y border-slate-100">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider mb-4">Simple Process</p>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">How Sahan Research Works</h2>
+            <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
+              <ChevronRight size={12} />
+              Simple Process
+            </div>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">How Sahan Research Works</h2>
             <p className="text-slate-500 text-lg max-w-xl mx-auto">
               Getting started takes minutes. Learning lasts a lifetime.
             </p>
@@ -467,8 +539,11 @@ export default function LandingPage() {
       <section id="testimonials" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider mb-4">Testimonials</p>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">What Our Community Says</h2>
+            <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full mb-6 uppercase tracking-wider">
+              <Star size={12} />
+              Student Success
+            </div>
+            <h2 className="text-4xl font-black text-slate-900 mb-4">What Our Community Says</h2>
             <p className="text-slate-500 text-lg max-w-xl mx-auto">
               Hear from the researchers, students, and lecturers who rely on Sahan Research every day.
             </p>
