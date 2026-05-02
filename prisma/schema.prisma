@@ -47,6 +47,7 @@ model Course {
   price       Float
   durationMonths Int      // in months only
   category    String   @default("Uncategorized")
+  imageUrl    String?
   createdAt   DateTime @default(now())
 
   userId Int

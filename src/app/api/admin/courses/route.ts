@@ -30,11 +30,12 @@ export async function POST(req: Request) {
         price: price,
         durationMonths: durationMonths,
         category: data.category || "Uncategorized",
+        imageUrl: data.imageUrl || null,
         userId: Number(session.id), // Ensure it's a number
       }
     });
 
-    return NextResponse.json({ course });
+    return NextResponse.json({ course }, { status: 201 });
   } catch (error: any) {
     console.error("Course Creation Error:", error);
     return NextResponse.json({ 

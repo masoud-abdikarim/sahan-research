@@ -5,9 +5,10 @@ import prisma from "@/prisma";
 // ✅ APPROVE / REJECT ENROLLMENT (ADMIN)
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const { status } = body;
 
@@ -20,7 +21,7 @@ export async function PUT(
 
     const enrollment = await prisma.enrollment.update({
       where: {
-        id: Number(params.id),
+        id: Number(id),
       },
       data: {
         status, // APPROVED | REJECTED

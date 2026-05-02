@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -12,7 +12,7 @@ export async function PATCH(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
 
     const updatedCourse = await prisma.course.update({
@@ -22,20 +22,25 @@ export async function PATCH(
         description: body.description,
         price: Number(body.price),
         durationMonths: Number(body.durationMonths),
-        category: body.category
+        category: body.category,
+        imageUrl: body.imageUrl
       }
     });
 
     return NextResponse.json({ course: updatedCourse });
   } catch (error: any) {
     console.error("Update Course Error:", error);
-    return NextResponse.json({ message: "Failed to update course", details: error.message }, { status: 500 });
+    return NextResponse.json({ 
+      message: "Failed to update course", 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -43,7 +48,8 @@ export async function DELETE(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const courseId = Number(params.id);
+    const { id } = await params;
+    const courseId = Number(id);
 
     // Perform a strict sequence of deletions
     await prisma.$transaction(async (tx) => {

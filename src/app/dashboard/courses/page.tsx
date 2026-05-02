@@ -23,6 +23,7 @@ export default function CoursesPage() {
     price: "",
     durationMonths: "",
     category: "",
+    imageUrl: "",
   });
 
   // Modal State
@@ -40,6 +41,7 @@ export default function CoursesPage() {
       price: course.price.toString(),
       durationMonths: course.durationMonths.toString(),
       category: course.category,
+      imageUrl: course.imageUrl || "",
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -48,7 +50,7 @@ export default function CoursesPage() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingCourse(null);
-    setFormData({ name: "", description: "", price: "", durationMonths: "", category: "" });
+    setFormData({ name: "", description: "", price: "", durationMonths: "", category: "", imageUrl: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,7 +65,8 @@ export default function CoursesPage() {
       description: formData.description,
       price: parseFloat(formData.price),
       durationMonths: parseInt(formData.durationMonths, 10),
-      category: formData.category
+      category: formData.category,
+      imageUrl: formData.imageUrl
     };
 
     if (editingCourse) {
@@ -139,6 +142,16 @@ export default function CoursesPage() {
                 className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
               />
             </div>
+            <div>
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Course Image URL (Optional)</label>
+              <input
+                type="text"
+                placeholder="https://example.com/image.jpg"
+                value={formData.imageUrl}
+                onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+                className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Price ($)</label>
@@ -205,8 +218,19 @@ export default function CoursesPage() {
               {courses.map((course) => (
                 <tr key={course.id} className="hover:bg-gray-50/50 transition-all group">
                   <td className="px-8 py-6">
-                    <div className="text-lg font-black text-gray-900 group-hover:text-indigo-600 transition-colors">{course.name}</div>
-                    <div className="text-xs text-gray-400 font-medium mt-1 line-clamp-1 max-w-lg">{course.description}</div>
+                    <div className="flex items-center gap-4">
+                      {course.imageUrl && (
+                        <img 
+                          src={course.imageUrl} 
+                          alt="" 
+                          className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-sm"
+                        />
+                      )}
+                      <div>
+                        <div className="text-lg font-black text-gray-900 group-hover:text-indigo-600 transition-colors">{course.name}</div>
+                        <div className="text-xs text-gray-400 font-medium mt-1 line-clamp-1 max-w-lg">{course.description}</div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-8 py-6 whitespace-nowrap">
                     <span className="px-3 py-1 rounded-full text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-100/50">

@@ -4,9 +4,14 @@ import Link from "next/link";
 import {
   BookOpen, FlaskConical, GraduationCap, TrendingUp,
   Users, ChevronRight, Star, CheckCircle2, ArrowRight,
-  Microscope, Library, BarChart3, Globe2, Mail, Phone, MapPin
+  Microscope, Library, BarChart3, Globe2, Mail, Phone, MapPin,
+  Clock, DollarSign
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import axios from "axios";
+import { Course } from "@/redux/slice/courseSlice";
+import CourseCard from "@/components/CourseCard";
+import Loader from "@/components/Loader";
 
 // ── Simple animated counter ─────────────────────────────────────────────────
 function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
@@ -90,6 +95,22 @@ const testimonials = [
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await axios.get("/api/public/courses");
+        setCourses(res.data.courses);
+      } catch (error) {
+        console.error("Failed to fetch courses:", error);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -139,9 +160,9 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-8">
             {[
               ["About", "#about"],
+              ["Courses", "#courses"],
               ["Features", "#features"],
               ["How It Works", "#how"],
-              ["Testimonials", "#testimonials"],
             ].map(([label, href]) => (
               <a
                 key={label}
@@ -183,7 +204,7 @@ export default function LandingPage() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="md:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-3">
-            {[["About", "#about"], ["Features", "#features"], ["How It Works", "#how"], ["Testimonials", "#testimonials"]].map(([l, h]) => (
+            {[["About", "#about"], ["Courses", "#courses"], ["Features", "#features"], ["How It Works", "#how"]].map(([l, h]) => (
               <a key={l} href={h} onClick={(e) => handleNavClick(e, h)} className="block text-sm font-medium text-slate-700 hover:text-indigo-600 py-1 cursor-pointer">{l}</a>
             ))}
             <div className="pt-3 flex flex-col gap-2">
@@ -333,6 +354,43 @@ export default function LandingPage() {
               })}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── COURSES SECTION ────────────────────────────────────────────────── */}
+      <section id="courses" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider mb-4">Available Programs</p>
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">Explore Our Research Courses</h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+              Choose from a wide range of structured academic courses designed to elevate your research skills.
+            </p>
+          </div>
+
+          {coursesLoading ? (
+            <div className="py-20 flex justify-center">
+              <Loader />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {courses.map((course) => (
+                <div key={course.id} className="group transform transition-all duration-300 hover:-translate-y-2">
+                  <CourseCard 
+                    course={course} 
+                    actionLabel="View Details & Enroll"
+                    onAction={() => window.location.href = '/login'}
+                  />
+                </div>
+              ))}
+              {courses.length === 0 && (
+                <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                  <BookOpen className="mx-auto text-slate-300 mb-4" size={48} />
+                  <p className="text-slate-500 font-medium">No courses are currently available. Please check back later.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 

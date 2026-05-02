@@ -7,7 +7,7 @@ import { registerUser } from "@/redux/slice/userSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ArrowLeft } from "lucide-react";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -50,82 +50,99 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+      <Link 
+        href="/" 
+        className="absolute top-8 left-8 p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-full transition-all shadow-sm sm:shadow-none"
+        title="Back to home"
+      >
+        <ArrowLeft size={24} />
+      </Link>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center text-indigo-600">
-          <BookOpen size={40} />
+        <div className="flex justify-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg">
+            <BookOpen size={24} className="text-white" />
+          </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create a new account
+        <h2 className="mt-6 text-center text-3xl font-black text-gray-900 tracking-tight">
+          Join Sahan Research
         </h2>
+        <p className="mt-2 text-center text-sm text-gray-500">
+          Create your account to start your academic journey
+        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-xl sm:px-10 border border-gray-100">
+        <div className="bg-white py-10 px-4 shadow-xl shadow-indigo-100/20 sm:rounded-2xl sm:px-10 border border-gray-100/50">
           <form className="space-y-5" onSubmit={handleRegister}>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Full Name</label>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
               <input
                 type="text"
                 name="name"
                 required
+                placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-100 rounded-xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email address</label>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
               <input
                 type="email"
                 name="email"
                 required
+                placeholder="name@company.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-100 rounded-xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Phone Number</label>
               <input
                 type="tel"
                 name="phone"
                 required
+                placeholder="+252 ..."
                 value={formData.phone}
                 onChange={handleChange}
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-100 rounded-xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Password</label>
               <input
                 type="password"
                 name="password"
                 required
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-100 rounded-xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700"
               />
             </div>
 
-            <div>
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-100 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all transform active:scale-[0.98]"
               >
-                {loading ? "Creating account..." : "Register"}
+                {loading ? "Creating account..." : "Create Account"}
               </button>
             </div>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-8 text-center pt-8 border-t border-gray-50">
+            <p className="text-sm text-gray-500">
               Already have an account?{" "}
-              <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link href="/login" className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors">
                 Sign in
               </Link>
             </p>

@@ -11,6 +11,7 @@ export interface Course {
   price: number;
   durationMonths: number;
   category: string;
+  imageUrl?: string;
   createdAt: string;
 }
 
