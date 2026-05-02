@@ -28,6 +28,7 @@ export default function Sidebar() {
   const isAdmin = currentUser?.role === "ADMIN";
 
   const handleLogout = async () => {
+    localStorage.setItem("manual-logout", "true");
     await dispatch(logoutUser());
     router.push("/login");
   };

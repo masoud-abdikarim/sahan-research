@@ -39,7 +39,7 @@ export async function PUT(req: Request, { params }: { params: any }) {
       data: { status },
       include: { 
         course: true, 
-        user: { select: { name: true, email: true } } 
+        user: { select: { name: true, email: true, phone: true } } 
       }
     });
 

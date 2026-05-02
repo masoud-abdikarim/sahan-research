@@ -1,19 +1,55 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getCurrentUser } from "@/redux/slice/userSlice";
 import Loader from "@/components/Loader";
-import { User, Mail, Phone, Calendar, Shield, BadgeCheck } from "lucide-react";
+import { User, Mail, Phone, Calendar, Shield, BadgeCheck, Lock, CheckCircle2 } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function SettingsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { currentUser, loading, error } = useSelector((state: RootState) => state.user);
 
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
   useEffect(() => {
     dispatch(getCurrentUser());
   }, [dispatch]);
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      const response = await axios.post("/api/user/change-password", {
+        newPassword,
+        confirmPassword,
+      });
+
+      toast.success(response.data.message || "Password updated successfully");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update password");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (loading && !currentUser) return <Loader />;
 
@@ -118,6 +154,61 @@ export default function SettingsPage() {
                   <p className="text-sm font-semibold text-gray-900 capitalize">{currentUser.role.toLowerCase()}</p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Security Section */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-50 flex items-center gap-2">
+              <Lock size={18} className="text-gray-400" />
+              <h3 className="font-bold text-gray-900">Security Settings</h3>
+            </div>
+            <div className="p-6">
+              <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">New Password</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Min. 6 characters"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-gray-900"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Repeat new password"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-gray-900"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                  >
+                    {isUpdating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={18} />
+                        Update Password
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
 

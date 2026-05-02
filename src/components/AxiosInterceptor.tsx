@@ -18,12 +18,24 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
       (error) => {
         // Only handle 401 if we are not already redirecting
         if (error.response?.status === 401 && !isRedirecting.current) {
+          // If already on login page, just ignore 401s
+          if (window.location.pathname === "/login") {
+            return Promise.reject(error);
+          }
+
+          const isManualLogout = localStorage.getItem("manual-logout");
+          if (isManualLogout) {
+            localStorage.removeItem("manual-logout");
+          }
+
           isRedirecting.current = true;
           
           dispatch(logout());
           
-          // Use a unique toast ID to prevent duplicates
-          toast.error("Session expired. Please login.", { id: "session-expired" });
+          // Only show toast if it's NOT a manual logout
+          if (!isManualLogout) {
+            toast.error("Session expired. Please login.", { id: "session-expired" });
+          }
           
           // Trigger logout event for other tabs
           localStorage.setItem("logout-event", Date.now().toString());

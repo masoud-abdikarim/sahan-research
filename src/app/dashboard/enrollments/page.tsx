@@ -7,7 +7,7 @@ import { getUserEnrollments, enrollCourse, approveEnrollment } from "@/redux/sli
 import { getCourses } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
 import CourseCard from "@/components/CourseCard";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Calendar } from "lucide-react";
 
 export default function EnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -90,6 +90,7 @@ export default function EnrollmentsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 </tr>
               </thead>
@@ -99,13 +100,27 @@ export default function EnrollmentsPage() {
                   return (
                     <tr key={enrollment.id}>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{course?.name || `Course #${enrollment.courseId}`}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {enrollment.createdAt ? (
+                          <span className="flex items-center gap-1.5">
+                            <Calendar size={13} className="text-gray-400" />
+                            {new Date(enrollment.createdAt).toLocaleDateString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        ) : "—"}
+                      </td>
                       <td className="px-6 py-4 text-sm">{getStatusBadge(enrollment.status)}</td>
                     </tr>
                   );
                 })}
                 {pendingOrRejected.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="px-6 py-4 text-center text-sm text-gray-500">No pending requests.</td>
+                    <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No pending requests.</td>
                   </tr>
                 )}
               </tbody>

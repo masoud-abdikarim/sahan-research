@@ -16,6 +16,13 @@ export default function LoginPage() {
   const { loading } = useSelector((state: RootState) => state.user);
   const router = useRouter();
 
+  useState(() => {
+    // Clear manual logout flag if it exists
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("manual-logout");
+    }
+  });
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
