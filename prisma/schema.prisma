@@ -12,43 +12,75 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role{
-  user
-  admin
+enum Role {
+  USER
+  ADMIN
 }
 
-model user{
-  id Int @id @default(autoincrement())
-  name String
-  email String @unique
-  phone String @unique
-  password String
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  username  String   @unique
+  email     String   @unique
+  phone     String   @unique
+  password  String
+  role      Role     @default(USER)
   createdAt DateTime @default(now())
-  role Role @default(user)
 
- course course[]
+  courses   Course[]       // courses created by admin
+  enrollments Enrollment[]
 }
 
-model course{
-  id Int @id @default(autoincrement())
-  name String
-  url String
+model Course {
+  id          Int      @id @default(autoincrement())
+  name        String
   description String
-  price Float
-  duration DateTime
-
-  studentId Int
-  student student @relation(fields: [studentId], references: [id])
+  price       Float
+  duration    Int      // in minutes or hours
+  createdAt   DateTime @default(now())
 
   userId Int
-  user user @relation(fields: [userId], references: [id])
-}
-model student{
-  id Int @id @default(autoincrement())
-  name String
-  email String
-  phone String @unique
-  password String
+  user   User @relation(fields: [userId], references: [id])
 
-course course[]
+  lessons Lesson[]
+  enrollments Enrollment[]
+}
+
+model Lesson {
+  id        Int    @id @default(autoincrement())
+  title     String
+  videoUrl  String
+  order     Int
+
+ Progress Progress[]
+  courseId Int
+  course   Course @relation(fields: [courseId], references: [id])
+}
+
+model Enrollment {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  status    EnrollmentStatus @default(PENDING)
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  progress Progress[]
+}
+
+model Progress {
+  id           Int  @id @default(autoincrement())
+  enrollmentId Int
+  lessonId     Int
+  completed    Boolean @default(false)
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+  lesson     Lesson     @relation(fields: [lessonId], references: [id])
 }
