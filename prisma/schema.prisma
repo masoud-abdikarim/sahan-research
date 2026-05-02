@@ -4,7 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -26,7 +26,6 @@ enum EnrollmentStatus {
 model User {
   id        Int      @id @default(autoincrement())
   name      String
-  username  String   @unique
   email     String   @unique
   phone     String   @unique
   password  String
@@ -42,7 +41,8 @@ model Course {
   name        String
   description String
   price       Float
-  duration    Int      // in minutes or hours
+  durationMonths Int      // in months only
+  category    String   @default("Uncategorized")
   createdAt   DateTime @default(now())
 
   userId Int
@@ -73,6 +73,8 @@ model Enrollment {
   course Course @relation(fields: [courseId], references: [id])
 
   progress Progress[]
+
+  @@unique([userId, courseId])
 }
 
 model Progress {
