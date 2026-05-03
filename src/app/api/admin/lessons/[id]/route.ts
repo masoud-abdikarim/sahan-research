@@ -15,11 +15,33 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
+    const lessonId = Number(id);
+    const order = Number(body.order);
+
+    // 🔒 check if order already exists in this course for a DIFFERENT lesson
+    const currentLesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+    if (!currentLesson) return NextResponse.json({ message: "Lesson not found" }, { status: 404 });
+
+    const existingOrder = await prisma.lesson.findFirst({
+      where: {
+        courseId: currentLesson.courseId,
+        order,
+        NOT: { id: lessonId }
+      },
+    });
+
+    if (existingOrder) {
+      return NextResponse.json(
+        { message: `Lesson number ${order} already exists in this course.` },
+        { status: 409 }
+      );
+    }
+
     const updatedLesson = await prisma.lesson.update({
-      where: { id: Number(id) },
+      where: { id: lessonId },
       data: {
         title: body.title,
-        order: Number(body.order),
+        order: order,
         videoType: body.videoType,
         videoUrl: body.videoUrl
       }

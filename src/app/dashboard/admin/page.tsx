@@ -14,8 +14,8 @@ export default function AdminOverview() {
       try {
         const res = await axios.get("/api/admin/stats");
         setStats(res.data.stats);
-      } catch (error) {
-        console.error("Failed to fetch stats");
+      } catch (error: any) {
+        console.error("Failed to fetch stats:", error.response?.data || error.message);
       } finally {
         setLoading(false);
       }

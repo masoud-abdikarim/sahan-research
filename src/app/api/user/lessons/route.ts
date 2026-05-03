@@ -10,81 +10,31 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("courseId");
 
-    // 1. Fetch relevant lessons and progress
-    let lessons = [];
+    const finalLessons: any[] = [];
 
     if (courseId) {
-      // SINGLE COURSE VIEW
-      if (session.role !== "ADMIN") {
-        const enrollment = await prisma.enrollment.findUnique({
-          where: { userId_courseId: { userId: session.id, courseId: Number(courseId) } }
-        });
+      // ── SINGLE COURSE VIEW ──
+      const cid = Number(courseId);
+      
+      // Security Check: Only Admin or Approved Students
+      const enrollment = await prisma.enrollment.findUnique({
+        where: { userId_courseId: { userId: session.id, courseId: cid } }
+      });
 
-        if (!enrollment || enrollment.status !== "APPROVED") {
-          return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-        }
+      if (session.role !== "ADMIN" && (!enrollment || enrollment.status !== "APPROVED")) {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }
 
-      lessons = await prisma.lesson.findMany({
-        where: { courseId: Number(courseId) },
+      const courseLessons = await prisma.lesson.findMany({
+        where: { courseId: cid },
         orderBy: { order: 'asc' },
         include: {
           course: true,
           Progress: {
-            where: {
-              enrollment: {
-                userId: session.id,
-                courseId: Number(courseId)
-              }
-            }
+            where: { enrollment: { userId: session.id, courseId: cid } }
           }
         }
       });
-    } else {
-      // ALL ENROLLED LESSONS VIEW
-      if (session.role === "ADMIN") {
-        lessons = await prisma.lesson.findMany({
-          orderBy: [{ courseId: 'asc' }, { order: 'asc' }],
-          include: { course: true, Progress: { take: 0 } } // Admins don't need progress here
-        });
-      } else {
-        const myEnrollments = await prisma.enrollment.findMany({
-          where: { userId: session.id, status: "APPROVED" },
-          select: { courseId: true }
-        });
-
-        const myCourseIds = myEnrollments.map(e => e.courseId);
-
-        lessons = await prisma.lesson.findMany({
-          where: { courseId: { in: myCourseIds } },
-          orderBy: [{ courseId: 'asc' }, { order: 'asc' }],
-          include: {
-            course: true,
-            Progress: {
-              where: {
-                enrollment: {
-                  userId: session.id
-                }
-              }
-            }
-          }
-        });
-      }
-    }
-
-    // 2. Calculate Unlocked Status per course
-    // Group lessons by courseId first to calculate unlocking correctly
-    const groupedByCourse: Record<number, any[]> = {};
-    lessons.forEach(l => {
-      if (!groupedByCourse[l.courseId]) groupedByCourse[l.courseId] = [];
-      groupedByCourse[l.courseId].push(l);
-    });
-
-    const finalLessons: any[] = [];
-
-    Object.values(groupedByCourse).forEach(courseLessons => {
-      // Sort by order just in case
-      courseLessons.sort((a, b) => a.order - b.order);
 
       courseLessons.forEach((lesson, index) => {
         if (session.role === "ADMIN") {
@@ -92,31 +42,71 @@ export async function GET(req: Request) {
           return;
         }
 
-        // Sequential Access Logic:
-        // 1. First lesson is always unlocked
-        // 2. Subsequent lessons are unlocked ONLY if the previous lesson is completed
+        // 🔒 CORE RULE: If enrollment is marked as completed, all its lessons are unlocked
+        if (enrollment?.isCompleted) {
+          finalLessons.push({
+            ...lesson,
+            unlocked: true,
+            completed: true
+          });
+          return;
+        }
+
         const isFirst = index === 0;
-        const isCompleted = lesson.Progress[0]?.completed || false;
-        
-        // Find if the previous lesson in the sorted array was completed
         const prevLessonCompleted = index > 0 ? (courseLessons[index - 1].Progress[0]?.completed || false) : false;
-        
         const unlocked = isFirst || prevLessonCompleted;
 
-        // Security: If not unlocked, remove sensitive content like videoUrl
         const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
 
         finalLessons.push({
           ...safeLesson,
           unlocked,
-          completed: isCompleted
+          completed: lesson.Progress[0]?.completed || false
         });
       });
-    });
+    } else {
+      // ── ALL ENROLLED LESSONS VIEW ──
+      const myEnrollments = await prisma.enrollment.findMany({
+        where: { userId: session.id, status: "APPROVED" },
+        select: { courseId: true, isCompleted: true }
+      });
+
+      for (const enrollment of myEnrollments) {
+        const courseLessons = await prisma.lesson.findMany({
+          where: { courseId: enrollment.courseId },
+          orderBy: { order: 'asc' },
+          include: {
+            course: true,
+            Progress: {
+              where: { enrollment: { userId: session.id, courseId: enrollment.courseId } }
+            }
+          }
+        });
+
+        courseLessons.forEach((lesson, index) => {
+          if (enrollment.isCompleted) {
+            finalLessons.push({ ...lesson, unlocked: true, completed: true });
+            return;
+          }
+
+          const isFirst = index === 0;
+          const prevLessonCompleted = index > 0 ? (courseLessons[index - 1].Progress[0]?.completed || false) : false;
+          const unlocked = isFirst || prevLessonCompleted;
+
+          const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
+
+          finalLessons.push({
+            ...safeLesson,
+            unlocked,
+            completed: lesson.Progress[0]?.completed || false
+          });
+        });
+      }
+    }
 
     return NextResponse.json({ lessons: finalLessons });
-  } catch (error) {
-    console.error("[GET_LESSONS_ERROR]", error);
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("GET Lessons Error:", error);
+    return NextResponse.json({ message: "Internal server error", error: error.message }, { status: 500 });
   }
 }

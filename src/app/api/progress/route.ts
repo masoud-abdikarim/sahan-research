@@ -15,28 +15,65 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // check if already exists
+    // 1. Fetch enrollment to check completion status
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { id: Number(enrollmentId) },
+      include: {
+        course: {
+          include: {
+            lessons: { orderBy: { order: 'asc' } }
+          }
+        }
+      }
+    });
+
+    if (!enrollment) return NextResponse.json({ message: "Enrollment not found" }, { status: 404 });
+
+    // 🔒 CORE RULE: If already completed, ignore progress updates
+    if (enrollment.isCompleted) {
+      return NextResponse.json({ message: "Course already completed. Progress is locked.", enrollment }, { status: 200 });
+    }
+
+    // 2. Mark lesson as completed
     let progress = await prisma.progress.findFirst({
       where: {
-        enrollmentId,
-        lessonId,
+        enrollmentId: Number(enrollmentId),
+        lessonId: Number(lessonId),
       },
     });
 
     if (progress) {
-      // update to completed
       progress = await prisma.progress.update({
         where: { id: progress.id },
         data: { completed: true },
       });
     } else {
-      // create new
       progress = await prisma.progress.create({
         data: {
-          enrollmentId,
-          lessonId,
+          enrollmentId: Number(enrollmentId),
+          lessonId: Number(lessonId),
           completed: true,
         },
+      });
+    }
+
+    // 3. Check for Course Completion (100% logic)
+    const allProgress = await prisma.progress.findMany({
+      where: { enrollmentId: Number(enrollmentId), completed: true }
+    });
+
+    const totalLessons = enrollment.course.lessons.length;
+    const completedLessons = allProgress.length;
+
+    if (totalLessons > 0 && completedLessons >= totalLessons) {
+      // Create Immutable Snapshot
+      await prisma.enrollment.update({
+        where: { id: Number(enrollmentId) },
+        data: {
+          isCompleted: true,
+          completedAt: new Date(),
+          lastLessonCompletedId: Number(lessonId)
+        }
       });
     }
 
@@ -44,10 +81,8 @@ export async function POST(req: NextRequest) {
       { message: "Lesson marked as completed", progress },
       { status: 200 }
     );
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Server error", error },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error("Mark Progress Error:", error);
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
   }
 }

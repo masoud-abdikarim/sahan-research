@@ -6,11 +6,20 @@ import prisma from "@/prisma";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, videoUrl, order, courseId } = body;
+    const { title, videoUrl, order, courseId, videoType } = body;
 
-    if (!title || !videoUrl || order === undefined || !courseId) {
+    // 🔒 CORE RULE: Lesson must have video content
+    if (!title || !videoUrl || order === undefined || !courseId || !videoType) {
       return NextResponse.json(
-        { message: "All fields are required" },
+        { message: "All fields are required, including a valid video." },
+        { status: 400 }
+      );
+    }
+
+    // Basic format validation for URL
+    if (videoType === "URL" && !videoUrl.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|vimeo\.com|drive\.google\.com)\/.+$/)) {
+      return NextResponse.json(
+        { message: "Invalid video URL format. Please provide a valid instructional video link." },
         { status: 400 }
       );
     }

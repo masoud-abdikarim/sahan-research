@@ -75,6 +75,11 @@ model Enrollment {
   courseId  Int
   status    EnrollmentStatus @default(PENDING)
 
+  // Completion Snapshot
+  isCompleted           Boolean   @default(false)
+  completedAt           DateTime?
+  lastLessonCompletedId Int?
+
   user   User   @relation(fields: [userId], references: [id])
   course Course @relation(fields: [courseId], references: [id])
 

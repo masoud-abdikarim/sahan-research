@@ -338,17 +338,19 @@ export default function LessonsPage() {
                         <input
                           type="text"
                           required
-                          placeholder="Paste YouTube or MP4 link here..."
+                          placeholder="Paste YouTube, Vimeo or MP4 link here..."
                           value={formData.videoUrl}
                           onChange={e => setFormData({...formData, videoUrl: e.target.value})}
                           className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
                         />
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 ml-1 uppercase tracking-widest">Supports YouTube, Vimeo, and direct MP4 links</p>
+                        <p className="text-[10px] font-black text-amber-600 dark:text-amber-500 ml-1 uppercase tracking-widest flex items-center gap-1.5">
+                          <Video size={12} /> Mandatory: Lessons must contain valid video content
+                        </p>
                       </div>
                     ) : (
                       <div className="border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-[2rem] p-10 text-center hover:border-indigo-300 dark:hover:border-indigo-800 transition-colors bg-gray-50/50 dark:bg-slate-950/50">
                         <UploadButton
-                          endpoint="courseImageUploader"
+                          endpoint="videoUploader"
                           onClientUploadComplete={(res) => {
                             if (res?.[0]) {
                               setFormData({ ...formData, videoUrl: res[0].url });
