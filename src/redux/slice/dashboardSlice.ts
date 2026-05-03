@@ -36,6 +36,7 @@ export const getDashboardStats = createAsyncThunk(
       const res = await axios.get("/api/dashboard");
       return res.data;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to fetch dashboard stats";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);

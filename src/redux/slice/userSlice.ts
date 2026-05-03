@@ -28,7 +28,7 @@ const initialState: UserState = {
 // ✅ LOGIN USER
 export const loginUser = createAsyncThunk(
   "user/login",
-  async (data: any, { rejectWithValue }) => {
+  async (data: { identifier: string; password: any }, { rejectWithValue }) => {
     try {
       const res = await axios.post("/api/auth/login", data);
       return res.data.user;

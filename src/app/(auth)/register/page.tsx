@@ -9,6 +9,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { BookOpen, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -87,7 +88,7 @@ export default function RegisterPage() {
                 type="text"
                 name="name"
                 required
-                placeholder="John Doe"
+                placeholder="Enter your full name"
                 value={formData.name}
                 onChange={handleChange}
                 className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
@@ -100,7 +101,7 @@ export default function RegisterPage() {
                 type="email"
                 name="email"
                 required
-                placeholder="name@company.com"
+                placeholder="Enter your email address"
                 value={formData.email}
                 onChange={handleChange}
                 className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
@@ -113,7 +114,7 @@ export default function RegisterPage() {
                 type="tel"
                 name="phone"
                 required
-                placeholder="+252 ..."
+                placeholder="Enter your phone number"
                 value={formData.phone}
                 onChange={handleChange}
                 className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
@@ -122,14 +123,9 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Password</label>
-              <input
-                type="password"
-                name="password"
-                required
-                placeholder="••••••••"
+              <PasswordInput
                 value={formData.password}
                 onChange={handleChange}
-                className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
               />
             </div>
 

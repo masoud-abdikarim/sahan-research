@@ -177,9 +177,9 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between w-full">
-            {/* Left: Logo & Nav */}
-            <div className="flex items-center gap-4 md:gap-8 lg:gap-12">
-              <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
+            {/* Left: Logo */}
+            <div className="flex items-center shrink-0">
+              <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
                 <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 group-hover:scale-105 transition-all duration-500">
                   <FlaskConical size={20} className="text-white" />
                 </div>
@@ -187,35 +187,35 @@ export default function LandingPage() {
                   Sahan <span className="text-indigo-600 group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-300">Research</span>
                 </span>
               </Link>
-
-              {/* Desktop & Tablet nav - Visible on md and up */}
-              <nav className="hidden md:flex items-center gap-3 lg:gap-8">
-                {[
-                  ["About", "#about", "about"],
-                  ["Courses", "#courses", "courses"],
-                  ["Features", "#features", "features"],
-                  ["How It Works", "#how", "how"],
-                  ["Testimonials", "#testimonials", "testimonials"],
-                ].map(([label, href, id]) => (
-                  <a
-                    key={label}
-                    href={href}
-                    onClick={(e) => handleNavClick(e, href)}
-                    className={`text-[10px] lg:text-[12px] font-black tracking-[0.1em] lg:tracking-[0.2em] transition-all duration-300 relative py-1 uppercase group whitespace-nowrap ${
-                      activeSection === id 
-                        ? "text-indigo-600 dark:text-indigo-400" 
-                        : "text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-                    }`}
-                  >
-                    {label}
-                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full transition-all duration-500 ${activeSection === id ? "w-full" : "w-0 group-hover:w-full"}`} />
-                  </a>
-                ))}
-              </nav>
             </div>
 
+            {/* Middle: Nav */}
+            <nav className="hidden md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
+              {[
+                ["About", "#about", "about"],
+                ["Courses", "#courses", "courses"],
+                ["Features", "#features", "features"],
+                ["How It Works", "#how", "how"],
+                ["Testimonials", "#testimonials", "testimonials"],
+              ].map(([label, href, id]) => (
+                <a
+                  key={label}
+                  href={href}
+                  onClick={(e) => handleNavClick(e, href)}
+                  className={`text-[10px] lg:text-[12px] font-black tracking-[0.1em] lg:tracking-[0.2em] transition-all duration-300 relative py-1 uppercase group whitespace-nowrap ${
+                    activeSection === id 
+                      ? "text-indigo-600 dark:text-indigo-400" 
+                      : "text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  }`}
+                >
+                  {label}
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full transition-all duration-500 ${activeSection === id ? "w-full" : "w-0 group-hover:w-full"}`} />
+                </a>
+              ))}
+            </nav>
+
             {/* Right: Auth Buttons & Mobile Toggle */}
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <div className="hidden md:flex items-center gap-1 lg:gap-3">
                 <ThemeToggle />
                 <Link

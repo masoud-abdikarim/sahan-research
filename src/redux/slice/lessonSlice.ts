@@ -35,6 +35,7 @@ export const createLesson = createAsyncThunk(
       toast.success("Lesson created successfully!");
       return res.data.lesson;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to create lesson";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
@@ -49,6 +50,7 @@ export const getLessonsByCourse = createAsyncThunk(
       const res = await axios.get(`/api/user/lessons${courseId ? `?courseId=${courseId}` : ""}`);
       return res.data.lessons;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to fetch lessons";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
@@ -64,6 +66,7 @@ export const updateLesson = createAsyncThunk(
       toast.success("Lesson updated successfully!");
       return res.data.lesson;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to update lesson";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
@@ -79,6 +82,7 @@ export const deleteLesson = createAsyncThunk(
       toast.success("Lesson deleted successfully!");
       return id;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to delete lesson";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);

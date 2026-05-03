@@ -21,7 +21,7 @@ export async function GET() {
           select: { enrollments: true }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'asc' }
     });
 
     return NextResponse.json({ users });

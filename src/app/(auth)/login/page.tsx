@@ -9,9 +9,10 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { BookOpen, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.user);
@@ -26,13 +27,13 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!identifier || !password) {
       toast.error("Please fill in all fields");
       return;
     }
 
     try {
-      const resultAction = await dispatch(loginUser({ email, password }));
+      const resultAction = await dispatch(loginUser({ identifier, password }));
       if (loginUser.fulfilled.match(resultAction)) {
         toast.success("Logged in successfully!");
         const user = resultAction.payload;
@@ -82,14 +83,14 @@ export default function LoginPage() {
         <div className="bg-white dark:bg-slate-900 py-10 px-4 shadow-xl shadow-indigo-100/20 dark:shadow-black/20 sm:rounded-2xl sm:px-10 border border-gray-100/50 dark:border-slate-800/50">
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-              <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
+              <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Email or Phone Number</label>
               <div className="mt-1">
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email or phone number"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
                 />
               </div>
@@ -101,13 +102,9 @@ export default function LoginPage() {
                 <Link href="/forgot-password" className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">Forgot password?</Link>
               </div>
               <div className="mt-1">
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
+                <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
                 />
               </div>
             </div>

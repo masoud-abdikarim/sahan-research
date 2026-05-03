@@ -2,7 +2,7 @@ import prisma from "../src/prisma";
 import bcrypt from "bcryptjs";
 
 async function main() {
-  const adminEmail = "admin@example.com";
+  const adminEmail = "abdiasis1@gmail.com";
 
   // check if admin already exists
   const existingAdmin = await prisma.user.findUnique({
@@ -15,29 +15,29 @@ async function main() {
   }
 
   // hash password
-  const hashedPassword = await bcrypt.hash("admin123", 10);
+  const hashedPassword = await bcrypt.hash("admin132", 10);
 
   const admin = await prisma.user.create({
     data: {
-      name: "Super Admin",
+      name: "Abdiasis",
       email: adminEmail,
-      phone: "252610000000",
+      phone: "0634379036",
       password: hashedPassword,
       role:"ADMIN",
     },
   });
 
   console.log("Admin created:", admin.email);
-  const studentEmail = "student@example.com";
+  const studentEmail = "masoudabdikarim1@example.com";
   const studentPassword = await bcrypt.hash("student123", 10);
 
   const student = await prisma.user.upsert({
     where: { email: studentEmail },
     update: {},
     create: {
-      name: "John Student",
+      name: "Masoud Abdikarim",
       email: studentEmail,
-      phone: "252610000001",
+      phone: "0634705869",
       password: studentPassword,
       role: "USER",
     },
@@ -47,14 +47,6 @@ async function main() {
 
   // Sample Courses
   const courses = [
-    {
-      name: "React Mastery",
-      description: "Learn React from scratch to advanced patterns.",
-      price: 49.99,
-      durationMonths: 3,
-      category: "Development",
-      userId: admin.id
-    },
     {
       name: "Full-Stack Next.js",
       description: "Build modern web apps with Next.js 15 and Prisma.",
@@ -66,7 +58,7 @@ async function main() {
     {
       name: "UI/UX Design Fundamentals",
       description: "Master Figma and design principles.",
-      price: 29.99,
+      price: 10,
       durationMonths: 2,
       category: "Design",
       userId: admin.id

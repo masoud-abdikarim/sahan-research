@@ -22,8 +22,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LMS Platform",
-  description: "A modern Learning Management System",
+  title: "Sahan Research",
+  description: "A modern academic research and learning management system.",
 };
 
 export default function RootLayout({

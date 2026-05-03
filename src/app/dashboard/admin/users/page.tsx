@@ -5,6 +5,7 @@ import axios from "axios";
 import Loader from "@/components/Loader";
 import { User, Mail, Calendar, Phone, Hash, KeyRound, X, CheckCircle2, AlertCircle, Search } from "lucide-react";
 import toast from "react-hot-toast";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function UserManagement() {
   const [users, setUsers] = useState<any[]>([]);
@@ -30,6 +31,9 @@ export default function UserManagement() {
       const res = await axios.get("/api/admin/users");
       setUsers(res.data.users);
     } catch (error: any) {
+      // Ignore 401 errors as they are handled globally by AxiosInterceptor
+      if (error.response?.status === 401) return;
+
       const msg = error.response?.data?.details || error.message || "Failed to fetch users";
       console.error("User Fetch Error:", msg);
       toast.error(msg);
@@ -225,24 +229,20 @@ export default function UserManagement() {
               <form onSubmit={handleResetPassword} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">New Password</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="Min. 6 characters"
+                  <PasswordInput
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-slate-200 font-bold"
+                    placeholder="Min. 6 characters"
+                    className="px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-gray-900 dark:text-slate-200 font-bold"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="Repeat new password"
+                  <PasswordInput
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-slate-200 font-bold"
+                    placeholder="Repeat new password"
+                    className="px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-gray-900 dark:text-slate-200 font-bold"
                   />
                 </div>
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/prisma";
 import { getSession } from "@/lib/auth";
 
-export async function PUT(req: Request, { params }: { params: any }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
     if (!session || session.role !== "ADMIN") {

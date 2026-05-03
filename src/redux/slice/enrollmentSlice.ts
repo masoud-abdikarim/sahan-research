@@ -43,6 +43,7 @@ export const enrollCourse = createAsyncThunk(
       toast.success("Enrolled successfully, waiting for approval.");
       return res.data.enrollment;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to enroll";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
@@ -57,6 +58,7 @@ export const getAllEnrollments = createAsyncThunk(
       const res = await axios.get("/api/admin/enrollments");
       return res.data.enrollments;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to fetch all enrollments";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
@@ -72,6 +74,7 @@ export const getUserEnrollments = createAsyncThunk(
       const res = await axios.get(`/api/user/enrollments`);
       return res.data.enrollments;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to fetch enrollments";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
@@ -88,6 +91,7 @@ export const approveEnrollment = createAsyncThunk(
       toast.success(`Enrollment ${status.toLowerCase()}!`);
       return res.data.enrollment;
     } catch (err: any) {
+      if (err.response?.status === 401) return rejectWithValue(null);
       const errorMsg = err.response?.data?.message || "Failed to update enrollment";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);

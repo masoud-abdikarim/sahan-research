@@ -5,10 +5,11 @@ import prisma from "@/prisma";
 // ✅ GET NEXT AVAILABLE LESSON
 export async function GET(
   req: NextRequest,
-  { params }: { params: { enrollmentId: string } }
+  { params }: { params: Promise<{ enrollmentId: string }> }
 ) {
   try {
-    const enrollmentId = Number(params.enrollmentId);
+    const { enrollmentId: enrollmentIdStr } = await params;
+    const enrollmentId = Number(enrollmentIdStr);
 
     // get enrollment
     const enrollment = await prisma.enrollment.findUnique({

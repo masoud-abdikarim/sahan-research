@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
-import { logoutUser } from "@/redux/slice/userSlice";
+import { logoutUser, logout } from "@/redux/slice/userSlice";
 import { useRouter } from "next/navigation";
 
 export default function Sidebar() {

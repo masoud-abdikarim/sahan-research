@@ -111,9 +111,19 @@ export default function LessonsPage() {
   const handleLessonComplete = async (lessonId: number) => {
     if (isAdmin) return;
     
+    const lesson = lessons.find(l => l.id === lessonId);
+    if (!lesson) return;
+
+    const enrollment = enrollments.find(e => e.courseId === lesson.courseId && e.status === "APPROVED");
+    if (!enrollment) {
+      toast.error("Active enrollment not found");
+      return;
+    }
+
     const res = await dispatch(markLessonComplete({ 
-      courseId: lessons.find(l => l.id === lessonId)?.courseId || 0, 
-      lessonId 
+      courseId: lesson.courseId, 
+      lessonId,
+      enrollmentId: enrollment.id
     }));
 
     if (markLessonComplete.fulfilled.match(res)) {

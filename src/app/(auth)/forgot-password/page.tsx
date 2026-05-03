@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { BookOpen, ArrowLeft, Phone, Mail, Lock, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState(1);
@@ -198,26 +199,18 @@ export default function ForgotPasswordPage() {
             <form className="space-y-6" onSubmit={handleResetPassword}>
               <div>
                 <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">New Password</label>
-                <input
-                  type="password"
+                <PasswordInput
                   name="password"
-                  required
-                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Confirm New Password</label>
-                <input
-                  type="password"
+                <PasswordInput
                   name="confirmPassword"
-                  required
-                  placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
                 />
               </div>
               <button

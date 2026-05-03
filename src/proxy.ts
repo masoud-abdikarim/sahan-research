@@ -5,7 +5,7 @@ import { jwtVerify } from "jose";
 const secretKey = process.env.JWT_SECRET || "super-secret-key-please-change-in-production";
 const key = new TextEncoder().encode(secretKey);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const session = request.cookies.get("session")?.value;
   const path = request.nextUrl.pathname;
   const method = request.method;

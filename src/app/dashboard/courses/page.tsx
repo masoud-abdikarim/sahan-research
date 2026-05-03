@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getCourses, createCourse, updateCourse, deleteCourse, Course } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
-import { Plus, Edit, Trash2, X, Check, Upload, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, X, Check, Upload, Link as LinkIcon, Image as ImageIcon, Search, Filter } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/components/ConfirmModal";
 import { UploadButton } from "@/lib/uploadthing";
@@ -28,12 +28,27 @@ export default function CoursesPage() {
     imageUrl: "",
   });
 
+  // Filtering State
+  const [filterTerm, setFilterTerm] = useState("");
+
   // Modal State
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
     dispatch(getCourses());
   }, [dispatch]);
+
+  const filteredCourses = useMemo(() => {
+    if (!filterTerm.trim()) return courses;
+    
+    const term = filterTerm.toLowerCase();
+    return courses.filter(course => {
+      return (
+        course.name.toLowerCase().includes(term) ||
+        course.category.toLowerCase().includes(term)
+      );
+    });
+  }, [courses, filterTerm]);
 
   const handleEditInit = (course: Course) => {
     setEditingCourse(course);
@@ -119,6 +134,30 @@ export default function CoursesPage() {
           <Plus size={18} />
           Create New Course
         </button>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
+        <div className="relative flex-1 w-full">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search size={18} className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search courses by name or category..."
+            value={filterTerm}
+            onChange={(e) => setFilterTerm(e.target.value)}
+            className="w-full pl-12 pr-12 py-4 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl shadow-sm focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all font-bold text-gray-800 dark:text-slate-200"
+          />
+          {filterTerm && (
+            <button 
+              onClick={() => setFilterTerm("")}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm && (
@@ -310,7 +349,7 @@ export default function CoursesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
-              {courses.map((course) => (
+              {filteredCourses.map((course) => (
                 <tr key={course.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-950/50 transition-all group">
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
@@ -358,10 +397,24 @@ export default function CoursesPage() {
                   </td>
                 </tr>
               ))}
-              {courses.length === 0 && !loading && (
+              {filteredCourses.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center text-gray-400 dark:text-slate-600 font-bold uppercase tracking-[0.2em]">
-                    No courses found in curriculum.
+                  <td colSpan={5} className="px-8 py-24 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-20 h-20 rounded-3xl bg-gray-50 dark:bg-slate-950 flex items-center justify-center text-gray-200 dark:text-slate-800">
+                        <Search size={40} />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-widest">No matching courses</p>
+                        <p className="text-gray-500 dark:text-slate-500 font-medium">Try adjusting your filters or search terms.</p>
+                      </div>
+                      <button 
+                        onClick={() => { setFilterTerm(""); }}
+                        className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] hover:underline mt-2"
+                      >
+                        Clear All Filters
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )}

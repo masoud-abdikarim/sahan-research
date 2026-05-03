@@ -17,12 +17,13 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
       (response) => response,
       (error) => {
         const isManualLogout = typeof window !== "undefined" && localStorage.getItem("manual-logout");
+        const isAuthRequest = error.config?.url?.includes("/api/auth/login") || error.config?.url?.includes("/api/user");
 
         // If it's a 401 and we are already redirecting or it's a manual logout, 
         // just suppress the error and don't show any toasts.
         if (error.response?.status === 401) {
-          if (isRedirecting.current || isManualLogout) {
-            return new Promise(() => {}); // Return a pending promise to stop the error propagation
+          if (isRedirecting.current || isManualLogout || isAuthRequest) {
+            return Promise.reject(error); // Return the error for auth requests to handle locally
           }
 
           // If already on login page, just ignore 401s
@@ -33,9 +34,6 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
           isRedirecting.current = true;
           
           dispatch(logout());
-          
-          // Only show toast if it's NOT a manual logout
-          toast.error("Session expired. Please login.", { id: "session-expired" });
           
           // Trigger logout event for other tabs
           localStorage.setItem("logout-event", Date.now().toString());
