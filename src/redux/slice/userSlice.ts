@@ -79,13 +79,19 @@ export const getCurrentUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   "user/logout",
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch }) => {
     try {
+      // Clear state immediately in Redux
+      dispatch(logout());
+      
+      // Attempt to clear session cookie on server
       await axios.post("/api/auth/me");
+      
       localStorage.setItem("logout-event", Date.now().toString());
       return null;
     } catch (err: any) {
-      return rejectWithValue("Failed to logout");
+      // Handle silently - if server logout fails, we still want to be logged out locally
+      return null;
     }
   }
 );

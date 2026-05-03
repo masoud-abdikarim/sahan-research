@@ -27,7 +27,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-500">
+    <div className="min-h-screen flex flex-col transition-colors duration-500">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />

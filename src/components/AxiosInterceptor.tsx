@@ -16,16 +16,18 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
-        // Only handle 401 if we are not already redirecting
-        if (error.response?.status === 401 && !isRedirecting.current) {
+        const isManualLogout = typeof window !== "undefined" && localStorage.getItem("manual-logout");
+
+        // If it's a 401 and we are already redirecting or it's a manual logout, 
+        // just suppress the error and don't show any toasts.
+        if (error.response?.status === 401) {
+          if (isRedirecting.current || isManualLogout) {
+            return new Promise(() => {}); // Return a pending promise to stop the error propagation
+          }
+
           // If already on login page, just ignore 401s
           if (window.location.pathname === "/login") {
             return Promise.reject(error);
-          }
-
-          const isManualLogout = localStorage.getItem("manual-logout");
-          if (isManualLogout) {
-            localStorage.removeItem("manual-logout");
           }
 
           isRedirecting.current = true;
@@ -33,9 +35,7 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
           dispatch(logout());
           
           // Only show toast if it's NOT a manual logout
-          if (!isManualLogout) {
-            toast.error("Session expired. Please login.", { id: "session-expired" });
-          }
+          toast.error("Session expired. Please login.", { id: "session-expired" });
           
           // Trigger logout event for other tabs
           localStorage.setItem("logout-event", Date.now().toString());
@@ -46,6 +46,8 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
           setTimeout(() => {
             isRedirecting.current = false;
           }, 5000);
+          
+          return new Promise(() => {});
         }
         return Promise.reject(error);
       }

@@ -118,6 +118,18 @@ export default function AdminEnrollmentsPage() {
                             <XCircle size={14} /> Reject
                           </button>
                         </div>
+                      ) : activeTab === "REJECTED" ? (
+                        <div className="flex justify-end gap-3 items-center">
+                          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400">
+                            <XCircle size={14}/> {activeTab}
+                          </span>
+                          <button
+                            onClick={() => handleAction(enrollment.id, "APPROVED")}
+                            className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all flex items-center gap-1.5 font-black text-[10px] uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/30 shadow-sm"
+                          >
+                            <CheckCircle size={14} /> Accept Again
+                          </button>
+                        </div>
                       ) : (
                         <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
                           activeTab === "APPROVED" 

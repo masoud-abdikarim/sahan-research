@@ -5,7 +5,7 @@ import {
   BookOpen, FlaskConical, GraduationCap, TrendingUp,
   Users, ChevronRight, Star, CheckCircle2, ArrowRight,
   Microscope, Library, BarChart3, Globe2, Mail, Phone, MapPin,
-  Clock, DollarSign
+  Clock, DollarSign, Zap, UserPlus, Search, LineChart
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -165,7 +165,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500">
+    <div className="min-h-screen font-sans transition-colors duration-500">
 
       {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
       <header
@@ -588,7 +588,7 @@ export default function LandingPage() {
       <section className="py-32 relative overflow-hidden transition-colors duration-500">
         <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-900 pointer-events-none" />
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white rounded-full blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white dark:bg-indigo-400 rounded-full blur-[120px]" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 text-center">

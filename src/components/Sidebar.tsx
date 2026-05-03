@@ -28,9 +28,22 @@ export default function Sidebar() {
   const isAdmin = currentUser?.role === "ADMIN";
 
   const handleLogout = async () => {
+    // 1. Mark as manual logout to suppress interceptor toasts
     localStorage.setItem("manual-logout", "true");
-    await dispatch(logoutUser());
+    
+    // 2. Clear state immediately
+    dispatch(logout());
+    
+    // 3. Redirect first for instant UI response
     router.push("/login");
+    
+    // 4. Perform background cleanup
+    await dispatch(logoutUser());
+    
+    // 5. Cleanup flag after a short delay to ensure all pending requests are handled
+    setTimeout(() => {
+      localStorage.removeItem("manual-logout");
+    }, 1000);
   };
 
   const adminNav = [
