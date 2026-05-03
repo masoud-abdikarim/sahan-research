@@ -9,10 +9,36 @@ export async function GET() {
 
     const enrollments = await prisma.enrollment.findMany({
       where: { userId: session.id },
-      include: { course: true }
+      include: { 
+        course: {
+          include: {
+            _count: {
+              select: { lessons: true }
+            }
+          }
+        },
+        _count: {
+          select: { progress: true }
+        }
+      }
     });
 
-    return NextResponse.json({ enrollments });
+    // Transform to include percentage and counts directly
+    const transformedEnrollments = enrollments.map(e => {
+      const totalLessons = e.course._count.lessons;
+      const completedLessons = e._count.progress;
+      const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      
+      return {
+        ...e,
+        totalLessons,
+        completedLessons,
+        progressPercentage,
+        isCompleted: totalLessons > 0 && completedLessons === totalLessons
+      };
+    });
+
+    return NextResponse.json({ enrollments: transformedEnrollments });
   } catch (error) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }

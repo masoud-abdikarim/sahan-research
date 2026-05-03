@@ -6,13 +6,13 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
 import { getNextLesson, markLessonComplete } from "@/redux/slice/progressSlice";
 import Loader from "@/components/Loader";
-import { PlayCircle, CheckCircle } from "lucide-react";
+import { PlayCircle, CheckCircle, BookOpen, Clock, ChevronRight, Layout, BarChart3, Trophy } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ProgressPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
-  const { nextLesson, loading: progressLoading } = useSelector((state: RootState) => state.progress);
+  const { nextLesson, currentStats, loading: progressLoading } = useSelector((state: RootState) => state.progress);
   const { currentUser } = useSelector((state: RootState) => state.user);
   
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<number | "">("");
@@ -35,77 +35,207 @@ export default function ProgressPage() {
   const handleComplete = async () => {
     if (!nextLesson || selectedEnrollmentId === "") return;
     
+    const enrollment = approvedEnrollments.find(e => e.id === Number(selectedEnrollmentId));
+    if (!enrollment) return;
+
     const res = await dispatch(markLessonComplete({
       enrollmentId: Number(selectedEnrollmentId),
-      lessonId: nextLesson.id
+      lessonId: nextLesson.id,
+      courseId: enrollment.courseId
     }));
 
     if (markLessonComplete.fulfilled.match(res)) {
-      // Fetch the next lesson immediately
+      // Refresh both to update global progress bars and local next lesson
       dispatch(getNextLesson(Number(selectedEnrollmentId)));
+      dispatch(getUserEnrollments());
     }
   };
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">My Progress</h1>
+  const selectedEnrollment = approvedEnrollments.find(e => e.id === Number(selectedEnrollmentId));
 
-      <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Select a Course Enrollment to View Progress</label>
-        <select 
-          value={selectedEnrollmentId}
-          onChange={(e) => setSelectedEnrollmentId(e.target.value === "" ? "" : Number(e.target.value))}
-          className="block w-full sm:w-96 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm"
-        >
-          <option value="">Select Enrollment...</option>
-          {approvedEnrollments.map(e => (
-            <option key={e.id} value={e.id}>Enrollment #{e.id} (Course {e.courseId})</option>
-          ))}
-        </select>
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-12">
+        <h1 className="text-4xl font-black text-gray-900 mb-2">My Learning Progress</h1>
+        <p className="text-gray-500 font-medium">Track your lessons, complete courses, and master new skills.</p>
       </div>
 
-      {selectedEnrollmentId !== "" && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 sm:p-10">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">Up Next</h2>
-            
-            {progressLoading ? (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
+        {/* Left Column: Course Selection */}
+        <div className="lg:col-span-1 space-y-6">
+          <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+            <BookOpen size={16} />
+            Your Enrolled Courses
+          </h2>
+          
+          <div className="space-y-4">
+            {enrollLoading ? (
               <Loader />
-            ) : nextLesson ? (
-              <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-                <div className="bg-indigo-50 p-4 rounded-xl flex-shrink-0">
-                  <PlayCircle size={48} className="text-indigo-600" />
-                </div>
-                
-                <div className="flex-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 mb-1 block">Lesson {nextLesson.order}</span>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{nextLesson.title}</h3>
-                  <a href={nextLesson.videoUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium text-sm">
-                    Watch Lesson Video &rarr;
-                  </a>
-                </div>
-
+            ) : approvedEnrollments.length > 0 ? (
+              approvedEnrollments.map((e) => (
                 <button
-                  onClick={handleComplete}
-                  disabled={progressLoading}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-colors shadow-sm font-medium"
+                  key={e.id}
+                  onClick={() => setSelectedEnrollmentId(e.id)}
+                  className={`w-full text-left p-5 rounded-[2rem] border transition-all duration-300 group ${
+                    selectedEnrollmentId === e.id 
+                      ? "bg-white border-indigo-600 shadow-xl shadow-indigo-100 ring-1 ring-indigo-600" 
+                      : "bg-white border-gray-100 shadow-sm hover:border-indigo-200 hover:shadow-md"
+                  }`}
                 >
-                  <CheckCircle size={20} />
-                  Mark as Complete
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-50 overflow-hidden flex-shrink-0 border border-gray-100">
+                      {e.course?.imageUrl ? (
+                        <img src={e.course.imageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-indigo-200 font-black">
+                          {e.course?.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`font-black text-sm truncate ${selectedEnrollmentId === e.id ? "text-indigo-600" : "text-gray-900"}`}>
+                        {e.course?.name}
+                      </h3>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">
+                        {e.completedLessons} / {e.totalLessons} Lessons
+                      </p>
+                    </div>
+                    {e.isCompleted && <Trophy size={18} className="text-amber-500 flex-shrink-0" />}
+                  </div>
+                  
+                  {/* Mini Progress Bar */}
+                  <div className="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-1000 ${e.isCompleted ? "bg-green-500" : "bg-indigo-600"}`}
+                      style={{ width: `${e.progressPercentage}%` }}
+                    />
+                  </div>
                 </button>
-              </div>
+              ))
             ) : (
-              <div className="text-center py-8">
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle size={32} className="text-green-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">You're all caught up!</h3>
-                <p className="text-gray-500">You have completed all available lessons for this course.</p>
+              <div className="p-8 text-center bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200">
+                <p className="text-gray-500 text-sm font-medium">No active enrollments found.</p>
               </div>
             )}
           </div>
         </div>
-      )}
+
+        {/* Right Column: Detailed Progress & Next Lesson */}
+        <div className="lg:col-span-2">
+          {selectedEnrollmentId === "" ? (
+            <div className="bg-white p-12 rounded-[3rem] border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center min-h-[400px]">
+              <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center text-indigo-400 mb-6">
+                <Layout size={40} />
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 mb-2">Select a course to view details</h2>
+              <p className="text-gray-500 max-w-xs font-medium">Click on any course on the left to see your lesson breakdown and continue learning.</p>
+            </div>
+          ) : (
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              {/* Course Header & Stats Card */}
+              <div className="bg-white p-8 sm:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-indigo-100/20">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+                  <div>
+                    <h2 className="text-2xl font-black text-gray-900 mb-1">{selectedEnrollment?.course?.name}</h2>
+                    <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      <span className="flex items-center gap-1.5"><Clock size={14} /> Course Overview</span>
+                    </div>
+                  </div>
+                  <div className={`px-5 py-2 rounded-2xl font-black text-sm shadow-sm border ${
+                    selectedEnrollment?.isCompleted 
+                      ? "bg-green-50 border-green-100 text-green-700" 
+                      : "bg-indigo-50 border-indigo-100 text-indigo-700"
+                  }`}>
+                    {selectedEnrollment?.isCompleted ? "Completed 🎉" : `${selectedEnrollment?.progressPercentage}% Complete`}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="bg-gray-50 p-4 rounded-2xl text-center">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total</p>
+                    <p className="text-2xl font-black text-gray-900">{currentStats?.totalLessons || 0}</p>
+                  </div>
+                  <div className="bg-indigo-50 p-4 rounded-2xl text-center border border-indigo-100/50">
+                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Completed</p>
+                    <p className="text-2xl font-black text-indigo-600">{currentStats?.completedLessons || 0}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-2xl text-center">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Left</p>
+                    <p className="text-2xl font-black text-gray-900">{currentStats?.remainingLessons || 0}</p>
+                  </div>
+                </div>
+
+                {/* Detailed Progress Bar */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-end">
+                    <p className="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                      <BarChart3 size={16} className="text-indigo-600" />
+                      Course Mastery
+                    </p>
+                    <p className="text-xs font-black text-indigo-600">{selectedEnrollment?.progressPercentage}%</p>
+                  </div>
+                  <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden p-1 border border-gray-100 shadow-inner">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 shadow-sm ${
+                        selectedEnrollment?.isCompleted ? "bg-green-500" : "bg-gradient-to-r from-indigo-500 to-indigo-700"
+                      }`}
+                      style={{ width: `${selectedEnrollment?.progressPercentage}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Up Next / Continue Learning Section */}
+              <div className="bg-indigo-600 p-8 sm:p-10 rounded-[3rem] shadow-2xl shadow-indigo-200 text-white relative overflow-hidden group">
+                <div className="relative z-10">
+                  <h3 className="text-sm font-black text-indigo-200 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                    <PlayCircle size={18} />
+                    {nextLesson ? "Continue Learning" : "Course Finished"}
+                  </h3>
+                  
+                  {progressLoading ? (
+                    <div className="flex justify-center py-4"><Loader /></div>
+                  ) : nextLesson ? (
+                    <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center">
+                      <div className="flex-1">
+                        <span className="text-xs font-black text-indigo-200/80 mb-1 block uppercase tracking-widest">Lesson {nextLesson.order}</span>
+                        <h4 className="text-3xl font-black mb-4 leading-tight">{nextLesson.title}</h4>
+                        <a 
+                          href={nextLesson.videoUrl} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md text-white border border-white/30 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-white/30 transition-all"
+                        >
+                          Watch Video <ChevronRight size={16} />
+                        </a>
+                      </div>
+
+                      <button
+                        onClick={handleComplete}
+                        disabled={progressLoading}
+                        className="shrink-0 bg-white text-indigo-600 p-6 rounded-[2rem] hover:bg-indigo-50 transition-all shadow-2xl shadow-black/20 flex flex-col items-center gap-2 group-hover:scale-105 duration-500"
+                      >
+                        <CheckCircle size={32} />
+                        <span className="text-xs font-black uppercase tracking-widest">Mark Done</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/30">
+                        <Trophy size={40} />
+                      </div>
+                      <h3 className="text-2xl font-black mb-2">Congratulations!</h3>
+                      <p className="text-indigo-100 font-medium">You have mastered every lesson in this course. Excellent work!</p>
+                    </div>
+                  )}
+                </div>
+                {/* Decorative blob */}
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

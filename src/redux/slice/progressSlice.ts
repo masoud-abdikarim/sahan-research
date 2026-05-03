@@ -12,14 +12,24 @@ export interface Lesson {
   order: number;
 }
 
+export interface ProgressStats {
+  totalLessons: number;
+  completedLessons: number;
+  remainingLessons: number;
+  progressPercentage: number;
+  isCompleted: boolean;
+}
+
 interface ProgressState {
   nextLesson: Lesson | null;
+  currentStats: ProgressStats | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: ProgressState = {
   nextLesson: null,
+  currentStats: null,
   loading: false,
   error: null,
 };
@@ -27,7 +37,7 @@ const initialState: ProgressState = {
 // ✅ MARK LESSON COMPLETE
 export const markLessonComplete = createAsyncThunk(
   "progress/markLessonComplete",
-  async (data: { courseId: number; lessonId: number }, { rejectWithValue }) => {
+  async (data: { courseId: number; lessonId: number; enrollmentId: number }, { rejectWithValue }) => {
     try {
       const res = await axios.post("/api/user/progress", data);
       toast.success("Lesson marked as complete!");
@@ -46,7 +56,7 @@ export const getNextLesson = createAsyncThunk(
   async (enrollmentId: number, { rejectWithValue }) => {
     try {
       const res = await axios.get(`/api/user/progress?enrollmentId=${enrollmentId}`);
-      return res.data.nextLesson;
+      return res.data;
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Failed to fetch next lesson";
       toast.error(errorMsg);
@@ -79,9 +89,10 @@ const progressSlice = createSlice({
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(getNextLesson.fulfilled, (state, action: PayloadAction<Lesson | null>) => {
+    builder.addCase(getNextLesson.fulfilled, (state, action: PayloadAction<{ nextLesson: Lesson | null; stats: ProgressStats }>) => {
       state.loading = false;
-      state.nextLesson = action.payload;
+      state.nextLesson = action.payload.nextLesson;
+      state.currentStats = action.payload.stats;
     });
     builder.addCase(getNextLesson.rejected, (state, action) => {
       state.loading = false;

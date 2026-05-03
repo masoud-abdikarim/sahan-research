@@ -14,7 +14,12 @@ export interface Enrollment {
   course?: {
     id: number;
     name: string;
+    imageUrl?: string;
   };
+  totalLessons: number;
+  completedLessons: number;
+  progressPercentage: number;
+  isCompleted: boolean;
 }
 
 interface EnrollmentState {

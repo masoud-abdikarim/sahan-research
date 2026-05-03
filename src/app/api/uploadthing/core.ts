@@ -4,6 +4,18 @@ import { getSession } from "@/lib/auth";
 const f = createUploadthing();
 
 export const ourFileRouter = {
+  courseImageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const session = await getSession();
+      if (!session || session.role !== "ADMIN") {
+        throw new Error("Unauthorized");
+      }
+      return { userId: session.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, url: file.url };
+    }),
+
   videoUploader: f({ video: { maxFileSize: "2GB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
       const session = await getSession();

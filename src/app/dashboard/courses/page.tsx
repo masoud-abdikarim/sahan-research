@@ -5,9 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getCourses, createCourse, updateCourse, deleteCourse, Course } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
-import { Plus, Edit, Trash2, X, Check } from "lucide-react";
+import { Plus, Edit, Trash2, X, Check, Upload, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/components/ConfirmModal";
+import { UploadButton } from "@/lib/uploadthing";
 
 export default function CoursesPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,6 +18,7 @@ export default function CoursesPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [imageInputMode, setImageInputMode] = useState<"upload" | "url">("upload");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -43,6 +45,12 @@ export default function CoursesPage() {
       category: course.category,
       imageUrl: course.imageUrl || "",
     });
+    // Default to URL mode if there's an existing image that looks like a URL
+    if (course.imageUrl) {
+      setImageInputMode(course.imageUrl.startsWith("http") ? "url" : "upload");
+    } else {
+      setImageInputMode("upload");
+    }
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -142,15 +150,85 @@ export default function CoursesPage() {
                 className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
               />
             </div>
-            <div>
-              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Course Image URL (Optional)</label>
-              <input
-                type="text"
-                placeholder="https://example.com/image.jpg"
-                value={formData.imageUrl}
-                onChange={e => setFormData({...formData, imageUrl: e.target.value})}
-                className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
-              />
+            <div className="md:col-span-2 space-y-4">
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">Course Image (Optional)</label>
+              
+              <div className="flex gap-4 p-1 bg-gray-100 rounded-2xl w-fit">
+                <button
+                  type="button"
+                  onClick={() => setImageInputMode("upload")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                    imageInputMode === "upload" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Upload size={14} />
+                  Upload Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageInputMode("url")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                    imageInputMode === "url" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <LinkIcon size={14} />
+                  Image URL
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                <div className="md:col-span-2">
+                  {imageInputMode === "upload" ? (
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-indigo-300 transition-colors bg-gray-50/50">
+                      <UploadButton
+                        endpoint="courseImageUploader"
+                        onClientUploadComplete={(res) => {
+                          if (res?.[0]) {
+                            setFormData({ ...formData, imageUrl: res[0].url });
+                            toast.success("Image uploaded successfully!");
+                          }
+                        }}
+                        onUploadError={(error: Error) => {
+                          toast.error(`Upload failed: ${error.message}`);
+                        }}
+                        appearance={{
+                          button: "bg-indigo-600 px-6 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-indigo-700 transition-all after:bg-indigo-700",
+                          allowedContent: "text-xs text-gray-400 font-medium mt-2"
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.imageUrl}
+                      onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+                      className="w-full px-5 py-3.5 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
+                    />
+                  )}
+                </div>
+
+                {/* Preview Card */}
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-gray-100 shadow-inner bg-gray-50 flex items-center justify-center group">
+                  {formData.imageUrl ? (
+                    <>
+                      <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <button 
+                        type="button"
+                        onClick={() => setFormData({...formData, imageUrl: ""})}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      >
+                        <X size={14} />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-center p-4">
+                      <ImageIcon className="mx-auto text-gray-300 mb-2" size={32} />
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Image Preview</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
