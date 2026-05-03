@@ -296,13 +296,13 @@ export default function LandingPage() {
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight text-slate-900 dark:text-white">
-              Advance Your{" "}
+              Sahan Research{" "}
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
-                Research
+                And
               </span>
-              {" "}and{" "}
+              {" "}
               <span className="relative inline-block">
-                Academic Growth
+                Studies Center
                 <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 300 8" fill="none">
                   <path d="M1 5.5 Q75 1 150 5.5 Q225 10 299 5.5" stroke="url(#u)" strokeWidth="3" strokeLinecap="round" fill="none" />
                   <defs>
