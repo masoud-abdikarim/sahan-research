@@ -109,6 +109,20 @@ export default function ActiveCoursesPage() {
         </section>
       )}
 
+      {/* ── SEPARATOR ── */}
+      {!isAdmin && (pendingEnrollments.length > 0 || rejectedEnrollments.length > 0) && unrolledCourses.length > 0 && (
+        <div className="relative py-12">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-gray-200 dark:border-slate-800"></div>
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-white dark:bg-slate-950 px-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.3em]">
+              End of Requests
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── SECTION 2: AVAILABLE CATALOG (New Layout) ── */}
       <section>
         <div className="flex items-center justify-between mb-8">
