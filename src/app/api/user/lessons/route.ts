@@ -92,13 +92,23 @@ export async function GET(req: Request) {
           return;
         }
 
+        // Sequential Access Logic:
+        // 1. First lesson is always unlocked
+        // 2. Subsequent lessons are unlocked ONLY if the previous lesson is completed
         const isFirst = index === 0;
-        const prevLessonCompleted = index > 0 ? (courseLessons[index - 1].Progress[0]?.completed || false) : false;
         const isCompleted = lesson.Progress[0]?.completed || false;
+        
+        // Find if the previous lesson in the sorted array was completed
+        const prevLessonCompleted = index > 0 ? (courseLessons[index - 1].Progress[0]?.completed || false) : false;
+        
+        const unlocked = isFirst || prevLessonCompleted;
+
+        // Security: If not unlocked, remove sensitive content like videoUrl
+        const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
 
         finalLessons.push({
-          ...lesson,
-          unlocked: isFirst || prevLessonCompleted,
+          ...safeLesson,
+          unlocked,
           completed: isCompleted
         });
       });

@@ -55,14 +55,7 @@ async function main() {
       category: "Development",
       userId: admin.id
     },
-    {
-      name: "UI/UX Design Fundamentals",
-      description: "Master Figma and design principles.",
-      price: 10,
-      durationMonths: 2,
-      category: "Design",
-      userId: admin.id
-    }
+    
   ];
 
   for (const c of courses) {

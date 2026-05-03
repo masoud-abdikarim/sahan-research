@@ -96,7 +96,7 @@ export default function ProgressPage() {
                       <h3 className={`font-black text-sm truncate ${selectedEnrollmentId === e.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100"}`}>
                         {e.course?.name}
                       </h3>
-                      <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-tighter mt-0.5">
+                      <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
                         {e.completedLessons} / {e.totalLessons} Lessons
                       </p>
                     </div>
@@ -201,12 +201,10 @@ export default function ProgressPage() {
                         <span className="text-xs font-black text-indigo-200/80 dark:text-indigo-300/80 mb-1 block uppercase tracking-widest">Lesson {nextLesson.order}</span>
                         <h4 className="text-3xl font-black mb-4 leading-tight">{nextLesson.title}</h4>
                         <a 
-                          href={nextLesson.videoUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
+                          href="/dashboard/lessons" 
                           className="inline-flex items-center gap-2 bg-white/20 dark:bg-indigo-500/30 backdrop-blur-md text-white border border-white/30 dark:border-indigo-400/30 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-white/30 dark:hover:bg-indigo-500/50 transition-all uppercase tracking-widest"
                         >
-                          Watch Video <ChevronRight size={16} />
+                          Go to Lessons <ChevronRight size={16} />
                         </a>
                       </div>
 

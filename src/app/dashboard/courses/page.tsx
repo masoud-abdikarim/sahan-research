@@ -430,6 +430,7 @@ export default function CoursesPage() {
         confirmText="Delete Course"
         onConfirm={handleDelete}
         onCancel={() => setConfirmDeleteId(null)}
+        loading={loading}
       />
     </div>
   );

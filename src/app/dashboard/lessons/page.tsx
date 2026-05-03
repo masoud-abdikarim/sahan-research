@@ -53,8 +53,15 @@ export default function LessonsPage() {
 
   useEffect(() => {
     const cid = selectedCourseId === "" ? 0 : Number(selectedCourseId);
-    dispatch(getLessonsByCourse(cid));
-    setActiveLesson(null);
+    dispatch(getLessonsByCourse(cid)).then((res: any) => {
+      if (getLessonsByCourse.fulfilled.match(res)) {
+        // If we have an active lesson, refresh it to update completed status
+        if (activeLesson) {
+          const updatedLesson = res.payload.find((l: any) => l.id === activeLesson.id);
+          if (updatedLesson) setActiveLesson(updatedLesson);
+        }
+      }
+    });
   }, [selectedCourseId, dispatch]);
 
   const handleEditInit = (lesson: Lesson) => {
@@ -184,7 +191,7 @@ export default function LessonsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4 pt-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Learning Center</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-1 font-medium">Explore all your enrolled modules or filter by course.</p>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 font-medium">Explore all your enrolled lessons or filter by course.</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -221,11 +228,11 @@ export default function LessonsPage() {
             <div>
               <div className="text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
                 <span className="w-8 h-[2px] bg-indigo-600 dark:bg-indigo-400"></span>
-                {activeLesson.course?.name || "Course Module"}
+                {activeLesson.course?.name || "Course Lesson"}
               </div>
               <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{activeLesson.title}</h2>
               <div className="flex items-center gap-4 text-gray-400 dark:text-slate-500 mt-2 text-xs font-black uppercase tracking-widest">
-                <span className="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full text-gray-600 dark:text-slate-400">Module {activeLesson.order}</span>
+                <span className="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full text-gray-600 dark:text-slate-400">Lesson {activeLesson.order}</span>
                 <span className="flex items-center gap-1.5 font-bold">
                    {activeLesson.completed ? <><CheckCircle2 size={14} className="text-green-500 dark:text-green-400"/> Completed</> : "In Progress"}
                 </span>
@@ -257,7 +264,7 @@ export default function LessonsPage() {
         <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] shadow-2xl border border-indigo-50 dark:border-indigo-900/20 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-2 mb-8">
             <div className="p-2 bg-indigo-600 dark:bg-indigo-500 rounded-lg"><Video className="text-white" size={20} /></div>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{editingLesson ? "Edit Lesson Details" : "Publish New Module"}</h2>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{editingLesson ? "Edit Lesson Details" : "Publish New Lesson"}</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -395,7 +402,7 @@ export default function LessonsPage() {
                 type="submit"
                 className="px-10 py-4 bg-indigo-600 dark:bg-indigo-500 text-white rounded-2xl text-xs font-black hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 uppercase tracking-widest"
               >
-                {editingLesson ? "Save Changes" : "Publish Module"}
+                {editingLesson ? "Save Changes" : "Publish Lesson"}
               </button>
             </div>
           </form>
@@ -406,45 +413,61 @@ export default function LessonsPage() {
         <div className="flex justify-center py-20"><Loader /></div>
       ) : lessons.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {lessons.map((lesson) => (
-            <div 
-              key={lesson.id} 
-              onClick={() => {
-                setActiveLesson(lesson);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className={`group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border transition-all duration-300 cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-xl dark:hover:shadow-indigo-950/20 ${
-                activeLesson?.id === lesson.id 
-                  ? "border-indigo-600 dark:border-indigo-400 ring-1 ring-indigo-600 dark:ring-indigo-400" 
-                  : "border-gray-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+          {lessons.map((lesson) => {
+            const isLocked = !isAdmin && !lesson.unlocked;
+            
+            return (
+              <div 
+                key={lesson.id} 
+                onClick={() => {
+                  if (isLocked) {
+                    toast.error("This lesson is locked. Complete the previous lesson to unlock it.");
+                    return;
+                  }
+                  setActiveLesson(lesson);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className={`group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border transition-all duration-300 cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-xl dark:hover:shadow-indigo-950/20 ${
                   activeLesson?.id === lesson.id 
-                    ? "bg-indigo-600 dark:bg-indigo-500 text-white" 
-                    : "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white"
-                }`}>
-                  <PlayCircle size={24} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className={`font-black text-sm truncate ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100"}`}>{lesson.title}</h3>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Module {lesson.order}</span>
-                    {lesson.completed && <CheckCircle2 size={14} className="text-green-500 dark:text-green-400" />}
+                    ? "border-indigo-600 dark:border-indigo-400 ring-1 ring-indigo-600 dark:ring-indigo-400" 
+                    : isLocked
+                      ? "opacity-60 grayscale border-gray-100 dark:border-slate-800"
+                      : "border-gray-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    activeLesson?.id === lesson.id 
+                      ? "bg-indigo-600 dark:bg-indigo-500 text-white" 
+                      : isLocked
+                        ? "bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-600"
+                        : "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white"
+                  }`}>
+                    {isLocked ? <Lock size={20} /> : <PlayCircle size={24} />}
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`font-black text-sm truncate ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100"}`}>
+                      {lesson.title}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Lesson {lesson.order}</span>
+                      {lesson.completed && <CheckCircle2 size={14} className="text-green-500 dark:text-green-400" />}
+                      {isLocked && <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest flex items-center gap-1"><Lock size={10}/> Locked</span>}
+                    </div>
+                  </div>
+                  {!isLocked && <PlayCircle size={18} className="text-gray-300 dark:text-slate-700 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all" />}
+                  {isLocked && <Lock size={18} className="text-gray-200 dark:text-slate-800" />}
                 </div>
-                <PlayCircle size={18} className="text-gray-300 dark:text-slate-700 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all" />
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-slate-800">
           <div className="w-20 h-20 bg-gray-50 dark:bg-slate-950 rounded-3xl flex items-center justify-center mx-auto mb-6 text-gray-300 dark:text-slate-700">
             <Video size={40} />
           </div>
-          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No modules found</h3>
+          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No lessons found</h3>
           <p className="text-gray-500 dark:text-slate-400 max-w-xs mx-auto font-medium">This course doesn't have any published lessons yet.</p>
         </div>
       )}
@@ -452,7 +475,7 @@ export default function LessonsPage() {
       <ConfirmModal
         isOpen={confirmDeleteId !== null}
         title="Delete Lesson?"
-        message="Are you sure you want to delete this module? This will also remove student progress for this specific lesson."
+        message="Are you sure you want to delete this lesson? This will also remove student progress for this specific lesson."
         confirmText="Delete Lesson"
         onConfirm={handleDelete}
         onCancel={() => setConfirmDeleteId(null)}
