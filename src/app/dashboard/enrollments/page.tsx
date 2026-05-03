@@ -49,7 +49,11 @@ export default function EnrollmentsPage() {
       <div className="flex justify-between items-center mb-12">
         <div>
           <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">My Learning</h1>
-          <p className="text-gray-500 dark:text-slate-400 font-medium">Manage your active courses and enrollment requests.</p>
+          <p className="text-gray-500 dark:text-slate-400 font-medium">
+            {isAdmin 
+              ? "Admin accounts cannot enroll in courses. You are viewing this page in management mode." 
+              : "Manage your active courses and enrollment requests."}
+          </p>
         </div>
         {isAdmin && (
           <a href="/dashboard/admin/enrollments" className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 transition-all">
@@ -147,21 +151,26 @@ export default function EnrollmentsPage() {
           <div className="space-y-4">
             {unrolledCourses.slice(0, 3).map(course => (
               <div key={course.id} className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-gray-100 dark:border-slate-800 flex items-center justify-between shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-center gap-4">
-                   <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black">
-                      {course.name.charAt(0)}
-                   </div>
-                   <div>
-                    <h4 className="font-black text-gray-900 dark:text-slate-100 text-sm">{course.name}</h4>
-                    <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">${course.price} • {course.durationMonths} Mo</p>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-black text-gray-900 dark:text-slate-100 text-sm truncate">{course.name}</h4>
+                  <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">${course.price} • {course.durationMonths} Mo</p>
                 </div>
-                <button 
-                  onClick={() => handleEnroll(course.id)}
-                  className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 dark:hover:text-white transition-all border border-indigo-100 dark:border-indigo-900/30 shadow-sm"
-                >
-                  Enroll
-                </button>
+                {isAdmin ? (
+                  <button 
+                    disabled
+                    className="bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-not-allowed border border-gray-200 dark:border-slate-700"
+                    title="Admin accounts cannot enroll in courses"
+                  >
+                    View Only
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => handleEnroll(course.id)}
+                    className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 dark:hover:text-white transition-all border border-indigo-100 dark:border-indigo-900/30 shadow-sm"
+                  >
+                    Enroll
+                  </button>
+                )}
               </div>
             ))}
             {unrolledCourses.length > 3 && (

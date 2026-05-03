@@ -49,6 +49,13 @@ export async function POST(req: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+    // 🔒 Security: Block ADMIN from enrolling
+    if (session.role === "ADMIN") {
+      return NextResponse.json({ 
+        message: "Admin accounts cannot enroll in courses. Enrollment is reserved for students only." 
+      }, { status: 403 });
+    }
+
     const { courseId } = await req.json();
 
     // Check if already enrolled

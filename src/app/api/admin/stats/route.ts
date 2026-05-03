@@ -10,14 +10,25 @@ export async function GET() {
     }
 
     const totalCourses = await prisma.course.count();
-    const totalUsers = await prisma.user.count();
+    
+    // 🔒 Security: Only count users with role 'USER' (Students)
+    const totalUsers = await prisma.user.count({
+      where: { role: "USER" }
+    });
+
     const pendingEnrollments = await prisma.enrollment.count({
-      where: { status: "PENDING" }
+      where: { 
+        status: "PENDING",
+        user: { role: "USER" } // Only count student enrollments
+      }
     });
     
-    // Sum of price for all APPROVED enrollments
+    // Sum of price for all APPROVED student enrollments
     const approvedEnrollments = await prisma.enrollment.findMany({
-      where: { status: "APPROVED" },
+      where: { 
+        status: "APPROVED",
+        user: { role: "USER" } // Only count student enrollments
+      },
       include: { course: true }
     });
     
