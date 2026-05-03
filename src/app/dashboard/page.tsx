@@ -134,8 +134,8 @@ export default function DashboardPage() {
             <div className="bg-white dark:bg-slate-900 p-12 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-slate-800 text-center">
               <BookOpen className="mx-auto text-gray-300 dark:text-slate-700 mb-4" size={48} />
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">No active courses</h3>
-              <p className="text-gray-500 dark:text-slate-400 mt-2 max-w-xs mx-auto">Explore our catalog and enroll in a course to start tracking your progress.</p>
-              <Link href="/" className="inline-block mt-6 bg-indigo-600 dark:bg-indigo-500 text-white px-8 py-3 rounded-2xl font-black hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all uppercase tracking-widest text-xs">Browse Catalog</Link>
+              <p className="text-gray-500 dark:text-slate-400 mt-2 max-w-xs mx-auto">Enroll in a course and wait for approval to start tracking your progress.</p>
+              <Link href="/dashboard/active-courses" className="inline-block mt-6 bg-indigo-600 dark:bg-indigo-500 text-white px-8 py-3 rounded-2xl font-black hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all uppercase tracking-widest text-xs">Browse Catalog</Link>
             </div>
           )}
         </div>
@@ -166,8 +166,8 @@ export default function DashboardPage() {
             <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">Quick Links</h3>
             <div className="space-y-3">
               {[
-                { label: "My Enrollments", href: "/dashboard/enrollments" },
-                { label: "Browse Courses", href: "/" },
+                { label: "My Learning", href: "/dashboard/enrollments" },
+                { label: "Active Courses", href: "/dashboard/active-courses" },
                 { label: "Account Settings", href: "/dashboard/settings" },
               ].map(link => (
                 <Link key={link.label} href={link.href} className="flex items-center justify-between p-4 rounded-2xl border border-gray-50 dark:border-slate-800 hover:border-indigo-100 dark:hover:border-indigo-900/30 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/10 transition-all group">

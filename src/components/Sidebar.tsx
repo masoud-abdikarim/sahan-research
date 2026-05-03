@@ -13,7 +13,8 @@ import {
   Users,
   Shield,
   Settings,
-  LogOut
+  LogOut,
+  Search
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
@@ -58,6 +59,7 @@ export default function Sidebar() {
   const studentNav = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "My Learning", href: "/dashboard/enrollments", icon: BookOpen },
+    { name: "Active Courses", href: "/dashboard/active-courses", icon: Search },
     { name: "My Progress", href: "/dashboard/progress", icon: TrendingUp },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
