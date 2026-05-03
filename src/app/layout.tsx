@@ -9,6 +9,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
 import SessionWatcher from "@/components/SessionWatcher";
 import AxiosInterceptor from "@/components/AxiosInterceptor";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,15 +36,22 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-        <ReduxProvider>
-          <AxiosInterceptor>
-            <SessionWatcher />
-            {children}
-          </AxiosInterceptor>
-          <Toaster position="top-right" />
-        </ReduxProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ReduxProvider>
+            <AxiosInterceptor>
+              <SessionWatcher />
+              {children}
+            </AxiosInterceptor>
+            <Toaster position="top-right" />
+          </ReduxProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

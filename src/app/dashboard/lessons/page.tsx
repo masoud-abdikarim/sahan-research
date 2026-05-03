@@ -170,18 +170,18 @@ export default function LessonsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pb-20 px-4">
+    <div className="max-w-7xl mx-auto pb-20 px-4 transition-colors duration-500">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4 pt-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Learning Center</h1>
-          <p className="text-gray-500 mt-1">Explore all your enrolled modules or filter by course.</p>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Learning Center</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 font-medium">Explore all your enrolled modules or filter by course.</p>
         </div>
         
         <div className="flex items-center gap-4">
           <select 
             value={selectedCourseId}
             onChange={(e) => setSelectedCourseId(e.target.value === "" ? "" : Number(e.target.value))}
-            className="appearance-none block w-full sm:w-64 pl-4 pr-10 py-2.5 text-sm font-bold border border-gray-100 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 rounded-xl bg-white shadow-sm transition-all text-gray-700"
+            className="appearance-none block w-full sm:w-64 pl-4 pr-10 py-2.5 text-sm font-black border border-gray-100 dark:border-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 rounded-xl bg-white dark:bg-slate-900 shadow-sm transition-all text-gray-700 dark:text-slate-200"
           >
             <option value="">All Enrolled Courses</option>
             {availableCourses.map(c => (
@@ -192,8 +192,8 @@ export default function LessonsPage() {
           {isAdmin && (
             <button
               onClick={() => (showForm ? handleCancel() : setShowForm(true))}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all shadow-md text-sm font-black whitespace-nowrap ${
-                showForm ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-indigo-600 text-white hover:bg-indigo-700"
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all shadow-md text-sm font-black whitespace-nowrap uppercase tracking-widest ${
+                showForm ? "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700" : "bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-600"
               }`}
             >
               {showForm ? <X size={18} /> : <><Plus size={18} /> Add Lesson</>}
@@ -204,37 +204,37 @@ export default function LessonsPage() {
 
       {activeLesson && (
         <div className="mb-12 animate-in fade-in zoom-in duration-500">
-          <div className="bg-white p-2 rounded-[2.5rem] shadow-2xl border border-indigo-50">
+          <div className="bg-white dark:bg-slate-900 p-2 rounded-[2.5rem] shadow-2xl border border-indigo-50 dark:border-indigo-900/20">
             {renderPlayer(activeLesson)}
           </div>
           <div className="mt-8 px-4 flex justify-between items-start">
             <div>
-              <div className="text-indigo-600 text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
-                <span className="w-8 h-[2px] bg-indigo-600"></span>
+              <div className="text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span className="w-8 h-[2px] bg-indigo-600 dark:bg-indigo-400"></span>
                 {activeLesson.course?.name || "Course Module"}
               </div>
-              <h2 className="text-3xl font-black text-gray-900 tracking-tight">{activeLesson.title}</h2>
-              <div className="flex items-center gap-4 text-gray-400 mt-2 text-xs font-bold uppercase tracking-tighter">
-                <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-600">Module {activeLesson.order}</span>
-                <span className="flex items-center gap-1.5">
-                   {activeLesson.completed ? <><CheckCircle2 size={14} className="text-green-500"/> Completed</> : "In Progress"}
+              <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{activeLesson.title}</h2>
+              <div className="flex items-center gap-4 text-gray-400 dark:text-slate-500 mt-2 text-xs font-black uppercase tracking-widest">
+                <span className="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full text-gray-600 dark:text-slate-400">Module {activeLesson.order}</span>
+                <span className="flex items-center gap-1.5 font-bold">
+                   {activeLesson.completed ? <><CheckCircle2 size={14} className="text-green-500 dark:text-green-400"/> Completed</> : "In Progress"}
                 </span>
               </div>
             </div>
             <div className="flex gap-2">
                {isAdmin && (
                  <>
-                  <button onClick={() => handleEditInit(activeLesson)} className="p-3 bg-white text-gray-400 hover:text-indigo-600 rounded-2xl border border-gray-100 shadow-sm transition-all">
+                  <button onClick={() => handleEditInit(activeLesson)} className="p-3 bg-white dark:bg-slate-900 text-gray-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm transition-all">
                       <Edit size={20} />
                   </button>
-                  <button onClick={() => setConfirmDeleteId(activeLesson.id)} className="p-3 bg-white text-gray-400 hover:text-red-600 rounded-2xl border border-gray-100 shadow-sm transition-all">
+                  <button onClick={() => setConfirmDeleteId(activeLesson.id)} className="p-3 bg-white dark:bg-slate-900 text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm transition-all">
                       <Trash2 size={20} />
                   </button>
                  </>
                )}
                <button 
                 onClick={() => setActiveLesson(null)} 
-                className="flex items-center gap-2 bg-gray-100 text-gray-500 px-4 py-2 rounded-xl text-xs font-black hover:bg-gray-200 transition-all uppercase tracking-widest border border-gray-200/50"
+                className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-4 py-2 rounded-xl text-xs font-black hover:bg-gray-200 dark:hover:bg-slate-700 transition-all uppercase tracking-widest border border-gray-200/50 dark:border-slate-700"
               >
                   <X size={14} /> Close Lesson
               </button>
@@ -244,117 +244,147 @@ export default function LessonsPage() {
       )}
 
       {showForm && (
-        <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-indigo-50 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] shadow-2xl border border-indigo-50 dark:border-indigo-900/20 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-2 mb-8">
-            <div className="p-2 bg-indigo-600 rounded-lg"><Video className="text-white" size={20} /></div>
-            <h2 className="text-2xl font-black text-gray-900">{editingLesson ? "Edit Lesson Details" : "Publish New Module"}</h2>
+            <div className="p-2 bg-indigo-600 dark:bg-indigo-500 rounded-lg"><Video className="text-white" size={20} /></div>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{editingLesson ? "Edit Lesson Details" : "Publish New Module"}</h2>
           </div>
+
           <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Lesson Title</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="md:col-span-2 space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Lesson Title</label>
                 <input
                   type="text"
-                  placeholder="e.g. 01. Introduction"
+                  required
+                  placeholder="e.g. Introduction to Academic Research"
                   value={formData.title}
                   onChange={e => setFormData({...formData, title: e.target.value})}
-                  className="w-full px-5 py-4 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
+                  className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Sequence Order</label>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Order / Position</label>
                 <input
                   type="number"
-                  placeholder="1"
+                  required
+                  placeholder="1, 2, 3..."
                   value={formData.order}
                   onChange={e => setFormData({...formData, order: e.target.value})}
-                  className="w-full px-5 py-4 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
+                  className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
                 />
               </div>
             </div>
 
             <div>
-               <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Target Course</label>
+               <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3 ml-1">Target Course</label>
                <select 
                   value={selectedCourseId}
                   onChange={(e) => setSelectedCourseId(Number(e.target.value))}
-                  className="w-full px-5 py-4 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800"
+                  className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
                 >
                   <option value="">Select Course...</option>
                   {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Video Delivery Method</label>
-              <div className="flex gap-4 p-1.5 bg-gray-100 rounded-2xl w-fit">
-                <button
-                  type="button"
-                  onClick={() => setVideoSource("URL")}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all ${
-                    videoSource === "URL" ? "bg-white text-indigo-600 shadow-md" : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <LinkIcon size={16} />
-                  Streaming Link
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVideoSource("UPLOAD")}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all ${
-                    videoSource === "UPLOAD" ? "bg-white text-indigo-600 shadow-md" : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <HardDrive size={16} />
-                  Direct Upload
-                </button>
-              </div>
+            <div className="md:col-span-3 space-y-4">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Video Source</label>
+                <div className="flex gap-4 p-1 bg-gray-100 dark:bg-slate-950 rounded-2xl w-fit border border-gray-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setVideoSource("URL")}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest ${
+                      videoSource === "URL" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
+                    }`}
+                  >
+                    <LinkIcon size={14} />
+                    Video URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVideoSource("UPLOAD")}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest ${
+                      videoSource === "UPLOAD" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
+                    }`}
+                  >
+                    <Upload size={14} />
+                    Direct Upload
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                  <div className="lg:col-span-2">
+                    {videoSource === "URL" ? (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          required
+                          placeholder="Paste YouTube or MP4 link here..."
+                          value={formData.videoUrl}
+                          onChange={e => setFormData({...formData, videoUrl: e.target.value})}
+                          className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
+                        />
+                        <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 ml-1 uppercase tracking-widest">Supports YouTube, Vimeo, and direct MP4 links</p>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-[2rem] p-10 text-center hover:border-indigo-300 dark:hover:border-indigo-800 transition-colors bg-gray-50/50 dark:bg-slate-950/50">
+                        <UploadButton
+                          endpoint="courseImageUploader"
+                          onClientUploadComplete={(res) => {
+                            if (res?.[0]) {
+                              setFormData({ ...formData, videoUrl: res[0].url });
+                              toast.success("Video uploaded!");
+                            }
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast.error(`Upload failed: ${error.message}`);
+                          }}
+                          appearance={{
+                            button: "bg-indigo-600 dark:bg-indigo-500 px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all after:bg-indigo-700",
+                            allowedContent: "text-[10px] text-gray-400 dark:text-slate-500 font-bold mt-3 uppercase tracking-widest"
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="lg:col-span-1">
+                    <div className="bg-gray-50 dark:bg-slate-950 p-6 rounded-[2rem] border border-gray-100 dark:border-slate-800">
+                      <h4 className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-4">Preview Status</h4>
+                      {formData.videoUrl ? (
+                        <div className="space-y-4">
+                           <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-800">
+                              <video src={formData.videoUrl} className="w-full h-full" />
+                           </div>
+                           <p className="text-[10px] font-black text-green-600 dark:text-green-400 uppercase tracking-widest flex items-center gap-2">
+                             <CheckCircle2 size={12} /> Video Source Ready
+                           </p>
+                        </div>
+                      ) : (
+                        <div className="aspect-video bg-gray-100 dark:bg-slate-900 rounded-xl flex flex-col items-center justify-center text-gray-300 dark:text-slate-700 gap-2">
+                          <FileVideo size={32} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">No Video</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
             </div>
 
-            {videoSource === "URL" ? (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Streaming URL</label>
-                <input
-                  type="url"
-                  value={formData.videoUrl}
-                  onChange={e => setFormData({...formData, videoUrl: e.target.value})}
-                  placeholder="Paste YouTube or MP4 link here..."
-                  className="w-full px-5 py-4 border border-gray-100 rounded-2xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700"
-                />
-              </div>
-            ) : (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Master Source Upload (Max 2GB)</label>
-                {formData.videoUrl ? (
-                  <div className="bg-green-50 p-8 rounded-[2rem] border border-green-100 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-green-500 p-3 rounded-xl shadow-lg shadow-green-100"><PlayCircle className="text-white" size={24} /></div>
-                      <div>
-                        <p className="text-green-800 font-black">Video Ready for Stream</p>
-                        <p className="text-green-600/70 text-xs truncate max-w-xs">{formData.videoUrl}</p>
-                      </div>
-                    </div>
-                    <button type="button" onClick={() => setFormData({...formData, videoUrl: ""})} className="text-xs font-black text-red-500 bg-white px-4 py-2 rounded-xl shadow-sm hover:bg-red-50 transition-colors">Replace</button>
-                  </div>
-                ) : (
-                  <div className="bg-indigo-50/20 rounded-[2rem] p-2 border-2 border-dashed border-indigo-100 transition-colors hover:border-indigo-200">
-                    <UploadDropzone
-                      endpoint="videoUploader"
-                      onClientUploadComplete={(res) => {
-                        setFormData({ ...formData, videoUrl: res[0].url });
-                        toast.success("Upload Successful!");
-                      }}
-                      onUploadError={(error: Error) => toast.error(`Upload Failed: ${error.message}`)}
-                      className="ut-label:text-indigo-600 ut-button:bg-indigo-600 ut-button:rounded-xl ut-allowed-content:text-indigo-400/70"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex justify-end gap-4 pt-6 border-t border-gray-50">
-              <button type="button" onClick={handleCancel} className="px-8 py-4 text-gray-500 font-bold">Discard</button>
-              <button type="submit" className="px-12 py-4 bg-indigo-600 text-white rounded-2xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
+            <div className="flex justify-end gap-4 pt-4">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-8 py-4 rounded-2xl text-xs font-black text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-all uppercase tracking-widest"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-10 py-4 bg-indigo-600 dark:bg-indigo-500 text-white rounded-2xl text-xs font-black hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 uppercase tracking-widest"
+              >
                 {editingLesson ? "Save Changes" : "Publish Module"}
               </button>
             </div>
@@ -363,90 +393,49 @@ export default function LessonsPage() {
       )}
 
       {lessonsLoading ? (
-        <Loader />
-      ) : (
-        <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
-            <h3 className="font-black text-gray-400 uppercase tracking-widest text-[10px]">
-              {selectedCourseId === "" ? "Global Curriculum Roadmap" : "Course Content Roadmap"}
-            </h3>
-            <span className="text-[10px] font-black px-4 py-1.5 bg-indigo-600 text-white rounded-full uppercase tracking-widest">{lessons.length} Modules Total</span>
-          </div>
-          <ul className="divide-y divide-gray-50">
-            {lessons.length > 0 ? [...lessons].map((lesson) => {
-              const isLocked = !isAdmin && !lesson.unlocked;
-              const isCompleted = lesson.completed;
-              const isActive = activeLesson?.id === lesson.id;
-
-              return (
-                <li 
-                  key={lesson.id} 
-                  className={`p-8 transition-all group ${isLocked ? 'bg-gray-50/50 cursor-not-allowed opacity-60' : 'hover:bg-gray-50/50 cursor-pointer'} ${isActive ? 'bg-indigo-50/50' : ''}`}
-                  onClick={() => !isLocked && setActiveLesson(lesson)}
-                >
-                  <div className="flex items-center gap-8">
-                    <div className="flex-shrink-0">
-                      <div className={`h-14 w-14 rounded-2xl flex items-center justify-center font-black transition-all transform group-hover:scale-110 ${
-                        isLocked ? "bg-gray-200 text-gray-400" : (isCompleted ? "bg-green-100 text-green-600 shadow-sm shadow-green-50" : (isActive ? "bg-indigo-600 text-white shadow-xl shadow-indigo-100" : "bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-50"))
-                      }`}>
-                        {isLocked ? <Lock size={20} /> : (isCompleted ? <CheckCircle2 size={24} /> : lesson.order)}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] text-indigo-500 font-black uppercase tracking-widest mb-1.5 flex items-center gap-2">
-                        <span className="w-4 h-[1.5px] bg-indigo-200"></span>
-                        {lesson.course?.name}
-                      </div>
-                      <p className={`text-xl font-black truncate tracking-tight ${isLocked ? "text-gray-400" : (isActive ? "text-indigo-600" : "text-gray-900")}`}>
-                        {lesson.title}
-                      </p>
-                      <div className="flex items-center gap-6 mt-2 text-xs text-gray-400 font-bold uppercase tracking-tighter">
-                        <div className="flex items-center gap-2">
-                          {isLocked ? <Lock size={14} /> : (lesson.videoType === "UPLOAD" ? <HardDrive size={14} /> : <LinkIcon size={14} />)}
-                          <span>{isLocked ? "Prerequisite Locked" : (lesson.videoType === "UPLOAD" ? "Direct Stream" : "External Link")}</span>
-                        </div>
-                        {!isLocked && (
-                          <div className="flex items-center gap-2">
-                            <PlayCircle size={16} className={isActive ? "text-indigo-600" : "text-gray-300"} />
-                            <span className={isActive ? "text-indigo-600" : ""}>{isCompleted ? "Watch Again" : (isActive ? "Currently Watching" : "Start Learning")}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {isAdmin ? (
-                      <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleEditInit(lesson); }}
-                          className="p-3 bg-white text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl border border-gray-100 shadow-sm transition-all"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(lesson.id); }}
-                          className="p-3 bg-white text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl border border-gray-100 shadow-sm transition-all"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    ) : (
-                      isLocked && <div className="text-[10px] font-black text-gray-400 bg-gray-100 px-4 py-1.5 rounded-full uppercase tracking-widest border border-gray-200/50">Prerequisite Required</div>
-                    )}
+        <div className="flex justify-center py-20"><Loader /></div>
+      ) : lessons.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {lessons.map((lesson) => (
+            <div 
+              key={lesson.id} 
+              onClick={() => {
+                setActiveLesson(lesson);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className={`group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border transition-all duration-300 cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-xl dark:hover:shadow-indigo-950/20 ${
+                activeLesson?.id === lesson.id 
+                  ? "border-indigo-600 dark:border-indigo-400 ring-1 ring-indigo-600 dark:ring-indigo-400" 
+                  : "border-gray-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50"
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                  activeLesson?.id === lesson.id 
+                    ? "bg-indigo-600 dark:bg-indigo-500 text-white" 
+                    : "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white"
+                }`}>
+                  <PlayCircle size={24} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`font-black text-sm truncate ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100"}`}>{lesson.title}</h3>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Module {lesson.order}</span>
+                    {lesson.completed && <CheckCircle2 size={14} className="text-green-500 dark:text-green-400" />}
                   </div>
-                </li>
-              );
-            }) : (
-              <li className="p-24 text-center">
-                 <div className="max-w-xs mx-auto">
-                    <div className="bg-gray-50 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                         <Video className="text-gray-300" size={32} />
-                    </div>
-                    <h3 className="text-xl font-black text-gray-900">No Modules Published</h3>
-                    <p className="text-gray-400 text-sm mt-2">There are no lessons available for your enrolled courses yet.</p>
-                 </div>
-              </li>
-            )}
-          </ul>
+                </div>
+                <PlayCircle size={18} className="text-gray-300 dark:text-slate-700 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-slate-800">
+          <div className="w-20 h-20 bg-gray-50 dark:bg-slate-950 rounded-3xl flex items-center justify-center mx-auto mb-6 text-gray-300 dark:text-slate-700">
+            <Video size={40} />
+          </div>
+          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No modules found</h3>
+          <p className="text-gray-500 dark:text-slate-400 max-w-xs mx-auto font-medium">This course doesn't have any published lessons yet.</p>
         </div>
       )}
 

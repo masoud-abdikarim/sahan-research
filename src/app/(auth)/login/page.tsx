@@ -50,34 +50,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-colors duration-500">
       <Link 
         href="/" 
-        className="absolute top-8 left-8 p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-full transition-all shadow-sm sm:shadow-none"
+        className="absolute top-8 left-8 p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-900 rounded-full transition-all shadow-sm sm:shadow-none"
         title="Back to home"
       >
         <ArrowLeft size={24} />
       </Link>
 
+      <div className="absolute top-8 right-8">
+        <ThemeToggle />
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg dark:shadow-indigo-950/50">
             <BookOpen size={24} className="text-white" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-black text-gray-900 tracking-tight">
+        <h2 className="mt-6 text-center text-3xl font-black text-gray-900 dark:text-white tracking-tight">
           Welcome Back
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-500">
+        <p className="mt-2 text-center text-sm text-gray-500 dark:text-slate-400">
           Sign in to continue your research journey
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-10 px-4 shadow-xl shadow-indigo-100/20 sm:rounded-2xl sm:px-10 border border-gray-100/50">
+        <div className="bg-white dark:bg-slate-900 py-10 px-4 shadow-xl shadow-indigo-100/20 dark:shadow-black/20 sm:rounded-2xl sm:px-10 border border-gray-100/50 dark:border-slate-800/50">
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
+              <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
               <div className="mt-1">
                 <input
                   type="email"
@@ -85,15 +89,15 @@ export default function LoginPage() {
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-100 rounded-xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700"
+                  className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Password</label>
-                <Link href="#" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Forgot password?</Link>
+                <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Password</label>
+                <Link href="#" className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">Forgot password?</Link>
               </div>
               <div className="mt-1">
                 <input
@@ -102,7 +106,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-100 rounded-xl bg-gray-50 focus:bg-white focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700"
+                  className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
                 />
               </div>
             </div>
@@ -111,17 +115,17 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-100 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all transform active:scale-[0.98]"
+                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all transform active:scale-[0.98] uppercase tracking-widest"
               >
                 {loading ? "Verifying..." : "Sign In"}
               </button>
             </div>
           </form>
 
-          <div className="mt-8 text-center pt-8 border-t border-gray-50">
-            <p className="text-sm text-gray-500">
+          <div className="mt-8 text-center pt-8 border-t border-gray-50 dark:border-slate-800">
+            <p className="text-sm text-gray-500 dark:text-slate-400">
               New to Sahan Research?{" "}
-              <Link href="/register" className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors">
+              <Link href="/register" className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors">
                 Create an account
               </Link>
             </p>

@@ -70,31 +70,31 @@ export default function SettingsPage() {
   if (!currentUser) return null;
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto transition-colors duration-500">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your personal information and security preferences.</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Account Settings</h1>
+        <p className="text-gray-500 dark:text-slate-400 mt-1 font-medium">Manage your personal information and security preferences.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Col: Profile Card */}
         <div className="md:col-span-1">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
-            <div className="relative mx-auto w-24 h-24 mb-4">
-              <div className="w-24 h-24 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 p-8 text-center transition-all hover:shadow-md dark:hover:shadow-indigo-950/10">
+            <div className="relative mx-auto w-24 h-24 mb-6">
+              <div className="w-24 h-24 rounded-[2rem] bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-inner">
                 <User size={48} />
               </div>
-              <div className="absolute bottom-0 right-0 bg-white p-1 rounded-full border border-gray-100 shadow-sm">
-                <BadgeCheck size={20} className="text-indigo-600" />
+              <div className="absolute -bottom-2 -right-2 bg-white dark:bg-slate-800 p-2 rounded-xl border border-gray-100 dark:border-slate-700 shadow-lg">
+                <BadgeCheck size={20} className="text-indigo-600 dark:text-indigo-400" />
               </div>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 truncate">{currentUser.name}</h2>
-            <p className="text-sm text-gray-500 mb-6">{currentUser.email}</p>
+            <h2 className="text-xl font-black text-gray-900 dark:text-slate-100 truncate mb-1">{currentUser.name}</h2>
+            <p className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-8">{currentUser.email}</p>
             
-            <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-colors ${
               currentUser.role === "ADMIN" 
-                ? "bg-red-50 text-red-600 border border-red-100" 
-                : "bg-green-50 text-green-600 border border-green-100"
+                ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-100 dark:border-red-900/30" 
+                : "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-100 dark:border-green-900/30"
             }`}>
               {currentUser.role === "ADMIN" ? <Shield size={12} /> : <User size={12} />}
               {currentUser.role}
@@ -103,39 +103,42 @@ export default function SettingsPage() {
         </div>
 
         {/* Right Col: Details Grid */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-50">
-              <h3 className="font-bold text-gray-900">Personal Information</h3>
+        <div className="md:col-span-2 space-y-8">
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-50 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-950/30">
+              <h3 className="text-sm font-black text-gray-900 dark:text-slate-100 uppercase tracking-widest flex items-center gap-2">
+                <User size={16} className="text-indigo-600 dark:text-indigo-400" />
+                Personal Information
+              </h3>
             </div>
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
-                  <Mail size={18} />
+            <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="flex items-start gap-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl text-blue-600 dark:text-blue-400 shadow-sm">
+                  <Mail size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Email Address</p>
-                  <p className="text-sm font-semibold text-gray-900">{currentUser.email}</p>
+                  <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1">Email Address</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-200">{currentUser.email}</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="bg-purple-50 p-2 rounded-lg text-purple-600">
-                  <Phone size={18} />
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-xl text-purple-600 dark:text-purple-400 shadow-sm">
+                  <Phone size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Phone Number</p>
-                  <p className="text-sm font-semibold text-gray-900">{currentUser.phone}</p>
+                  <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1">Phone Number</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-200">{currentUser.phone}</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="bg-amber-50 p-2 rounded-lg text-amber-600">
-                  <Calendar size={18} />
+              <div className="flex items-start gap-4">
+                <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl text-amber-600 dark:text-amber-400 shadow-sm">
+                  <Calendar size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Joined Date</p>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1">Joined Date</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-200">
                     {new Date(currentUser.createdAt).toLocaleDateString(undefined, {
                       year: 'numeric',
                       month: 'long',
@@ -145,55 +148,57 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600">
-                  <Shield size={18} />
+              <div className="flex items-start gap-4">
+                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl text-indigo-600 dark:text-indigo-400 shadow-sm">
+                  <Shield size={20} />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Account Role</p>
-                  <p className="text-sm font-semibold text-gray-900 capitalize">{currentUser.role.toLowerCase()}</p>
+                  <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1">Account Role</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-slate-200 capitalize">{currentUser.role.toLowerCase()}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Security Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-50 flex items-center gap-2">
-              <Lock size={18} className="text-gray-400" />
-              <h3 className="font-bold text-gray-900">Security Settings</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-50 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-950/30 flex items-center gap-2">
+              <h3 className="text-sm font-black text-gray-900 dark:text-slate-100 uppercase tracking-widest flex items-center gap-2">
+                <Lock size={16} className="text-red-500 dark:text-red-400" />
+                Security Settings
+              </h3>
             </div>
-            <div className="p-6">
-              <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-8">
+              <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">New Password</label>
+                    <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">New Password</label>
                     <input
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Min. 6 characters"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-gray-900"
+                      className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-slate-200 font-bold"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Confirm New Password</label>
+                    <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Repeat new password"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-gray-900"
+                      className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-slate-200 font-bold"
                       required
                     />
                   </div>
                 </div>
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end">
                   <button
                     type="submit"
                     disabled={isUpdating}
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+                    className="bg-indigo-600 dark:bg-indigo-500 text-white px-10 py-4 rounded-2xl hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50"
                   >
                     {isUpdating ? (
                       <>
@@ -212,8 +217,8 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
+          <div className="bg-gray-50 dark:bg-slate-950/50 p-6 rounded-[2rem] border border-dashed border-gray-200 dark:border-slate-800">
+            <p className="text-[10px] font-bold text-gray-500 dark:text-slate-500 text-center uppercase tracking-[0.2em] leading-relaxed">
               Account Security: Your information is protected by industry-standard encryption and role-based access controls.
             </p>
           </div>
