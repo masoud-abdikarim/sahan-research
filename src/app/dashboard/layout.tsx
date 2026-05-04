@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,6 +15,7 @@ export default function DashboardLayout({
 }) {
   const dispatch = useDispatch<AppDispatch>();
   const { currentUser, loading } = useSelector((state: RootState) => state.user);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -28,10 +29,10 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-500">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-8 overflow-y-auto h-[calc(100vh-4rem)]">
+      <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <div className="flex flex-1 relative overflow-hidden">
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto h-[calc(100vh-4rem)] w-full">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

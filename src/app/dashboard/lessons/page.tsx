@@ -318,7 +318,7 @@ export default function LessonsPage() {
       )}
 
       {showForm && (
-        <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] shadow-2xl border border-indigo-50 dark:border-indigo-900/20 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] shadow-2xl border border-indigo-50 dark:border-indigo-900/20 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-2 mb-8">
             <div className="p-2 bg-indigo-600 dark:bg-indigo-500 rounded-lg"><Video className="text-white" size={20} /></div>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{editingLesson ? "Edit Lesson Details" : "Publish New Lesson"}</h2>

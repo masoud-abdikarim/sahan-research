@@ -122,9 +122,9 @@ export default function UserManagement() {
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100 dark:divide-slate-800">
-            <thead className="bg-gray-50/50 dark:bg-slate-950/50">
+        <div className="overflow-x-auto md:overflow-visible">
+          <table className="w-full text-left border-collapse block md:table min-w-full divide-y divide-gray-100 dark:divide-slate-800">
+            <thead className="bg-gray-50/50 dark:bg-slate-950/50 hidden md:table-header-group">
               <tr>
                 <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Name</th>
                 <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Contact Info</th>
@@ -133,19 +133,21 @@ export default function UserManagement() {
                 <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-100 dark:divide-slate-800">
+            <tbody className="block md:table-row-group bg-white dark:bg-slate-900 divide-y divide-transparent md:divide-gray-100 dark:md:divide-slate-800 space-y-4 md:space-y-0 p-4 md:p-0">
               {filteredUsers.length > 0 ? filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-all group">
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="flex items-center gap-4">
+                <tr key={u.id} className="block md:table-row bg-white dark:bg-slate-900 md:bg-transparent rounded-3xl border border-gray-100 dark:border-slate-800 md:border-none p-4 md:p-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-all group shadow-sm md:shadow-none">
+                  <td className="block md:table-cell px-2 md:px-8 py-3 md:py-6 whitespace-nowrap">
+                    <div className="flex items-center justify-between md:justify-start gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black shadow-sm group-hover:scale-105 transition-transform">
                         {u.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="text-sm font-black text-gray-900 dark:text-slate-100">{u.name}</div>
                     </div>
                   </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="space-y-1.5">
+                  <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6 whitespace-nowrap">
+                    <div className="flex items-center justify-between md:block">
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Contact Info</span>
+                      <div className="space-y-1.5 text-right md:text-left flex flex-col items-end md:items-start">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-slate-300">
                         <Mail size={14} className="text-gray-300 dark:text-slate-600" />
                         {u.email}
@@ -155,20 +157,28 @@ export default function UserManagement() {
                         {u.phone || "No phone provided"}
                       </div>
                     </div>
+                    </div>
                   </td>
-                  <td className="px-8 py-6 whitespace-nowrap text-center">
-                    <div className="inline-flex items-center gap-2 bg-gray-50 dark:bg-slate-950 px-4 py-2 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-inner">
+                  <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6 whitespace-nowrap text-center md:text-center text-right">
+                    <div className="flex items-center justify-between md:justify-center">
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Enrollments</span>
+                      <div className="inline-flex items-center gap-2 bg-gray-50 dark:bg-slate-950 px-4 py-2 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-inner">
                         <Hash size={14} className="text-gray-400 dark:text-slate-600" />
                         <span className="text-sm font-black text-gray-900 dark:text-slate-100">{u._count?.enrollments || 0}</span>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 font-bold">
-                      <Calendar size={14} className="text-gray-300 dark:text-slate-600" />
-                      {new Date(u.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                  <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6 whitespace-nowrap">
+                    <div className="flex items-center justify-between md:justify-start gap-2 text-sm text-gray-500 dark:text-slate-400 font-bold">
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Joined</span>
+                      <div className="flex items-center gap-2 text-right md:text-left">
+                        <Calendar size={14} className="text-gray-300 dark:text-slate-600" />
+                        {new Date(u.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </div>
                     </div>
                   </td>
-                  <td className="px-8 py-6 whitespace-nowrap text-right">
+                  <td className="block md:table-cell px-2 md:px-8 py-4 md:py-6 whitespace-nowrap text-right md:border-none border-t border-gray-50 dark:border-slate-800 mt-2 md:mt-0">
+                    <div className="flex items-center justify-end md:opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleOpenReset(u)}
                       className="p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 transition-all border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/30 shadow-sm opacity-0 group-hover:opacity-100"
@@ -176,6 +186,7 @@ export default function UserManagement() {
                     >
                       <KeyRound size={18} />
                     </button>
+                    </div>
                   </td>
                 </tr>
               )) : (

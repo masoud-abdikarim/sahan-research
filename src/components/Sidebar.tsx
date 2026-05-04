@@ -15,14 +15,20 @@ import {
   Settings,
   LogOut,
   Search,
-  History
+  History,
+  X
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import { logoutUser, logout } from "@/redux/slice/userSlice";
 import { useRouter } from "next/navigation";
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -70,56 +76,82 @@ export default function Sidebar() {
   const navigation = isAdmin ? adminNav : studentNav;
 
   return (
-    <div className="flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 h-[calc(100vh-4rem)] sticky top-16 transition-colors">
-      <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-        <div className="px-4 mb-4">
-          <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
-            {isAdmin ? "System Administration" : "Learning Portal"}
-          </p>
-        </div>
-        <nav className="flex-1 px-3 space-y-1 bg-white dark:bg-slate-900" aria-label="Sidebar">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`
-                  group flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all
-                  ${isActive 
-                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-semibold shadow-sm" 
-                    : "text-gray-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-slate-800"
-                  }
-                `}
-              >
-                <Icon
-                  className={`
-                    flex-shrink-0 -ml-1 mr-3 h-5 w-5
-                    ${isActive ? "text-indigo-700 dark:text-indigo-400" : "text-gray-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}
-                  `}
-                  aria-hidden="true"
-                />
-                <span className="truncate">{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Logout Section */}
-      <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-slate-800 p-4">
-        <button
-          onClick={handleLogout}
-          className="flex-shrink-0 w-full group block"
-        >
-          <div className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
-            <LogOut className="flex-shrink-0 mr-3 h-5 w-5 text-red-500 dark:text-red-400 group-hover:text-red-600" aria-hidden="true" />
-            <span>Logout</span>
+      {/* Sidebar Content */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+        flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 
+        h-[calc(100vh-4rem)] top-16
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
+          <div className="px-4 mb-4 flex items-center justify-between lg:block">
+            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+              {isAdmin ? "System Administration" : "Learning Portal"}
+            </p>
+            {onClose && (
+              <button onClick={onClose} className="lg:hidden p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <X size={20} />
+              </button>
+            )}
           </div>
-        </button>
+          <nav className="flex-1 px-3 space-y-1 bg-white dark:bg-slate-900" aria-label="Sidebar">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => {
+                    if (window.innerWidth < 1024 && onClose) {
+                      onClose();
+                    }
+                  }}
+                  className={`
+                    group flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all
+                    ${isActive 
+                      ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 font-semibold shadow-sm" 
+                      : "text-gray-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    }
+                  `}
+                >
+                  <Icon
+                    className={`
+                      flex-shrink-0 -ml-1 mr-3 h-5 w-5
+                      ${isActive ? "text-indigo-700 dark:text-indigo-400" : "text-gray-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}
+                    `}
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Logout Section */}
+        <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-slate-800 p-4 bg-white dark:bg-slate-900">
+          <button
+            onClick={handleLogout}
+            className="flex-shrink-0 w-full group block"
+          >
+            <div className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+              <LogOut className="flex-shrink-0 mr-3 h-5 w-5 text-red-500 dark:text-red-400 group-hover:text-red-600" aria-hidden="true" />
+              <span>Logout</span>
+            </div>
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

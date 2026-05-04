@@ -161,7 +161,7 @@ export default function CoursesPage() {
       </div>
 
       {showForm && (
-        <div className="mb-12 bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-[3rem] border border-gray-100 dark:border-slate-800 shadow-2xl shadow-indigo-100/20 dark:shadow-black/20 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="mb-12 max-w-4xl mx-auto bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[3rem] border border-gray-100 dark:border-slate-800 shadow-2xl shadow-indigo-100/20 dark:shadow-black/20 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
@@ -337,9 +337,9 @@ export default function CoursesPage() {
 
       {/* Course List Table */}
       <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
+        <div className="overflow-x-auto md:overflow-visible">
+          <table className="w-full text-left border-collapse block md:table">
+            <thead className="hidden md:table-header-group">
               <tr className="bg-gray-50 dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800">
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">Course Details</th>
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">Category</th>
@@ -348,10 +348,10 @@ export default function CoursesPage() {
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
+            <tbody className="block md:table-row-group divide-y divide-transparent md:divide-gray-50 dark:md:divide-slate-800 space-y-4 md:space-y-0 p-4 md:p-0">
               {filteredCourses.map((course) => (
-                <tr key={course.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-950/50 transition-all group">
-                  <td className="px-8 py-6">
+                <tr key={course.id} className="block md:table-row bg-white dark:bg-slate-900 md:bg-transparent rounded-3xl border border-gray-100 dark:border-slate-800 md:border-none p-4 md:p-0 hover:bg-gray-50/50 dark:hover:bg-slate-950/50 transition-all group shadow-sm md:shadow-none relative">
+                  <td className="block md:table-cell px-2 md:px-8 py-3 md:py-6">
                     <div className="flex items-center gap-4">
                       {course.imageUrl && (
                         <img 
@@ -366,19 +366,28 @@ export default function CoursesPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100/50 dark:border-indigo-900/30">
-                      {course.category}
-                    </span>
+                  <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6 whitespace-nowrap">
+                    <div className="flex items-center justify-between md:block">
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Category</span>
+                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100/50 dark:border-indigo-900/30">
+                        {course.category}
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="text-lg font-black text-gray-900 dark:text-white">${course.price.toFixed(2)}</div>
+                  <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6 whitespace-nowrap">
+                    <div className="flex items-center justify-between md:block">
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Price</span>
+                      <div className="text-lg font-black text-gray-900 dark:text-white">${course.price.toFixed(2)}</div>
+                    </div>
                   </td>
-                  <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">{course.durationMonths} Months</div>
+                  <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6 whitespace-nowrap">
+                    <div className="flex items-center justify-between md:block">
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Duration</span>
+                      <div className="text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">{course.durationMonths} Months</div>
+                    </div>
                   </td>
-                  <td className="px-8 py-6 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="block md:table-cell px-2 md:px-8 py-4 md:py-6 text-right whitespace-nowrap md:border-none border-t border-gray-50 dark:border-slate-800 mt-2 md:mt-0">
+                    <div className="flex items-center justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleEditInit(course)}
                         className="p-3 bg-white dark:bg-slate-900 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all"
