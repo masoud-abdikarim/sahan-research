@@ -39,22 +39,46 @@ export async function GET(req: Request) {
     // 2. Identify completed lesson IDs
     const completedLessonIds = new Set(enrollment.progress.map(p => p.lessonId));
 
-    // 3. Find the first incomplete lesson
-    const nextLesson = enrollment.course.lessons.find(lesson => !completedLessonIds.has(lesson.id));
+    // 3. Find the highest order lesson the student has completed
+    const completedOrders = enrollment.course.lessons
+      .filter(l => completedLessonIds.has(l.id))
+      .map(l => l.order);
+    const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
 
-    // 4. Calculate detailed progress for the UI
-    const totalLessons = enrollment.course.lessons.length;
-    const completedLessons = completedLessonIds.size;
-    const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+    // 4. Find the first incomplete lesson that wasn't bypassed
+    const nextLesson = enrollment.course.lessons.find(lesson => 
+      !completedLessonIds.has(lesson.id) && lesson.order >= maxCompletedOrder
+    );
+
+    // 5. Calculate stable progress for the UI
+    let totalLessonsCount = enrollment.course.lessons.length;
+    let completedLessonsCount = completedLessonIds.size;
+    let remainingLessons = totalLessonsCount - completedLessonsCount;
+
+    if (enrollment.isCompleted && enrollment.totalLessonsAtTimeOfCompletion) {
+      totalLessonsCount = enrollment.totalLessonsAtTimeOfCompletion;
+      completedLessonsCount = enrollment.totalLessonsAtTimeOfCompletion;
+      remainingLessons = 0;
+    } else {
+      // 🔒 Case 2: Ignore lessons inserted "behind" them
+      const ignoredLessons = enrollment.course.lessons.filter(l => 
+        l.order < maxCompletedOrder && !completedLessonIds.has(l.id)
+      );
+      totalLessonsCount = enrollment.course.lessons.length - ignoredLessons.length;
+      completedLessonsCount = completedLessonIds.size;
+      remainingLessons = totalLessonsCount - completedLessonsCount;
+    }
+
+    const progressPercentage = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
 
     return NextResponse.json({
       nextLesson: nextLesson || null,
       stats: {
-        totalLessons,
-        completedLessons,
-        remainingLessons: totalLessons - completedLessons,
+        totalLessons: totalLessonsCount,
+        completedLessons: completedLessonsCount,
+        remainingLessons: Math.max(0, remainingLessons),
         progressPercentage,
-        isCompleted: totalLessons > 0 && completedLessons === totalLessons
+        isCompleted: enrollment.isCompleted
       }
     });
   } catch (error) {

@@ -238,7 +238,7 @@ export default function LessonsPage() {
             onChange={(e) => setSelectedCourseId(e.target.value === "" ? "" : Number(e.target.value))}
             className="appearance-none block w-full sm:w-64 pl-4 pr-10 py-2.5 text-sm font-black border border-gray-100 dark:border-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 rounded-xl bg-white dark:bg-slate-900 shadow-sm transition-all text-gray-700 dark:text-slate-200"
           >
-            <option value="">All Enrolled Courses</option>
+            <option value="">{isAdmin ? "All Courses" : "All Enrolled Courses"}</option>
             {availableCourses.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}

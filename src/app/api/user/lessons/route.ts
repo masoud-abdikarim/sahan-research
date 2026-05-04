@@ -71,74 +71,87 @@ export async function GET(req: Request) {
       });
     } else {
       // ── ALL ENROLLED LESSONS VIEW ──
-      const myEnrollments = await prisma.enrollment.findMany({
-        where: { userId: session.id, status: "APPROVED" },
-        select: { courseId: true, isCompleted: true, finalLessonOrder: true }
-      });
-
-    for (const enrollment of myEnrollments) {
-      const courseLessons = await prisma.lesson.findMany({
-        where: { courseId: enrollment.courseId },
-        orderBy: { order: 'asc' },
-        include: {
-          Progress: {
-            where: { enrollment: { userId: session.id, courseId: enrollment.courseId } }
+      if (session.role === "ADMIN") {
+        const allLessons = await prisma.lesson.findMany({
+          orderBy: { order: 'asc' },
+          include: {
+            course: true,
           }
-        }
-      });
-
-      // Find the highest order lesson the student has completed
-      const completedOrders = courseLessons
-        .filter(l => l.Progress[0]?.completed)
-        .map(l => l.order);
-      const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
-
-      courseLessons.forEach((lesson, index) => {
-        const isCompleted = lesson.Progress[0]?.completed || false;
-        
-        // 🔒 CORE RULE: Completion Snapshot Enforcement
-        if (enrollment.isCompleted) {
-          if (lesson.order <= (enrollment.finalLessonOrder || 0)) {
-            finalLessons.push({
-              ...lesson,
-              unlocked: true,
-              completed: true,
-              isSnapshot: true
-            });
-          }
-          return;
-        }
-
-        // 🔒 Case 2: If this lesson has a lower order than the highest completed lesson,
-        // and it's NOT completed, it was likely inserted later. 
-        // We skip/ignore it for sequential blocking.
-        const wasInsertedLater = !isCompleted && lesson.order < maxCompletedOrder;
-
-        const isFirst = index === 0;
-        
-        // Find the "real" previous lesson (ignoring later inserted ones)
-        let prevLessonCompleted = false;
-        if (index > 0) {
-           const prevLesson = courseLessons[index - 1];
-           prevLessonCompleted = prevLesson.Progress[0]?.completed || (prevLesson.order < maxCompletedOrder);
-        }
-
-        const unlocked = isFirst || prevLessonCompleted || wasInsertedLater;
-
-        // If it was inserted later and we are ignoring it, we still show it but it doesn't block.
-        // Actually, the user says "Those lessons are ignored for that student".
-        // I'll mark them as unlocked so they can watch if they want, but they won't block the next lesson.
-
-        const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
-
-        finalLessons.push({
-          ...safeLesson,
-          unlocked,
-          completed: isCompleted,
-          ignored: wasInsertedLater // Metadata for UI if needed
         });
-      });
-    }
+        
+        allLessons.forEach(lesson => {
+          finalLessons.push({
+            ...lesson,
+            unlocked: true,
+            completed: false
+          });
+        });
+      } else {
+        const myEnrollments = await prisma.enrollment.findMany({
+          where: { userId: session.id, status: "APPROVED" },
+          select: { courseId: true, isCompleted: true, finalLessonOrder: true }
+        });
+
+        for (const enrollment of myEnrollments) {
+          const courseLessons = await prisma.lesson.findMany({
+            where: { courseId: enrollment.courseId },
+            orderBy: { order: 'asc' },
+            include: {
+              Progress: {
+                where: { enrollment: { userId: session.id, courseId: enrollment.courseId } }
+              }
+            }
+          });
+
+          // Find the highest order lesson the student has completed
+          const completedOrders = courseLessons
+            .filter(l => l.Progress[0]?.completed)
+            .map(l => l.order);
+          const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
+
+          courseLessons.forEach((lesson, index) => {
+            const isCompleted = lesson.Progress[0]?.completed || false;
+            
+            // 🔒 CORE RULE: Completion Snapshot Enforcement
+            if (enrollment.isCompleted) {
+              if (lesson.order <= (enrollment.finalLessonOrder || 0)) {
+                finalLessons.push({
+                  ...lesson,
+                  unlocked: true,
+                  completed: true,
+                  isSnapshot: true
+                });
+              }
+              return;
+            }
+
+            // 🔒 Case 2: If this lesson has a lower order than the highest completed lesson,
+            // and it's NOT completed, it was likely inserted later. 
+            // We skip/ignore it for sequential blocking.
+            const wasInsertedLater = !isCompleted && lesson.order < maxCompletedOrder;
+
+            const isFirst = index === 0;
+            
+            // Find the "real" previous lesson (ignoring later inserted ones)
+            let prevLessonCompleted = false;
+            if (index > 0) {
+               const prevLesson = courseLessons[index - 1];
+               prevLessonCompleted = prevLesson.Progress[0]?.completed || (prevLesson.order < maxCompletedOrder);
+            }
+
+            const unlocked = isFirst || prevLessonCompleted || wasInsertedLater;
+
+            const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
+
+            finalLessons.push({
+              ...safeLesson,
+              unlocked,
+              completed: isCompleted,
+              ignored: wasInsertedLater // Metadata for UI if needed
+            });
+          });
+        }
+      }
     }
 
     return NextResponse.json({ lessons: finalLessons });
