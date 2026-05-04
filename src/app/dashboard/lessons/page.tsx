@@ -266,7 +266,7 @@ export default function LessonsPage() {
               </div>
               <div>
                 <p className="text-xs font-black text-green-800 dark:text-green-300 uppercase tracking-widest">Graduated Status</p>
-                <p className="text-sm font-medium text-green-700 dark:text-green-400">You have already completed this course. Enjoy reviewing the lessons!</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-400">You completed this course based on earlier lessons. Enjoy reviewing your achievement!</p>
               </div>
             </div>
           )}

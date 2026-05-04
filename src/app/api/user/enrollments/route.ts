@@ -33,12 +33,20 @@ export async function GET() {
       const calculatedCompletion = totalLessons > 0 && completedLessons === totalLessons;
       
       if (calculatedCompletion && !e.isCompleted) {
+        // Find max lesson order for snapshot
+        const lessons = await prisma.lesson.findMany({
+          where: { courseId: e.courseId },
+          select: { order: true }
+        });
+        const maxOrder = lessons.length > 0 ? Math.max(...lessons.map(l => l.order)) : 0;
+
         await prisma.enrollment.update({
           where: { id: e.id },
           data: {
             isCompleted: true,
             completedAt: new Date(),
-            totalLessonsAtTimeOfCompletion: totalLessons
+            totalLessonsAtTimeOfCompletion: totalLessons,
+            finalLessonOrder: maxOrder
           }
         });
         e.isCompleted = true; // Update local object for response

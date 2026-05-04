@@ -73,6 +73,9 @@ export async function POST(req: NextRequest) {
     const isFullyDone = currentLessons.every(lesson => completedLessonIds.has(lesson.id));
 
     if (currentLessons.length > 0 && isFullyDone) {
+      // Find max lesson order at time of completion
+      const maxOrder = Math.max(...currentLessons.map(l => l.order));
+
       // Create Immutable Snapshot
       await prisma.enrollment.update({
         where: { id: Number(enrollmentId) },
@@ -80,11 +83,12 @@ export async function POST(req: NextRequest) {
           isCompleted: true,
           completedAt: new Date(),
           lastLessonCompletedId: Number(lessonId),
-          totalLessonsAtTimeOfCompletion: currentLessons.length
+          totalLessonsAtTimeOfCompletion: currentLessons.length,
+          finalLessonOrder: maxOrder
         }
       });
       
-      console.log(`[COMPLETION] Course ${enrollment.courseId} marked as COMPLETED for user ${enrollment.userId}`);
+      console.log(`[COMPLETION] Course ${enrollment.courseId} marked as COMPLETED for user ${enrollment.userId} (Max Order: ${maxOrder})`);
     }
 
     return NextResponse.json(

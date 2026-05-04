@@ -80,6 +80,7 @@ model Enrollment {
   completedAt           DateTime?
   lastLessonCompletedId Int?
   totalLessonsAtTimeOfCompletion Int? @default(0)
+  finalLessonOrder      Int?      @default(0)
 
   user   User   @relation(fields: [userId], references: [id])
   course Course @relation(fields: [courseId], references: [id])

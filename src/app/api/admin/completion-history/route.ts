@@ -45,17 +45,24 @@ export async function GET() {
         const isActuallyDone = totalLessons > 0 && completedLessons === totalLessons;
 
         if (isActuallyDone) {
-          // 🔄 Auto-fix if record was missed in DB
-          if (!enrollment.isCompleted) {
-            await prisma.enrollment.update({
-              where: { id: enrollment.id },
-              data: {
-                isCompleted: true,
-                completedAt: new Date(),
-                totalLessonsAtTimeOfCompletion: totalLessons
-              }
-            });
-          }
+           // 🔄 Auto-fix if record was missed in DB
+           if (!enrollment.isCompleted) {
+             const lessons = await prisma.lesson.findMany({
+               where: { courseId: course.id },
+               select: { order: true }
+             });
+             const maxOrder = lessons.length > 0 ? Math.max(...lessons.map(l => l.order)) : 0;
+
+             await prisma.enrollment.update({
+               where: { id: enrollment.id },
+               data: {
+                 isCompleted: true,
+                 completedAt: new Date(),
+                 totalLessonsAtTimeOfCompletion: totalLessons,
+                 finalLessonOrder: maxOrder
+               }
+             });
+           }
 
           completedStudents.push({
             studentId: enrollment.user.id,

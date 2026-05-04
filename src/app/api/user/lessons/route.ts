@@ -42,13 +42,18 @@ export async function GET(req: Request) {
           return;
         }
 
-        // 🔒 CORE RULE: If enrollment is marked as completed, all its lessons are unlocked
+        // 🔒 CORE RULE: Completion Snapshot Enforcement
         if (enrollment?.isCompleted) {
-          finalLessons.push({
-            ...lesson,
-            unlocked: true,
-            completed: true
-          });
+          // Only show lessons that were part of the course when they completed it
+          if (lesson.order <= (enrollment.finalLessonOrder || 0)) {
+            finalLessons.push({
+              ...lesson,
+              unlocked: true,
+              completed: true,
+              isSnapshot: true // Flag for UI
+            });
+          }
+          // Lessons with order > finalLessonOrder are NOT returned for completed students
           return;
         }
 
@@ -68,7 +73,7 @@ export async function GET(req: Request) {
       // ── ALL ENROLLED LESSONS VIEW ──
       const myEnrollments = await prisma.enrollment.findMany({
         where: { userId: session.id, status: "APPROVED" },
-        select: { courseId: true, isCompleted: true }
+        select: { courseId: true, isCompleted: true, finalLessonOrder: true }
       });
 
     for (const enrollment of myEnrollments) {
@@ -91,13 +96,16 @@ export async function GET(req: Request) {
       courseLessons.forEach((lesson, index) => {
         const isCompleted = lesson.Progress[0]?.completed || false;
         
-        // 🔒 CORE RULE: If enrollment is marked as completed, all its lessons are unlocked
+        // 🔒 CORE RULE: Completion Snapshot Enforcement
         if (enrollment.isCompleted) {
-          finalLessons.push({
-            ...lesson,
-            unlocked: true,
-            completed: true
-          });
+          if (lesson.order <= (enrollment.finalLessonOrder || 0)) {
+            finalLessons.push({
+              ...lesson,
+              unlocked: true,
+              completed: true,
+              isSnapshot: true
+            });
+          }
           return;
         }
 
