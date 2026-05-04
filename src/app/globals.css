@@ -71,3 +71,14 @@ body {
   color: var(--foreground);
   transition: background-color 0.5s ease, color 0.5s ease;
 }
+
+/* Hide spin buttons for number inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}

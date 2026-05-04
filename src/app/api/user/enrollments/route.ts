@@ -24,41 +24,18 @@ export async function GET() {
     });
 
     // Transform to include percentage and counts directly
-    const transformedEnrollments = await Promise.all(enrollments.map(async (e) => {
+    const transformedEnrollments = enrollments.map((e) => {
       const totalLessons = e.course._count.lessons;
       const completedLessons = e._count.progress;
       const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
       
-      // 🔄 Reconciliation: If calculation says completed but DB says false, update DB
-      const calculatedCompletion = totalLessons > 0 && completedLessons === totalLessons;
-      
-      if (calculatedCompletion && !e.isCompleted) {
-        // Find max lesson order for snapshot
-        const lessons = await prisma.lesson.findMany({
-          where: { courseId: e.courseId },
-          select: { order: true }
-        });
-        const maxOrder = lessons.length > 0 ? Math.max(...lessons.map(l => l.order)) : 0;
-
-        await prisma.enrollment.update({
-          where: { id: e.id },
-          data: {
-            isCompleted: true,
-            completedAt: new Date(),
-            totalLessonsAtTimeOfCompletion: totalLessons,
-            finalLessonOrder: maxOrder
-          }
-        });
-        e.isCompleted = true; // Update local object for response
-      }
-
       return {
         ...e,
         totalLessons,
         completedLessons,
         progressPercentage,
       };
-    }));
+    });
 
     return NextResponse.json({ enrollments: transformedEnrollments });
   } catch (error) {
