@@ -44,7 +44,16 @@ export async function GET(
     const lessons = enrollment.course.lessons;
     const progress = enrollment.progress;
 
-    // find first incomplete lesson
+    // Find the highest order lesson the student has completed
+    const completedOrders = progress
+      .filter(p => p.completed)
+      .map(p => {
+        const lesson = lessons.find(l => l.id === p.lessonId);
+        return lesson ? lesson.order : -1;
+      });
+    const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
+
+    // find first incomplete lesson that wasn't bypassed
     let nextLesson = null;
 
     for (let lesson of lessons) {
@@ -52,7 +61,8 @@ export async function GET(
         (p) => p.lessonId === lesson.id && p.completed
       );
 
-      if (!done) {
+      // If not done AND it's not a lesson inserted in the past
+      if (!done && lesson.order >= maxCompletedOrder) {
         nextLesson = lesson;
         break;
       }

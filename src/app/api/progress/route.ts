@@ -57,22 +57,41 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 3. Check for Course Completion (100% logic)
+    // 3. Check for Course Completion (Dynamic & Immutable Logic)
     const allProgress = await prisma.progress.findMany({
       where: { enrollmentId: Number(enrollmentId), completed: true }
     });
 
-    const totalLessons = enrollment.course.lessons.length;
-    const completedLessons = allProgress.length;
+    const currentLessons = enrollment.course.lessons;
+    
+    // Find highest order lesson the student has completed
+    const completedOrders = allProgress.map(p => {
+      const lesson = currentLessons.find(l => l.id === p.lessonId);
+      return lesson ? lesson.order : -1;
+    });
+    const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
 
-    if (totalLessons > 0 && completedLessons >= totalLessons) {
+    // A student is completed if they have finished all lessons 
+    // EXCEPT those that were inserted "behind" their progress later.
+    const requiredLessons = currentLessons.filter(l => l.order >= maxCompletedOrder);
+    const completedRequiredLessons = allProgress.filter(p => {
+      const lesson = currentLessons.find(l => l.id === p.lessonId);
+      return lesson && lesson.order >= maxCompletedOrder;
+    });
+
+    const isFullyDone = requiredLessons.every(rl => 
+      allProgress.some(ap => ap.lessonId === rl.id)
+    );
+
+    if (currentLessons.length > 0 && isFullyDone) {
       // Create Immutable Snapshot
       await prisma.enrollment.update({
         where: { id: Number(enrollmentId) },
         data: {
           isCompleted: true,
           completedAt: new Date(),
-          lastLessonCompletedId: Number(lessonId)
+          lastLessonCompletedId: Number(lessonId),
+          totalLessonsAtTimeOfCompletion: currentLessons.length
         }
       });
     }

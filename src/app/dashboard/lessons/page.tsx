@@ -142,6 +142,15 @@ export default function LessonsPage() {
   const renderPlayer = (lesson: any) => {
     const handleEnded = () => handleLessonComplete(lesson.id);
 
+    // Watch progress threshold (95%)
+    const handleTimeUpdate = (e: any) => {
+      const video = e.target;
+      const progress = (video.currentTime / video.duration) * 100;
+      if (progress >= 95 && !lesson.completed && !isAdmin) {
+        // We could auto-complete here, but onEnded is safer for "fully watched"
+      }
+    };
+
     if (lesson.videoType === "URL") {
       const ytMatch = lesson.videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/||.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
       if (ytMatch) {
@@ -149,19 +158,19 @@ export default function LessonsPage() {
           <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative">
             <iframe
               className="w-full h-full"
-              src={`https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1`}
+              src={`https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&rel=0&modestbranding=1`}
               title={lesson.title}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
-            {!isAdmin && (
-              <div className="absolute bottom-4 right-4">
+            {!isAdmin && !lesson.completed && (
+              <div className="absolute bottom-4 right-4 animate-pulse">
                 <button 
                   onClick={handleEnded}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-green-700 transition-all flex items-center gap-2"
+                  className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
                 >
-                  <CheckCircle2 size={16} /> Mark as Completed
+                  <CheckCircle2 size={16} /> I have watched fully
                 </button>
               </div>
             )}
@@ -170,7 +179,13 @@ export default function LessonsPage() {
       }
       return (
         <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black flex items-center justify-center">
-          <video controls className="w-full h-full" onEnded={handleEnded}>
+          <video 
+            controls 
+            className="w-full h-full" 
+            onEnded={handleEnded}
+            onTimeUpdate={handleTimeUpdate}
+            controlsList="nodownload"
+          >
             <source src={lesson.videoUrl} type="video/mp4" />
           </video>
         </div>
@@ -178,7 +193,13 @@ export default function LessonsPage() {
     } else {
       return (
         <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
-          <video controls controlsList="nodownload" className="w-full h-full" onEnded={handleEnded}>
+          <video 
+            controls 
+            controlsList="nodownload" 
+            className="w-full h-full" 
+            onEnded={handleEnded}
+            onTimeUpdate={handleTimeUpdate}
+          >
             <source src={lesson.videoUrl} type="video/mp4" />
           </video>
         </div>
