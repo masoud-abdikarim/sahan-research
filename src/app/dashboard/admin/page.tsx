@@ -15,7 +15,13 @@ export default function AdminOverview() {
         const res = await axios.get("/api/admin/stats");
         setStats(res.data.stats);
       } catch (error: any) {
-        console.error("Failed to fetch stats:", error.response?.data || error.message);
+        // Prevent cryptic '{}' logs by stringifying the data if it's an object, or falling back to a structured message
+        const responseData = error.response?.data;
+        const errorMessage = typeof responseData === 'object' && Object.keys(responseData || {}).length === 0 
+          ? (error.message || "Unknown Network Error") 
+          : responseData;
+          
+        console.error("Failed to fetch stats:", errorMessage);
       } finally {
         setLoading(false);
       }

@@ -179,9 +179,9 @@ export default function CompletionHistoryPage() {
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto md:overflow-visible">
-              <table className="w-full text-left block md:table">
-                <thead className="hidden md:table-header-group">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
                   <tr className="bg-gray-50 dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800">
                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Student Information</th>
                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Contact Details</th>
@@ -189,10 +189,10 @@ export default function CompletionHistoryPage() {
                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="block md:table-row-group divide-y divide-transparent md:divide-gray-50 dark:md:divide-slate-800 space-y-4 md:space-y-0 p-4 md:p-0">
+                <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
                   {filteredStudents.map((student) => (
-                    <tr key={student.studentId} className="block md:table-row bg-white dark:bg-slate-900 md:bg-transparent rounded-3xl border border-gray-100 dark:border-slate-800 md:border-none p-4 md:p-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors group shadow-sm md:shadow-none">
-                      <td className="block md:table-cell px-2 md:px-8 py-3 md:py-6">
+                    <tr key={student.studentId} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors group">
+                      <td className="px-8 py-6">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black">
                             {student.name.charAt(0)}
@@ -203,28 +203,22 @@ export default function CompletionHistoryPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6">
-                        <div className="flex items-center justify-between md:block">
-                          <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Contact Details</span>
-                          <div className="space-y-1 text-right md:text-left flex flex-col items-end md:items-start">
-                            <p className="text-xs font-medium text-gray-600 dark:text-slate-300 flex items-center gap-2"><Mail size={12} className="hidden md:block" /> {student.email}</p>
-                            <p className="text-xs font-medium text-gray-600 dark:text-slate-300 flex items-center gap-2"><Phone size={12} className="hidden md:block" /> {student.phone}</p>
-                          </div>
+                      <td className="px-8 py-6">
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-gray-600 dark:text-slate-300 flex items-center gap-2"><Mail size={12}/> {student.email}</p>
+                          <p className="text-xs font-medium text-gray-600 dark:text-slate-300 flex items-center gap-2"><Phone size={12}/> {student.phone}</p>
                         </div>
                       </td>
-                      <td className="block md:table-cell px-2 md:px-8 py-2 md:py-6">
-                        <div className="flex items-center justify-between md:justify-start">
-                          <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Completion Date</span>
-                          <p className="text-sm font-bold text-gray-700 dark:text-slate-200 text-right md:text-left">
-                            {new Date(student.completionDate).toLocaleDateString(undefined, {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
+                      <td className="px-8 py-6">
+                        <p className="text-sm font-bold text-gray-700 dark:text-slate-200">
+                          {new Date(student.completionDate).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
                       </td>
-                      <td className="block md:table-cell px-2 md:px-8 py-4 md:py-6 text-right border-t md:border-none border-gray-50 dark:border-slate-800 mt-2 md:mt-0">
+                      <td className="px-8 py-6 text-right">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-900/30">
                           <CheckCircle2 size={12}/> 100% Completed
                         </span>

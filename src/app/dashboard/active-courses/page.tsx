@@ -59,8 +59,8 @@ export default function ActiveCoursesPage() {
             {pendingEnrollments.map((enrollment) => {
               const course = courses.find(c => c.id === enrollment.courseId);
               return (
-                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-amber-100 dark:border-amber-900/30 shadow-xl shadow-amber-500/5 dark:shadow-none transition-all">
-                  <div className="flex flex-col gap-4 mb-6">
+                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-amber-100 dark:border-amber-900/30 shadow-xl shadow-amber-500/5 dark:shadow-none transition-all">
+                  <div className="flex flex-col gap-4 mb-4">
                     <div>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30">
                         <Clock size={12}/> Pending Approval
@@ -83,8 +83,8 @@ export default function ActiveCoursesPage() {
             {rejectedEnrollments.map((enrollment) => {
               const course = courses.find(c => c.id === enrollment.courseId);
               return (
-                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-red-100 dark:border-red-900/30 shadow-sm transition-all grayscale opacity-80 hover:grayscale-0 hover:opacity-100">
-                  <div className="flex flex-col gap-4 mb-6">
+                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm transition-all grayscale opacity-80 hover:grayscale-0 hover:opacity-100">
+                  <div className="flex flex-col gap-4 mb-4">
                     <div>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-900/30">
                         <XCircle size={12}/> Request Rejected
@@ -141,11 +141,11 @@ export default function ActiveCoursesPage() {
         {coursesLoading ? (
           <div className="flex justify-center py-20"><Loader /></div>
         ) : unrolledCourses.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {unrolledCourses.map(course => (
-              <div key={course.id} className="group flex flex-col sm:flex-row bg-white dark:bg-slate-900 rounded-[2rem] border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
+              <div key={course.id} className="group flex flex-col bg-white dark:bg-slate-900 rounded-[2rem] border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
                 {/* Course Image Side */}
-                <div className="w-full sm:w-56 h-48 sm:h-auto relative overflow-hidden shrink-0">
+                <div className="w-full h-44 relative overflow-hidden shrink-0">
                   {course.imageUrl ? (
                     <img src={course.imageUrl} alt={course.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   ) : (

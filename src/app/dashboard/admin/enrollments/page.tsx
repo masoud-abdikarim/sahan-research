@@ -68,9 +68,9 @@ export default function AdminEnrollmentsPage() {
         <Loader />
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
-          <div className="overflow-x-auto md:overflow-visible">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800 block md:table">
-              <thead className="bg-gray-50 dark:bg-slate-950 hidden md:table-header-group">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800">
+              <thead className="bg-gray-50 dark:bg-slate-950">
                 <tr>
                   <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Student</th>
                   <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Contact Info</th>
@@ -79,46 +79,30 @@ export default function AdminEnrollmentsPage() {
                   <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-slate-900 divide-y divide-transparent md:divide-gray-100 dark:md:divide-slate-800 block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0">
+              <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-100 dark:divide-slate-800">
                 {filteredEnrollments.map((enrollment: any) => (
-                  <tr key={enrollment.id} className="block md:table-row bg-white dark:bg-slate-900 md:bg-transparent rounded-3xl border border-gray-100 dark:border-slate-800 md:border-none p-4 md:p-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors shadow-sm md:shadow-none">
-                    <td className="block md:table-cell px-2 md:px-6 py-3 md:py-5 whitespace-nowrap">
-                      <div className="flex items-center justify-between md:block">
-                        <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Student</span>
-                        <div className="text-right md:text-left">
-                          <div className="text-sm font-black text-gray-900 dark:text-slate-100">{enrollment.user?.name}</div>
-                          <div className="text-xs font-medium text-gray-400 dark:text-slate-500">{enrollment.user?.email}</div>
-                        </div>
+                  <tr key={enrollment.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="text-sm font-black text-gray-900 dark:text-slate-100">{enrollment.user?.name}</div>
+                      <div className="text-xs font-medium text-gray-400 dark:text-slate-500">{enrollment.user?.email}</div>
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-slate-300">
+                        <Phone size={14} className="text-indigo-500 dark:text-indigo-400" />
+                        {enrollment.user?.phone || "No phone"}
                       </div>
                     </td>
-                    <td className="block md:table-cell px-2 md:px-6 py-2 md:py-5 whitespace-nowrap">
-                      <div className="flex items-center justify-between md:justify-start">
-                        <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Contact</span>
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-slate-300">
-                          <Phone size={14} className="text-indigo-500 dark:text-indigo-400" />
-                          {enrollment.user?.phone || "No phone"}
-                        </div>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-slate-100 font-black">{enrollment.course?.name}</div>
+                      <div className="text-[10px] text-gray-400 dark:text-slate-500 font-black uppercase tracking-widest">ID: #{enrollment.courseId}</div>
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-slate-400">
+                        <Calendar size={14} className="text-indigo-500 dark:text-indigo-400" />
+                        {formatDate(enrollment.createdAt)}
                       </div>
                     </td>
-                    <td className="block md:table-cell px-2 md:px-6 py-2 md:py-5 whitespace-nowrap">
-                      <div className="flex items-center justify-between md:block">
-                        <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Course</span>
-                        <div className="text-right md:text-left">
-                          <div className="text-sm text-gray-900 dark:text-slate-100 font-black">{enrollment.course?.name}</div>
-                          <div className="text-[10px] text-gray-400 dark:text-slate-500 font-black uppercase tracking-widest">ID: #{enrollment.courseId}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="block md:table-cell px-2 md:px-6 py-2 md:py-5 whitespace-nowrap">
-                      <div className="flex items-center justify-between md:justify-start">
-                        <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest md:hidden">Requested At</span>
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-slate-400">
-                          <Calendar size={14} className="text-indigo-500 dark:text-indigo-400" />
-                          {formatDate(enrollment.createdAt)}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="block md:table-cell px-2 md:px-6 py-4 md:py-5 whitespace-nowrap text-right text-sm font-medium border-t md:border-none border-gray-50 dark:border-slate-800 mt-2 md:mt-0">
+                    <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
                       {activeTab === "PENDING" ? (
                         <div className="flex justify-end gap-3">
                           <button

@@ -180,9 +180,11 @@ export default function LandingPage() {
             {/* Left: Logo */}
             <div className="flex items-center shrink-0">
               <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 group-hover:scale-105 transition-all duration-500">
-                  <FlaskConical size={20} className="text-white" />
-                </div>
+                <img 
+                  src="/logo.jpeg" 
+                  alt="Sahan Research Logo" 
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 group-hover:scale-105 transition-all duration-500" 
+                />
                 <span className="text-lg sm:text-2xl font-black tracking-tighter text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
                   Sahan <span className="text-indigo-600 group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-300">Research</span>
                 </span>
@@ -285,13 +287,15 @@ export default function LandingPage() {
         {/* Background blobs */}
         <div className="absolute -top-40 -right-40 w-[700px] h-[700px] bg-indigo-100 dark:bg-indigo-900/10 rounded-full blur-[120px] opacity-50 pointer-events-none" />
         <div className="absolute -bottom-20 -left-40 w-[500px] h-[500px] bg-violet-100 dark:bg-violet-900/10 rounded-full blur-[100px] opacity-40 pointer-events-none" />
+        
+
 
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
 
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full mb-8 uppercase tracking-[0.15em] shadow-sm">
-              <FlaskConical size={12} />
+              <img src="/logo.jpeg" alt="Icon" className="w-4 h-4 rounded-md object-cover" />
               Academic Research Platform &amp; E-Learning
             </div>
 
@@ -622,9 +626,11 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center shadow-lg">
-                  <FlaskConical size={20} className="text-white" />
-                </div>
+                <img 
+                  src="/logo.jpeg" 
+                  alt="Sahan Research Logo" 
+                  className="w-10 h-10 rounded-xl object-cover shadow-lg" 
+                />
                 <span className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Sahan <span className="text-indigo-600 dark:text-indigo-400">Research</span></span>
               </div>
               <p className="text-slate-500 dark:text-slate-400 max-w-xs font-medium leading-relaxed">

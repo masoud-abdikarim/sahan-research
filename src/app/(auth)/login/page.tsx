@@ -67,9 +67,11 @@ export default function LoginPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg dark:shadow-indigo-950/50">
-            <BookOpen size={24} className="text-white" />
-          </div>
+          <img 
+            src="/logo.jpeg" 
+            alt="Sahan Research Logo" 
+            className="w-16 h-16 rounded-2xl object-cover shadow-xl dark:shadow-indigo-950/50" 
+          />
         </div>
         <h2 className="mt-6 text-center text-3xl font-black text-gray-900 dark:text-white tracking-tight">
           Welcome Back
