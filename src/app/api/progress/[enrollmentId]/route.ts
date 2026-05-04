@@ -68,9 +68,31 @@ export async function GET(
       }
     }
 
+    // 📊 CALCULATE STATS
+    let totalLessonsCount = lessons.length;
+    let completedLessonsCount = progress.filter(p => p.completed).length;
+    let remainingLessons = totalLessonsCount - completedLessonsCount;
+
+    if (enrollment.isCompleted && enrollment.totalLessonsAtTimeOfCompletion) {
+      totalLessonsCount = enrollment.totalLessonsAtTimeOfCompletion;
+      completedLessonsCount = enrollment.totalLessonsAtTimeOfCompletion;
+      remainingLessons = 0;
+    } else {
+      // Ignore lessons inserted "behind" them
+      const ignoredLessons = lessons.filter(l => l.order < maxCompletedOrder && !completedOrders.includes(l.order));
+      totalLessonsCount = lessons.length - ignoredLessons.length;
+      completedLessonsCount = progress.filter(p => p.completed).length;
+      remainingLessons = totalLessonsCount - completedLessonsCount;
+    }
+
     return NextResponse.json(
       {
-        nextLesson,   // 👈 ONLY this lesson should be accessible
+        nextLesson,
+        stats: {
+          totalLessons: totalLessonsCount,
+          completedLessons: completedLessonsCount,
+          remainingLessons: Math.max(0, remainingLessons),
+        }
       },
       { status: 200 }
     );

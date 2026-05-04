@@ -12,8 +12,19 @@ export async function GET() {
       include: { 
         course: {
           include: {
+            lessons: {
+              select: { id: true, order: true }
+            },
             _count: {
               select: { lessons: true }
+            }
+          }
+        },
+        progress: {
+          where: { completed: true },
+          include: {
+            lesson: {
+              select: { order: true }
             }
           }
         },
@@ -25,14 +36,32 @@ export async function GET() {
 
     // Transform to include percentage and counts directly
     const transformedEnrollments = enrollments.map((e) => {
-      const totalLessons = e.course._count.lessons;
-      const completedLessons = e._count.progress;
-      const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      let totalLessonsCount = e.course._count.lessons;
+      let completedLessonsCount = e._count.progress;
+
+      // 🔒 CORE RULE: Use Snapshot for Completed Students
+      if (e.isCompleted && e.totalLessonsAtTimeOfCompletion) {
+        totalLessonsCount = e.totalLessonsAtTimeOfCompletion;
+        completedLessonsCount = e.totalLessonsAtTimeOfCompletion; 
+      } else {
+        // 🔒 Case 2: For in-progress students, ignore lessons inserted "behind" them
+        const completedOrders = e.progress.map(p => p.lesson.order);
+        const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
+
+        // Valid lessons = all lessons currently in course EXCEPT those with order < maxCompletedOrder that are NOT completed
+        // Actually, it's simpler: Total lessons for THIS student = Total lessons in course - (Lessons with order < maxCompletedOrder that are NOT completed)
+        const ignoredLessons = e.course.lessons.filter(l => l.order < maxCompletedOrder && !completedOrders.includes(l.order));
+        
+        totalLessonsCount = e.course.lessons.length - ignoredLessons.length;
+        completedLessonsCount = e.progress.length;
+      }
+      
+      const progressPercentage = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
       
       return {
         ...e,
-        totalLessons,
-        completedLessons,
+        totalLessons: totalLessonsCount,
+        completedLessons: completedLessonsCount,
         progressPercentage,
       };
     });
