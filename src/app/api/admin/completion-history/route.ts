@@ -10,14 +10,13 @@ export async function GET() {
     }
 
     // Fetch all courses with their approved enrollments and lessons
-    // We'll filter for 100% completion in the application logic or complex query
     const courses = await prisma.course.findMany({
       include: {
+        _count: {
+          select: { lessons: true }
+        },
         enrollments: {
-          where: { 
-            status: "APPROVED",
-            isCompleted: true
-          },
+          where: { status: "APPROVED" },
           include: {
             user: {
               select: {
@@ -26,24 +25,48 @@ export async function GET() {
                 email: true,
                 phone: true,
               }
+            },
+            _count: {
+              select: { progress: true }
             }
           }
         }
       }
     });
 
-    // Process data using the immutable snapshot
-    const completionData = courses.map(course => {
-      const completedStudents = course.enrollments.map(enrollment => {
-        return {
-          studentId: enrollment.user.id,
-          name: enrollment.user.name,
-          email: enrollment.user.email,
-          phone: enrollment.user.phone,
-          completionDate: enrollment.completedAt || enrollment.createdAt,
-          progressStatus: 100,
-        };
-      });
+    // Process data and perform reconciliation for missed completions
+    const completionData = await Promise.all(courses.map(async (course) => {
+      const totalLessons = course._count.lessons;
+      
+      const completedStudents = [];
+
+      for (const enrollment of course.enrollments) {
+        const completedLessons = enrollment._count.progress;
+        const isActuallyDone = totalLessons > 0 && completedLessons === totalLessons;
+
+        if (isActuallyDone) {
+          // 🔄 Auto-fix if record was missed in DB
+          if (!enrollment.isCompleted) {
+            await prisma.enrollment.update({
+              where: { id: enrollment.id },
+              data: {
+                isCompleted: true,
+                completedAt: new Date(),
+                totalLessonsAtTimeOfCompletion: totalLessons
+              }
+            });
+          }
+
+          completedStudents.push({
+            studentId: enrollment.user.id,
+            name: enrollment.user.name,
+            email: enrollment.user.email,
+            phone: enrollment.user.phone,
+            completionDate: enrollment.completedAt || enrollment.createdAt,
+            progressStatus: 100,
+          });
+        }
+      }
 
       return {
         courseId: course.id,
@@ -53,7 +76,7 @@ export async function GET() {
         lastUpdated: completedStudents.length > 0 ? completedStudents[0].completionDate : null,
         students: completedStudents
       };
-    });
+    }));
 
     console.log(`[ADMIN_HISTORY] Fetched ${completionData.length} courses with completion data`);
 
