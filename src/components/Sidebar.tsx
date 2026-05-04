@@ -14,7 +14,8 @@ import {
   Shield,
   Settings,
   LogOut,
-  Search
+  Search,
+  History
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
@@ -62,6 +63,7 @@ export default function Sidebar() {
     { name: "My Learning", href: "/dashboard/enrollments", icon: BookOpen },
     { name: "Active Courses", href: "/dashboard/active-courses", icon: Search },
     { name: "My Progress", href: "/dashboard/progress", icon: TrendingUp },
+    { name: "My History", href: "/dashboard/history", icon: History },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 

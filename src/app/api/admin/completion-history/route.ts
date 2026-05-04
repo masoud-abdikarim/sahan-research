@@ -16,7 +16,7 @@ export async function GET() {
         enrollments: {
           where: { 
             status: "APPROVED",
-            isCompleted: true // 🔒 CORE RULE: Only use the immutable snapshot
+            isCompleted: true
           },
           include: {
             user: {
@@ -54,6 +54,8 @@ export async function GET() {
         students: completedStudents
       };
     });
+
+    console.log(`[ADMIN_HISTORY] Fetched ${completionData.length} courses with completion data`);
 
     return NextResponse.json({ completionData });
   } catch (error: any) {

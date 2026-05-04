@@ -115,8 +115,14 @@ export default function LessonsPage() {
     }
   };
 
+  const currentEnrollment = selectedCourseId !== "" 
+    ? enrollments.find(e => e.courseId === Number(selectedCourseId))
+    : null;
+
+  const isCourseCompleted = currentEnrollment?.isCompleted || false;
+
   const handleLessonComplete = async (lessonId: number) => {
-    if (isAdmin) return;
+    if (isAdmin || isCourseCompleted) return;
     
     const lesson = lessons.find(l => l.id === lessonId);
     if (!lesson) return;
@@ -134,8 +140,19 @@ export default function LessonsPage() {
     }));
 
     if (markLessonComplete.fulfilled.match(res)) {
-      dispatch(getLessonsByCourse(selectedCourseId === "" ? 0 : Number(selectedCourseId)));
-      toast.success("Progress saved!");
+      const cid = selectedCourseId === "" ? 0 : Number(selectedCourseId);
+      const refreshRes = await dispatch(getLessonsByCourse(cid));
+      
+      if (getLessonsByCourse.fulfilled.match(refreshRes)) {
+        // If the backend says the course is now completed, show a success toast
+        const updatedLessons = refreshRes.payload;
+        const allCompleted = updatedLessons.every((l: any) => l.completed);
+        if (allCompleted) {
+          toast.success("Congratulations! You have completed the course.", { icon: '🎓', duration: 5000 });
+        } else {
+          toast.success("Lesson completed!");
+        }
+      }
     }
   };
 
@@ -242,6 +259,17 @@ export default function LessonsPage() {
 
       {activeLesson && (
         <div className="mb-12 animate-in fade-in zoom-in duration-500">
+          {isCourseCompleted && (
+            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 rounded-2xl flex items-center gap-3">
+              <div className="p-2 bg-green-500 rounded-lg text-white">
+                <CheckCircle2 size={18} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-green-800 dark:text-green-300 uppercase tracking-widest">Graduated Status</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-400">You have already completed this course. Enjoy reviewing the lessons!</p>
+              </div>
+            </div>
+          )}
           <div className="bg-white dark:bg-slate-900 p-2 rounded-[2.5rem] shadow-2xl border border-indigo-50 dark:border-indigo-900/20">
             {renderPlayer(activeLesson)}
           </div>
@@ -255,7 +283,15 @@ export default function LessonsPage() {
               <div className="flex items-center gap-4 text-gray-400 dark:text-slate-500 mt-2 text-xs font-black uppercase tracking-widest">
                 <span className="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full text-gray-600 dark:text-slate-400">Lesson {activeLesson.order}</span>
                 <span className="flex items-center gap-1.5 font-bold">
-                   {activeLesson.completed ? <><CheckCircle2 size={14} className="text-green-500 dark:text-green-400"/> Completed</> : "In Progress"}
+                   {isCourseCompleted ? (
+                     <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                       <CheckCircle2 size={14}/> Completed (Review Mode)
+                     </span>
+                   ) : activeLesson.completed ? (
+                     <><CheckCircle2 size={14} className="text-green-500 dark:text-green-400"/> Completed</>
+                   ) : (
+                     "In Progress"
+                   )}
                 </span>
               </div>
             </div>

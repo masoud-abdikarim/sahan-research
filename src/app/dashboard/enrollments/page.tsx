@@ -40,7 +40,7 @@ export default function EnrollmentsPage() {
     }
   };
 
-  const approvedEnrollments = enrollments.filter(e => e.status === "APPROVED");
+  const activeEnrollments = enrollments.filter(e => e.status === "APPROVED" && !e.isCompleted);
   const pendingOrRejected = enrollments.filter(e => e.status !== "APPROVED");
   const unrolledCourses = courses.filter(c => !enrollments.some(e => e.courseId === c.id));
 
@@ -52,7 +52,7 @@ export default function EnrollmentsPage() {
           <p className="text-gray-500 dark:text-slate-400 font-medium">
             {isAdmin 
               ? "Admin accounts cannot enroll in courses. You are viewing this page in management mode." 
-              : "Access all your approved courses and resume your research."}
+              : "Access all your in-progress courses and resume your research."}
           </p>
         </div>
         {isAdmin && (
@@ -66,11 +66,11 @@ export default function EnrollmentsPage() {
       <div className="mb-20">
         <h2 className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
           <span className="w-8 h-[2px] bg-indigo-600 dark:bg-indigo-500"></span>
-          Approved Courses
+          Active Research
         </h2>
         {enrollLoading ? <Loader /> : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {approvedEnrollments.map((enrollment) => {
+            {activeEnrollments.map((enrollment) => {
               const course = courses.find(c => c.id === enrollment.courseId);
               if (!course) return null;
               return (
@@ -78,15 +78,18 @@ export default function EnrollmentsPage() {
                   key={enrollment.id} 
                   course={course} 
                   actionLabel="Continue Learning"
-                  onAction={() => window.location.href = `/dashboard/lessons`} 
+                  onAction={() => window.location.href = `/dashboard/lessons?courseId=${course.id}`} 
                 />
               );
             })}
-            {approvedEnrollments.length === 0 && (
+            {activeEnrollments.length === 0 && (
               <div className="col-span-full py-20 text-center bg-white dark:bg-slate-900 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-slate-800">
-                <p className="text-gray-500 dark:text-slate-500 font-medium">You don't have any approved courses yet.</p>
+                <p className="text-gray-500 dark:text-slate-500 font-medium">You don't have any active courses at the moment.</p>
                 {!isAdmin && (
-                  <a href="/dashboard/active-courses" className="inline-block mt-6 bg-indigo-600 dark:bg-indigo-500 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 hover:bg-indigo-700 transition-all">Enroll in a Course</a>
+                  <div className="flex gap-4 justify-center mt-6">
+                    <a href="/dashboard/active-courses" className="bg-indigo-600 dark:bg-indigo-500 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 hover:bg-indigo-700 transition-all">Enroll in a Course</a>
+                    <a href="/dashboard/history" className="bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all">View My History</a>
+                  </div>
                 )}
               </div>
             )}
