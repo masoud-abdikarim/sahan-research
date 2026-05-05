@@ -8,7 +8,7 @@ import { getCourses } from "@/redux/slice/courseSlice";
 import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
 import { markLessonComplete } from "@/redux/slice/progressSlice";
 import Loader from "@/components/Loader";
-import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, HardDrive, Lock, CheckCircle2, Edit, Trash2, X } from "lucide-react";
+import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, HardDrive, Lock, CheckCircle2, Edit, Trash2, X, Star } from "lucide-react";
 import toast from "react-hot-toast";
 import { UploadButton, UploadDropzone } from "@/lib/uploadthing";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -474,6 +474,8 @@ export default function LessonsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => {
             const isLocked = !isAdmin && !lesson.unlocked;
+            const ytMatch = lesson.videoUrl?.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/||.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+            const isMp4 = lesson.videoUrl?.match(/\.(mp4|webm|ogg|mov)$/i) || lesson.videoType === "UPLOAD";
             
             return (
               <div 
@@ -486,36 +488,77 @@ export default function LessonsPage() {
                   setActiveLesson(lesson);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className={`group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border transition-all duration-300 cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-xl dark:hover:shadow-indigo-950/20 ${
+                className={`bg-white dark:bg-slate-900 overflow-hidden shadow-sm rounded-xl border transition-all flex flex-col h-full group cursor-pointer ${
                   activeLesson?.id === lesson.id 
                     ? "border-indigo-600 dark:border-indigo-400 ring-1 ring-indigo-600 dark:ring-indigo-400" 
                     : isLocked
                       ? "opacity-60 grayscale border-gray-100 dark:border-slate-800"
-                      : "border-gray-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900/50"
+                      : "border-gray-100 dark:border-slate-800 hover:shadow-md hover:-translate-y-1 dark:hover:shadow-indigo-900/10 hover:border-indigo-200 dark:hover:border-indigo-900/50"
                 }`}
               >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                    activeLesson?.id === lesson.id 
-                      ? "bg-indigo-600 dark:bg-indigo-500 text-white" 
-                      : isLocked
-                        ? "bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-600"
-                        : "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white"
-                  }`}>
-                    {isLocked ? <Lock size={20} /> : <PlayCircle size={24} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-black text-sm truncate ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100"}`}>
-                      {lesson.title}
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Lesson {lesson.order}</span>
-                      {lesson.completed && <CheckCircle2 size={14} className="text-green-500 dark:text-green-400" />}
-                      {isLocked && <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest flex items-center gap-1"><Lock size={10}/> Locked</span>}
+                {/* Lesson Thumbnail */}
+                <div className="relative h-48 w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  {ytMatch ? (
+                    <img 
+                      src={`https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`}
+                      alt={lesson.title} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : isMp4 ? (
+                    <video 
+                      src={`${lesson.videoUrl}#t=0.1`} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      preload="metadata"
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
+                      <div className="w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 flex items-center justify-center">
+                        <PlayCircle size={24} className="text-indigo-400" />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Overlay for lock or play */}
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-slate-900/90 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-lg transform scale-90 group-hover:scale-100 transition-all">
+                      {isLocked ? <Lock size={20} /> : <PlayCircle size={24} />}
                     </div>
                   </div>
-                  {!isLocked && <PlayCircle size={18} className="text-gray-300 dark:text-slate-700 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all" />}
-                  {isLocked && <Lock size={18} className="text-gray-200 dark:text-slate-800" />}
+
+                  <div className="absolute top-4 right-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-50 dark:border-indigo-900/30 uppercase tracking-wider">
+                      LESSON {lesson.order}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 flex-1 flex flex-col">
+                  {/* Rating Stars */}
+                  <div className="flex gap-1 mb-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={16} className="text-amber-400 fill-amber-400" />
+                    ))}
+                  </div>
+
+                  <div className="mb-2">
+                    <h3 className={`text-xl font-black truncate transition-colors ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`} title={lesson.title}>
+                      {lesson.title}
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-4 mt-auto pt-4 text-xs font-bold uppercase tracking-widest">
+                    <span className="flex items-center gap-1.5 font-bold">
+                       {lesson.completed ? (
+                         <><CheckCircle2 size={14} className="text-green-500 dark:text-green-400"/> <span className="text-gray-500 dark:text-slate-400">Completed</span></>
+                       ) : isLocked ? (
+                         <><Lock size={14} className="text-amber-500"/> <span className="text-amber-600 dark:text-amber-500">Locked</span></>
+                       ) : (
+                         <><PlayCircle size={14} className="text-indigo-500"/> <span className="text-gray-500 dark:text-slate-400">In Progress</span></>
+                       )}
+                    </span>
+                  </div>
                 </div>
               </div>
             );

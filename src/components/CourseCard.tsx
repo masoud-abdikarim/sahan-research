@@ -1,4 +1,4 @@
-import { Clock, DollarSign } from "lucide-react";
+import { Clock, DollarSign, Star } from "lucide-react";
 import { Course } from "@/redux/slice/courseSlice";
 
 interface CourseCardProps {
@@ -8,16 +8,28 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course, onAction, actionLabel }: CourseCardProps) {
+  const isVideo = course.imageUrl?.match(/\.(mp4|webm|ogg|mov)$/i) || course.imageUrl?.includes("video");
+
   return (
     <div className="bg-white dark:bg-slate-900 overflow-hidden shadow-sm rounded-xl border border-gray-100 dark:border-slate-800 hover:shadow-md dark:hover:shadow-indigo-900/10 transition-all flex flex-col h-full group">
-      {/* Course Image */}
+      {/* Course Media (Video Thumbnail or Image) */}
       <div className="relative h-48 w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
         {course.imageUrl ? (
-          <img 
-            src={course.imageUrl} 
-            alt={course.name} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          isVideo ? (
+            <video 
+              src={`${course.imageUrl}#t=0.1`} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              preload="metadata"
+              muted
+              playsInline
+            />
+          ) : (
+            <img 
+              src={course.imageUrl} 
+              alt={course.name} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          )
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
             <div className="w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 flex items-center justify-center">
@@ -33,6 +45,13 @@ export default function CourseCard({ course, onAction, actionLabel }: CourseCard
       </div>
 
       <div className="p-6 flex-1 flex flex-col">
+        {/* Rating Stars */}
+        <div className="flex gap-1 mb-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star key={i} size={16} className="text-amber-400 fill-amber-400" />
+          ))}
+        </div>
+
         <div className="mb-2">
           <h3 className="text-xl font-black text-gray-900 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" title={course.name}>
             {course.name}

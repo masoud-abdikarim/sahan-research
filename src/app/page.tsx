@@ -13,6 +13,8 @@ import { Course } from "@/redux/slice/courseSlice";
 import CourseCard from "@/components/CourseCard";
 import Loader from "@/components/Loader";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 // ── Simple animated counter ─────────────────────────────────────────────────
 function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
@@ -99,6 +101,9 @@ export default function LandingPage() {
   const [activeSection, setActiveSection] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
+  
+  // Access auth state from Redux
+  const { currentUser } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -453,8 +458,8 @@ export default function LandingPage() {
                 <div key={course.id} className="group transition-all duration-500 hover:-translate-y-2">
                   <CourseCard 
                     course={course} 
-                    actionLabel="View Details & Enroll"
-                    onAction={() => window.location.href = '/login'}
+                    actionLabel={currentUser ? "Enroll Now" : "View Details & Enroll"}
+                    onAction={() => window.location.href = currentUser ? '/dashboard/courses' : '/login'}
                   />
                 </div>
               ))}
