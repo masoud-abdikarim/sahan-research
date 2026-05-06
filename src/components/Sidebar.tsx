@@ -42,6 +42,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, [pathname]);
 
   const handleLogout = async () => {
+    // Auto-close on mobile
+    if (window.innerWidth < 1024 && onClose) {
+      onClose();
+    }
+
     // 1. Mark as manual logout to suppress interceptor toasts
     localStorage.setItem("manual-logout", "true");
     

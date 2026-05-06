@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { motion, AnimatePresence } from "framer-motion";
 import MovingBackground from "@/components/MovingBackground";
+import { usePathname } from "next/navigation";
 
 // ── Animation Variants ──────────────────────────────────────────────────────
 const fadeInUp = {
@@ -125,6 +126,7 @@ const testimonials = [
 ];
 
 export default function LandingPage() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("");
@@ -133,6 +135,11 @@ export default function LandingPage() {
   
   // Access auth state from 
   const { currentUser } = useSelector((state: RootState) => state.user);
+
+  // Auto-close menu on navigation
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -339,8 +346,20 @@ export default function LandingPage() {
                 </a>
               ))}
               <div className="pt-6 flex flex-col gap-4 border-t border-slate-100 dark:border-slate-800">
-                <Link href="/login" className="text-center text-sm font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-2xl py-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all uppercase tracking-widest">Login</Link>
-                <Link href="/register" className="text-center text-sm font-bold text-white bg-indigo-600 dark:bg-indigo-500 rounded-2xl py-4 hover:bg-indigo-700 dark:hover:bg-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 transition-all uppercase tracking-widest">Sign Up</Link>
+                <Link 
+                  href="/login" 
+                  onClick={() => setMenuOpen(false)}
+                  className="text-center text-sm font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-2xl py-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all uppercase tracking-widest"
+                >
+                  Login
+                </Link>
+                <Link 
+                  href="/register" 
+                  onClick={() => setMenuOpen(false)}
+                  className="text-center text-sm font-bold text-white bg-indigo-600 dark:bg-indigo-500 rounded-2xl py-4 hover:bg-indigo-700 dark:hover:bg-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 transition-all uppercase tracking-widest"
+                >
+                  Sign Up
+                </Link>
               </div>
             </motion.div>
           )}
