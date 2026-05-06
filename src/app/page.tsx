@@ -198,7 +198,7 @@ export default function LandingPage() {
             </div>
 
             {/* Middle: Nav */}
-            <nav className="hidden md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
+            <nav className=" md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
               {[
                 ["About", "#about", "about"],
                 ["Courses", "#courses", "courses"],
@@ -224,8 +224,11 @@ export default function LandingPage() {
 
             {/* Right: Auth Buttons & Mobile Toggle */}
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              <div className="hidden md:flex items-center gap-1 lg:gap-3">
-                <ThemeToggle />
+              <div className="md:flex items-center gap-1 lg:gap-3">
+                <span className="hidden md:inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+              <ThemeToggle />
+                </span>
+               
                 <Link
                   href="/login"
                   className="text-[11px] lg:text-[13px] font-black tracking-widest text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all px-4 lg:px-6 py-2.5 lg:py-3 rounded-2xl hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 uppercase"
