@@ -233,7 +233,7 @@ export default function LandingPage() {
             </motion.div>
 
             {/* Middle: Nav */}
-            <nav className="hidden md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
+            <nav className="md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
               {[
                 ["About", "#about", "about"],
                 ["Courses", "#courses", "courses"],
