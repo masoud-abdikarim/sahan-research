@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { RootState, AppDispatch } from "@/redux/store";
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -18,8 +19,6 @@ import {
   History,
   X
 } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/redux/store";
 import { logoutUser, logout } from "@/redux/slice/userSlice";
 import { useRouter } from "next/navigation";
 
@@ -34,6 +33,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter();
   const { currentUser } = useSelector((state: RootState) => state.user);
   const isAdmin = currentUser?.role === "ADMIN";
+
+  // Auto-close sidebar on navigation for mobile
+  useEffect(() => {
+    if (window.innerWidth < 1024 && onClose && isOpen) {
+      onClose();
+    }
+  }, [pathname]);
 
   const handleLogout = async () => {
     // 1. Mark as manual logout to suppress interceptor toasts
@@ -80,26 +86,33 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-[60] lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar Content */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+        fixed inset-y-0 left-0 z-[70] transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
         flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 
         h-[calc(100vh-4rem)] top-16 lg:top-0
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
           <div className="px-4 mb-4 flex items-center justify-between lg:block">
-            <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+            <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">
               {isAdmin ? "System Administration" : "Learning Portal"}
             </p>
             {onClose && (
-              <button onClick={onClose} className="lg:hidden p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <X size={20} />
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }} 
+                className="lg:hidden p-3 -mr-2 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Close sidebar"
+              >
+                <X size={24} />
               </button>
             )}
           </div>

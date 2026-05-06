@@ -401,7 +401,7 @@ export default function LandingPage() {
             >
               Sahan Research{" "}
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
-                And
+                &
               </span>
               {" "}
               <span className="relative inline-block">
