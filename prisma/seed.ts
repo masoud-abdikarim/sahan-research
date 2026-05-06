@@ -60,7 +60,7 @@ async function main() {
 
   for (const c of courses) {
     await prisma.course.upsert({
-      where: { id: 0 }, // Not useful for upsert by unique name if not defined, but we'll just create if not exists
+      where: { id: courses.indexOf(c) + 1 }, // Use a simple ID strategy for seed if needed
       update: {},
       create: c
     });

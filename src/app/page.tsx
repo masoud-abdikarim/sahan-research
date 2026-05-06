@@ -233,7 +233,7 @@ export default function LandingPage() {
             </motion.div>
 
             {/* Middle: Nav */}
-            <nav className="md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
+            <nav className="hidden md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
               {[
                 ["About", "#about", "about"],
                 ["Courses", "#courses", "courses"],
@@ -267,7 +267,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="flex items-center gap-2 sm:gap-4 shrink-0"
             >
-              <div className="md:flex items-center gap-1 lg:gap-3">
+              <div className="hidden md:flex items-center gap-1 lg:gap-3">
                 <span className="hidden md:inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
                   <ThemeToggle />
                 </span>
