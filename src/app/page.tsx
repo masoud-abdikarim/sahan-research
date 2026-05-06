@@ -102,7 +102,7 @@ export default function LandingPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
   
-  // Access auth state from Redux
+  // Access auth state from 
   const { currentUser } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
@@ -180,6 +180,7 @@ export default function LandingPage() {
             : "bg-white/50 dark:bg-slate-950/20 backdrop-blur-sm py-5"
         }`}
       >
+        
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between w-full">
             {/* Left: Logo */}
