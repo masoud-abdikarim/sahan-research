@@ -80,7 +80,7 @@ export default function AdminEnrollmentsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-100 dark:divide-slate-800">
-                {filteredEnrollments.map((enrollment: any) => (
+                {filteredEnrollments.map((enrollment) => (
                   <tr key={enrollment.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-5 whitespace-nowrap">
                       <div className="text-sm font-black text-gray-900 dark:text-slate-100">{enrollment.user?.name}</div>

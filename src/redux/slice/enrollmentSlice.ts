@@ -16,10 +16,17 @@ export interface Enrollment {
     name: string;
     imageUrl?: string;
   };
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    phone?: string;
+  };
   totalLessons: number;
   completedLessons: number;
   progressPercentage: number;
   isCompleted: boolean;
+  completedAt?: string;
 }
 
 interface EnrollmentState {
