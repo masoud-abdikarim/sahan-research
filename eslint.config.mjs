@@ -27,6 +27,7 @@ const eslintConfig = defineConfig([
       "react/no-unescaped-entities": "off",
       "react-hooks/immutability": "off",
       "@next/next/no-html-link-for-pages": "off",
+      "react-hooks/purity": "off",
     },
   },
 ]);

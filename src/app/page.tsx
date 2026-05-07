@@ -15,7 +15,7 @@ import Loader from "@/components/Loader";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import MovingBackground from "@/components/MovingBackground";
 import { usePathname } from "next/navigation";
 
@@ -127,6 +127,7 @@ const testimonials = [
 
 export default function LandingPage() {
   const pathname = usePathname();
+  const shouldReduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("");
@@ -184,13 +185,15 @@ export default function LandingPage() {
     });
 
     // Enable smooth scrolling for all anchor links
-    document.documentElement.style.scrollBehavior = "smooth";
+    if (!shouldReduceMotion) {
+      document.documentElement.style.scrollBehavior = "smooth";
+    }
     return () => {
       window.removeEventListener("scroll", onScroll);
       observer.disconnect();
       document.documentElement.style.scrollBehavior = "";
     };
-  }, []);
+  }, [shouldReduceMotion]);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.startsWith("#")) {
@@ -305,11 +308,27 @@ export default function LandingPage() {
                   className="p-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-xl transition-all" 
                   onClick={() => setMenuOpen(!menuOpen)} 
                   aria-label="Toggle menu"
+                  aria-expanded={menuOpen}
                 >
-                  <div className="space-y-1.5">
-                    <span className={`block h-0.5 w-6 bg-current transition-transform duration-300 ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
-                    <span className={`block h-0.5 w-6 bg-current transition-opacity duration-300 ${menuOpen ? "opacity-0" : ""}`} />
-                    <span className={`block h-0.5 w-6 bg-current transition-transform duration-300 ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+                  <div className="relative h-6 w-6">
+                    <motion.span
+                      aria-hidden
+                      className="absolute left-0 top-[6px] block h-0.5 w-6 bg-current rounded-full"
+                      animate={menuOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 34 }}
+                    />
+                    <motion.span
+                      aria-hidden
+                      className="absolute left-0 top-[12px] block h-0.5 w-6 bg-current rounded-full"
+                      animate={menuOpen ? { opacity: 0, scaleX: 0.6 } : { opacity: 1, scaleX: 1 }}
+                      transition={{ duration: 0.15 }}
+                    />
+                    <motion.span
+                      aria-hidden
+                      className="absolute left-0 top-[18px] block h-0.5 w-6 bg-current rounded-full"
+                      animate={menuOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 34 }}
+                    />
                   </div>
                 </button>
               </div>
@@ -320,11 +339,16 @@ export default function LandingPage() {
         {/* Mobile menu */}
         <AnimatePresence>
           {menuOpen && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+            <motion.div
+              initial={{ opacity: 0, y: -8, scaleY: 0.98 }}
+              animate={{ opacity: 1, y: 0, scaleY: 1 }}
+              exit={{ opacity: 0, y: -8, scaleY: 0.98 }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0.01 }
+                  : { type: "spring", stiffness: 420, damping: 40 }
+              }
+              style={{ transformOrigin: "top" }}
               className="md:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border-t border-slate-100 dark:border-slate-800 px-6 py-8 space-y-6 shadow-2xl overflow-hidden"
             >
               {[
@@ -369,31 +393,69 @@ export default function LandingPage() {
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-32 pb-24 lg:pt-44 lg:pb-32 transition-colors duration-500">
         {/* Background blobs */}
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ 
-            duration: 8, 
-            repeat: Infinity, 
-            ease: "easeInOut" 
-          }}
+        <motion.div
+          animate={
+            shouldReduceMotion
+              ? { scale: 1, opacity: 0.25 }
+              : { scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }
+          }
+          transition={
+            shouldReduceMotion
+              ? { duration: 0 }
+              : { duration: 8, repeat: Infinity, ease: "easeInOut" }
+          }
           className="absolute -top-40 -right-40 w-[700px] h-[700px] bg-indigo-100 dark:bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none" 
         />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ 
-            duration: 10, 
-            repeat: Infinity, 
-            ease: "easeInOut",
-            delay: 1
-          }}
+        <motion.div
+          animate={
+            shouldReduceMotion
+              ? { scale: 1, opacity: 0.2 }
+              : { scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }
+          }
+          transition={
+            shouldReduceMotion
+              ? { duration: 0 }
+              : { duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }
+          }
           className="absolute -bottom-20 -left-40 w-[500px] h-[500px] bg-violet-100 dark:bg-violet-900/10 rounded-full blur-[100px] pointer-events-none" 
         />
+
+        {/* Watermark background logo (subtle, centered, masked) */}
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={
+            shouldReduceMotion
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 1, scale: 1 }
+          }
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: "easeOut" }}
+          className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center"
+        >
+          <div
+            className={[
+              "relative",
+              // Responsive sizing
+              "w-[420px] sm:w-[560px] lg:w-[760px] xl:w-[860px]",
+              // Mobile: smaller + lighter
+              "opacity-[0.035] sm:opacity-[0.055] dark:opacity-[0.03] dark:sm:opacity-[0.05]",
+              // Premium softness
+              "blur-2xl sm:blur-3xl",
+              // Subtle polish transitions
+              "transition-opacity duration-700",
+              // Fade into background via radial mask
+              "[mask-image:radial-gradient(circle_at_center,rgba(0,0,0,1)_0%,rgba(0,0,0,0.7)_35%,rgba(0,0,0,0)_70%)]",
+              "dark:[mask-image:radial-gradient(circle_at_center,rgba(0,0,0,1)_0%,rgba(0,0,0,0.55)_35%,rgba(0,0,0,0)_70%)]",
+            ].join(" ")}
+          >
+            <img
+              src="/logo.jpeg"
+              alt=""
+              className="w-full h-auto select-none"
+              draggable={false}
+            />
+          </div>
+        </motion.div>
         
 
 
