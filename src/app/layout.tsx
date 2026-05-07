@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "@uploadthing/react/styles.css";
 import { ReduxProvider } from "@/redux/provider";
 import { Toaster } from "react-hot-toast";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
