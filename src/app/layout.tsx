@@ -9,6 +9,7 @@ import { ourFileRouter } from "@/app/api/uploadthing/core";
 import SessionWatcher from "@/components/SessionWatcher";
 import AxiosInterceptor from "@/components/AxiosInterceptor";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,6 +52,7 @@ export default function RootLayout({
               {children}
             </AxiosInterceptor>
             <Toaster position="top-right" />
+            <WhatsAppButton />
           </ReduxProvider>
         </ThemeProvider>
       </body>
