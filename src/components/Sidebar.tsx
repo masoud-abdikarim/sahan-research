@@ -100,26 +100,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className={`
         fixed inset-y-0 left-0 z-[70] transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
         flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 
-        h-[calc(100vh-4rem)] top-16 lg:top-0
+        h-[100dvh] lg:h-[calc(100vh-4rem)] top-0 lg:top-0
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
+        {/* Mobile Header in Sidebar */}
+        <div className="flex items-center justify-between px-6 h-16 border-b border-gray-100 dark:border-slate-800 lg:hidden">
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/logo.jpeg" alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
+            <span className="font-black text-gray-900 dark:text-white tracking-tighter">Sahan Research</span>
+          </Link>
+          <button onClick={onClose} className="p-2 text-gray-500"><X size={20} /></button>
+        </div>
         <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-          <div className="px-4 mb-4 flex items-center justify-between lg:block">
+          <div className="px-4 mb-4 hidden lg:block">
             <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">
               {isAdmin ? "System Administration" : "Learning Portal"}
             </p>
-            {onClose && (
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }} 
-                className="lg:hidden p-3 -mr-2 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label="Close sidebar"
-              >
-                <X size={24} />
-              </button>
-            )}
           </div>
           <nav className="flex-1 px-3 space-y-1 bg-white dark:bg-slate-900" aria-label="Sidebar">
             {navigation.map((item) => {
