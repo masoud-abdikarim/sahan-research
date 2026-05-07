@@ -237,7 +237,7 @@ export default function LandingPage() {
                   className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 group-hover:scale-105 transition-all duration-500" 
                 />
                 <span className="text-lg sm:text-2xl font-black tracking-tighter text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-                  Sahan <span className="text-indigo-600 group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-300">Research</span>
+                  Sahan <span className="text-indigo-600 group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-300">Research $ Studies Center</span>
                 </span>
               </Link>
             </motion.div>
@@ -595,7 +595,7 @@ export default function LandingPage() {
                 variants={fadeInUp}
                 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white leading-[1.1] mb-8 tracking-tight"
               >
-                Democratising Academic Research for Everyone
+                Democratising Academic Courses for Everyone
               </motion.h2>
               <motion.p 
                 variants={fadeInUp}
@@ -689,7 +689,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight"
             >
-              Explore Our Research Courses
+              Explore Our Academic Courses
             </motion.h2>
             <motion.p 
               variants={fadeInUp}
@@ -976,7 +976,7 @@ export default function LandingPage() {
           className="relative max-w-4xl mx-auto px-6 text-center"
         >
           <motion.h2 variants={fadeInUp} className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-8 tracking-tight">
-            Ready to Begin Your <br /> Research Journey?
+            Ready to Begin Your <br /> Academic Journey?
           </motion.h2>
           <motion.p variants={fadeInUp} className="text-indigo-100 text-xl mb-12 max-w-2xl mx-auto opacity-90 font-medium leading-relaxed">
             Join thousands of students and researchers who are advancing their knowledge on Sahan Research — the premier academic platform built for growth.
@@ -1069,7 +1069,7 @@ export default function LandingPage() {
             className="border-t border-slate-100 dark:border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-6"
           >
             <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              &copy; {new Date().getFullYear()} Sahan Research System. All rights reserved.
+              &copy; {new Date().getFullYear()} Sahan Research & Academic Studies Center. All rights reserved.
             </p>
             <div className="flex gap-8 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               <a href="#" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</a>
