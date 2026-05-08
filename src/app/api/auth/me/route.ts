@@ -9,9 +9,14 @@ export async function POST() {
 }
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ user: null }, { status: 401 });
+  try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ user: null }, { status: 401 });
+    }
+    return NextResponse.json({ user: session });
+  } catch (error: any) {
+    console.error("Auth Me Error:", error);
+    return NextResponse.json({ message: "Internal server error", details: error.message }, { status: 500 });
   }
-  return NextResponse.json({ user: session });
 }

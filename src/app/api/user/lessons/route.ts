@@ -15,10 +15,13 @@ export async function GET(req: Request) {
     if (courseId) {
       // ── SINGLE COURSE VIEW ──
       const cid = Number(courseId);
+      if (isNaN(cid)) {
+        return NextResponse.json({ message: "Invalid Course ID" }, { status: 400 });
+      }
       
       // Security Check: Only Admin or Approved Students
       const enrollment = await prisma.enrollment.findUnique({
-        where: { userId_courseId: { userId: session.id, courseId: cid } }
+        where: { userId_courseId: { userId: Number(session.id), courseId: cid } }
       });
 
       if (session.role !== "ADMIN" && (!enrollment || enrollment.status !== "APPROVED")) {
@@ -26,19 +29,29 @@ export async function GET(req: Request) {
       }
 
       const courseLessons = await prisma.lesson.findMany({
-        where: { courseId: cid },
+        where: { 
+          module: {
+            courseId: cid 
+          }
+        },
         orderBy: { order: 'asc' },
         include: {
-          course: true,
-          Progress: {
-            where: { enrollment: { userId: session.id, courseId: cid } }
+          module: {
+            include: {
+              course: true
+            }
+          },
+          progress: {
+            where: { enrollmentId: enrollment?.id || 0 }
           }
         }
       });
 
       courseLessons.forEach((lesson, index) => {
+        const isCompleted = lesson.progress?.[0]?.completed || false;
+        
         if (session.role === "ADMIN") {
-          finalLessons.push({ ...lesson, unlocked: true, completed: lesson.Progress[0]?.completed || false });
+          finalLessons.push({ ...lesson, unlocked: true, completed: isCompleted });
           return;
         }
 
@@ -58,7 +71,7 @@ export async function GET(req: Request) {
         }
 
         const isFirst = index === 0;
-        const prevLessonCompleted = index > 0 ? (courseLessons[index - 1].Progress[0]?.completed || false) : false;
+        const prevLessonCompleted = index > 0 ? (courseLessons[index - 1].progress?.[0]?.completed || false) : false;
         const unlocked = isFirst || prevLessonCompleted;
 
         const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
@@ -66,7 +79,7 @@ export async function GET(req: Request) {
         finalLessons.push({
           ...safeLesson,
           unlocked,
-          completed: lesson.Progress[0]?.completed || false
+          completed: isCompleted
         });
       });
     } else {
@@ -75,7 +88,11 @@ export async function GET(req: Request) {
         const allLessons = await prisma.lesson.findMany({
           orderBy: { order: 'asc' },
           include: {
-            course: true,
+            module: {
+              include: {
+                course: true
+              }
+            },
           }
         });
         
@@ -88,29 +105,33 @@ export async function GET(req: Request) {
         });
       } else {
         const myEnrollments = await prisma.enrollment.findMany({
-          where: { userId: session.id, status: "APPROVED" },
-          select: { courseId: true, isCompleted: true, finalLessonOrder: true }
+          where: { userId: Number(session.id), status: "APPROVED" },
+          select: { id: true, courseId: true, isCompleted: true, finalLessonOrder: true }
         });
 
         for (const enrollment of myEnrollments) {
           const courseLessons = await prisma.lesson.findMany({
-            where: { courseId: enrollment.courseId },
+            where: { 
+              module: {
+                courseId: enrollment.courseId 
+              }
+            },
             orderBy: { order: 'asc' },
             include: {
-              Progress: {
-                where: { enrollment: { userId: session.id, courseId: enrollment.courseId } }
+              progress: {
+                where: { enrollmentId: enrollment.id }
               }
             }
           });
 
           // Find the highest order lesson the student has completed
           const completedOrders = courseLessons
-            .filter(l => l.Progress[0]?.completed)
+            .filter(l => l.progress?.[0]?.completed)
             .map(l => l.order);
           const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
 
           courseLessons.forEach((lesson, index) => {
-            const isCompleted = lesson.Progress[0]?.completed || false;
+            const isCompleted = lesson.progress?.[0]?.completed || false;
             
             // 🔒 CORE RULE: Completion Snapshot Enforcement
             if (enrollment.isCompleted) {
@@ -136,7 +157,7 @@ export async function GET(req: Request) {
             let prevLessonCompleted = false;
             if (index > 0) {
                const prevLesson = courseLessons[index - 1];
-               prevLessonCompleted = prevLesson.Progress[0]?.completed || (prevLesson.order < maxCompletedOrder);
+               prevLessonCompleted = (prevLesson.progress?.[0]?.completed) || (prevLesson.order < maxCompletedOrder);
             }
 
             const unlocked = isFirst || prevLessonCompleted || wasInsertedLater;
@@ -157,6 +178,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ lessons: finalLessons });
   } catch (error: any) {
     console.error("GET Lessons Error:", error);
-    return NextResponse.json({ message: "Internal server error", error: error.message }, { status: 500 });
+    return NextResponse.json({ 
+      message: "Internal server error", 
+      details: error.message || "Unknown error",
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }

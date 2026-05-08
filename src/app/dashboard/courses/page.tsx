@@ -22,11 +22,19 @@ export default function CoursesPage() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    outcomes: [] as string[],
+    instructor: "",
     price: "",
     durationMonths: "",
+    whoIsFor: [] as string[],
+    prerequisites: [] as string[],
     category: "",
     imageUrl: "",
   });
+
+  const [outcomeInput, setOutcomeInput] = useState("");
+  const [whoIsForInput, setWhoIsForInput] = useState("");
+  const [prerequisiteInput, setPrerequisiteInput] = useState("");
 
   // Filtering State
   const [filterTerm, setFilterTerm] = useState("");
@@ -55,8 +63,12 @@ export default function CoursesPage() {
     setFormData({
       name: course.name,
       description: course.description,
+      outcomes: course.outcomes || [],
+      instructor: course.instructor || "",
       price: course.price.toString(),
       durationMonths: course.durationMonths.toString(),
+      whoIsFor: course.whoIsFor || [],
+      prerequisites: course.prerequisites || [],
       category: course.category,
       imageUrl: course.imageUrl || "",
     });
@@ -72,7 +84,10 @@ export default function CoursesPage() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingCourse(null);
-    setFormData({ name: "", description: "", price: "", durationMonths: "", category: "", imageUrl: "" });
+    setFormData({ name: "", description: "", outcomes: [], instructor: "", price: "", durationMonths: "", whoIsFor: [], prerequisites: [], category: "", imageUrl: "" });
+    setOutcomeInput("");
+    setWhoIsForInput("");
+    setPrerequisiteInput("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,8 +100,12 @@ export default function CoursesPage() {
     const payload = {
       name: formData.name,
       description: formData.description,
+      outcomes: formData.outcomes,
+      instructor: formData.instructor,
       price: parseFloat(formData.price),
       durationMonths: parseInt(formData.durationMonths, 10),
+      whoIsFor: formData.whoIsFor,
+      prerequisites: formData.prerequisites,
       category: formData.category,
       imageUrl: formData.imageUrl
     };
@@ -126,7 +145,18 @@ export default function CoursesPage() {
         <button
           onClick={() => {
             setEditingCourse(null);
-            setFormData({ name: "", description: "", price: "", durationMonths: "", category: "", imageUrl: "" });
+            setFormData({
+              name: "",
+              description: "",
+              outcomes: [],
+              instructor: "",
+              price: "",
+              durationMonths: "",
+              whoIsFor: [],
+              prerequisites: [],
+              category: "",
+              imageUrl: "",
+            });
             setShowForm(true);
           }}
           className="flex items-center justify-center gap-2 bg-indigo-600 dark:bg-indigo-500 text-white px-8 py-4 rounded-[2rem] font-black hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 uppercase tracking-widest text-xs"
@@ -174,160 +204,183 @@ export default function CoursesPage() {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="md:col-span-2 space-y-2">
-                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Course Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Master React & Next.js"
-                  value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
-                />
+          <form onSubmit={handleSubmit} className="space-y-12">
+            {/* Core Info Section */}
+            <div className="bg-gray-50/50 dark:bg-slate-950/50 p-8 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 space-y-8">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
+                  <Check size={16} />
+                </div>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-900 dark:text-white">Basic Information</h3>
               </div>
-              
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Course Title</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Advanced Academic Research"
+                    value={formData.name}
+                    onChange={e => setFormData({...formData, name: e.target.value})}
+                    className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Category</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Social Science"
+                    value={formData.category}
+                    onChange={e => setFormData({...formData, category: e.target.value})}
+                    className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={e => setFormData({...formData, price: e.target.value})}
+                      className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Duration (Months)</label>
+                    <input
+                      type="number"
+                      value={formData.durationMonths}
+                      onChange={e => setFormData({...formData, durationMonths: e.target.value})}
+                      className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Instructor Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Prof. Ahmed Mohamed"
+                    value={formData.instructor}
+                    onChange={e => setFormData({...formData, instructor: e.target.value})}
+                    className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Description & Media Section */}
+            <div className="p-8 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 space-y-8">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
+                  <LinkIcon size={16} />
+                </div>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-900 dark:text-white">Content & Media</h3>
+              </div>
+
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Category</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Development"
-                  value={formData.category}
-                  onChange={e => setFormData({...formData, category: e.target.value})}
-                  className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Price ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={e => setFormData({...formData, price: e.target.value})}
-                    className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Duration (Mo)</label>
-                  <input
-                    type="number"
-                    value={formData.durationMonths}
-                    onChange={e => setFormData({...formData, durationMonths: e.target.value})}
-                    className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-2 space-y-2">
-                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Description</label>
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Course Description</label>
                 <textarea
-                  rows={4}
-                  placeholder="Describe what students will learn..."
+                  rows={6}
+                  placeholder="Provide a detailed overview of the course content and objectives..."
                   value={formData.description}
                   onChange={e => setFormData({...formData, description: e.target.value})}
-                  className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200 resize-none"
+                  className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 transition-all outline-none font-medium text-gray-700 dark:text-slate-200 resize-none leading-relaxed"
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-4">
-                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Course Image (Optional)</label>
-                
-                <div className="flex gap-4 p-1 bg-gray-100 dark:bg-slate-950 rounded-2xl w-fit border border-gray-200 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setImageInputMode("upload")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest ${
-                      imageInputMode === "upload" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
-                    }`}
-                  >
-                    <Upload size={12} />
-                    Upload
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageInputMode("url")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest ${
-                      imageInputMode === "url" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
-                    }`}
-                  >
-                    <LinkIcon size={12} />
-                    URL
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-                  <div className="md:col-span-2">
+              <div className="space-y-4">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Banner Image</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="flex gap-2 p-1 bg-gray-100 dark:bg-slate-950 rounded-xl w-fit border border-gray-200 dark:border-slate-800">
+                      <button type="button" onClick={() => setImageInputMode("upload")} className={`px-4 py-2 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${imageInputMode === "upload" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm" : "text-gray-500"}`}>Upload</button>
+                      <button type="button" onClick={() => setImageInputMode("url")} className={`px-4 py-2 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${imageInputMode === "url" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm" : "text-gray-500"}`}>Link</button>
+                    </div>
                     {imageInputMode === "upload" ? (
-                      <div className="border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-[2rem] p-10 text-center hover:border-indigo-300 dark:hover:border-indigo-800 transition-colors bg-gray-50/50 dark:bg-slate-950/50">
+                      <div className="border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-[2rem] p-12 text-center bg-gray-50/30">
                         <UploadButton
                           endpoint="courseImageUploader"
-                          onClientUploadComplete={(res) => {
-                            if (res?.[0]) {
-                              setFormData({ ...formData, imageUrl: res[0].url });
-                              toast.success("Image uploaded!");
-                            }
-                          }}
-                          onUploadError={(error: Error) => {
-                            toast.error(`Upload failed: ${error.message}`);
-                          }}
-                          appearance={{
-                            button: "bg-indigo-600 dark:bg-indigo-500 px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all after:bg-indigo-700",
-                            allowedContent: "text-[10px] text-gray-400 dark:text-slate-500 font-bold mt-3 uppercase tracking-widest"
-                          }}
+                          onClientUploadComplete={(res) => { if (res?.[0]) setFormData({ ...formData, imageUrl: res[0].url }); toast.success("Image uploaded!"); }}
+                          onUploadError={(error: Error) => toast.error(`Upload failed: ${error.message}`)}
+                          appearance={{ button: "bg-indigo-600 px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all" }}
                         />
                       </div>
                     ) : (
-                      <input
-                        type="text"
-                        placeholder="https://example.com/image.jpg"
-                        value={formData.imageUrl}
-                        onChange={e => setFormData({...formData, imageUrl: e.target.value})}
-                        className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200"
-                      />
+                      <input type="text" placeholder="https://..." value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 outline-none" />
                     )}
                   </div>
-
-                  {/* Preview Card */}
-                  <div className="relative aspect-square rounded-[2rem] overflow-hidden border border-gray-100 dark:border-slate-800 shadow-inner bg-gray-50 dark:bg-slate-950 flex items-center justify-center group">
+                  <div className="aspect-video md:aspect-square rounded-[2rem] overflow-hidden border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex items-center justify-center relative group">
                     {formData.imageUrl ? (
-                      <>
-                        <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                        <button 
-                          type="button"
-                          onClick={() => setFormData({...formData, imageUrl: ""})}
-                          className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-xl"
-                        >
-                          <X size={16} />
-                        </button>
-                      </>
+                      <img src={formData.imageUrl} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="text-center p-6">
-                        <ImageIcon className="mx-auto text-gray-200 dark:text-slate-800 mb-3" size={48} />
-                        <p className="text-[10px] font-black text-gray-400 dark:text-slate-600 uppercase tracking-widest">Image Preview</p>
-                      </div>
+                      <ImageIcon className="text-gray-200 dark:text-slate-800" size={48} />
                     )}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-50 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-8 py-4 rounded-2xl text-xs font-black text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-all uppercase tracking-widest"
-              >
-                Discard
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-slate-900 px-10 py-4 rounded-2xl font-black hover:bg-black dark:hover:bg-slate-100 transition-all shadow-xl disabled:opacity-50 uppercase tracking-widest text-xs"
-              >
-                <Check size={18} />
+            {/* Dynamic Lists Section */}
+            <div className="p-8 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 space-y-12">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600">
+                  <Filter size={16} />
+                </div>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-900 dark:text-white">Curriculum Details</h3>
+              </div>
+
+              {/* Outcomes */}
+              <div className="space-y-4">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">What Students Will Learn</label>
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Add an outcome..." value={outcomeInput} onChange={e => setOutcomeInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), outcomeInput.trim() && (setFormData({...formData, outcomes: [...formData.outcomes, outcomeInput.trim()]}), setOutcomeInput("")))} className="flex-1 px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 outline-none" />
+                  <button type="button" onClick={() => outcomeInput.trim() && (setFormData({...formData, outcomes: [...formData.outcomes, outcomeInput.trim()]}), setOutcomeInput(""))} className="px-6 bg-gray-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest">Add</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.outcomes.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-4 py-2 rounded-xl border border-indigo-100 dark:border-indigo-800 font-bold text-xs">{item} <X size={14} className="cursor-pointer" onClick={() => setFormData({...formData, outcomes: formData.outcomes.filter((_, i) => i !== idx)})} /></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Requirements */}
+              <div className="space-y-4">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Requirements / Prerequisites</label>
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Add a requirement..." value={prerequisiteInput} onChange={e => setPrerequisiteInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), prerequisiteInput.trim() && (setFormData({...formData, prerequisites: [...formData.prerequisites, prerequisiteInput.trim()]}), setPrerequisiteInput("")))} className="flex-1 px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 outline-none" />
+                  <button type="button" onClick={() => prerequisiteInput.trim() && (setFormData({...formData, prerequisites: [...formData.prerequisites, prerequisiteInput.trim()]}), setPrerequisiteInput(""))} className="px-6 bg-gray-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest">Add</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.prerequisites.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800 font-bold text-xs">{item} <X size={14} className="cursor-pointer" onClick={() => setFormData({...formData, prerequisites: formData.prerequisites.filter((_, i) => i !== idx)})} /></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Target Audience */}
+              <div className="space-y-4">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Who This Course Is For</label>
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Add a target audience..." value={whoIsForInput} onChange={e => setWhoIsForInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), whoIsForInput.trim() && (setFormData({...formData, whoIsFor: [...formData.whoIsFor, whoIsForInput.trim()]}), setWhoIsForInput("")))} className="flex-1 px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 outline-none" />
+                  <button type="button" onClick={() => whoIsForInput.trim() && (setFormData({...formData, whoIsFor: [...formData.whoIsFor, whoIsForInput.trim()]}), setWhoIsForInput(""))} className="px-6 bg-gray-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest">Add</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.whoIsFor.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-xl border border-amber-100 dark:border-amber-800 font-bold text-xs">{item} <X size={14} className="cursor-pointer" onClick={() => setFormData({...formData, whoIsFor: formData.whoIsFor.filter((_, i) => i !== idx)})} /></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-4 pt-12">
+              <button type="button" onClick={handleCancel} className="px-8 py-4 rounded-2xl text-xs font-black text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-all">Discard Changes</button>
+              <button type="submit" disabled={loading} className="flex items-center gap-3 bg-indigo-600 text-white px-12 py-5 rounded-[2rem] font-black hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest text-xs disabled:opacity-50">
+                <Check size={20} />
                 {editingCourse ? "Update Course" : "Publish Course"}
               </button>
             </div>

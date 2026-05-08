@@ -720,8 +720,10 @@ export default function LandingPage() {
                 >
                   <CourseCard 
                     course={course} 
-                    actionLabel={currentUser ? "Enroll Now" : "View Details & Enroll"}
-                    onAction={() => window.location.href = currentUser ? '/dashboard/courses' : '/login'}
+                    actionLabel={currentUser ? "Enroll Now" : "Quick Enroll"}
+                    onAction={() => window.location.href = currentUser ? '/dashboard/active-courses' : '/login'}
+                    secondaryActionLabel="View Details"
+                    onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
                   />
                 </motion.div>
               ))}
@@ -1036,7 +1038,7 @@ export default function LandingPage() {
                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                      <Phone size={16} />
                    </div>
-                   +252 63 4379036
+                   +252 063 7736519
                 </div>
               </div>
             </motion.div>

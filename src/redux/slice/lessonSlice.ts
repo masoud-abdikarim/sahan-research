@@ -11,6 +11,7 @@ export interface Lesson {
   videoUrl: string;
   order: number;
   courseId: number;
+  moduleId: number;
   unlocked?: boolean;
   completed?: boolean;
 }

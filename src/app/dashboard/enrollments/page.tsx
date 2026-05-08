@@ -45,50 +45,75 @@ export default function EnrollmentsPage() {
   const unrolledCourses = courses.filter(c => !enrollments.some(e => e.courseId === c.id));
 
   return (
-    <div className="max-w-7xl mx-auto transition-colors duration-500 pb-20">
-      <div className="flex justify-between items-center mb-12">
+    <div className="max-w-7xl mx-auto transition-colors duration-500 pb-20 font-sans">
+      {/* ── HEADER ── */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-16 gap-8 pt-8 px-4">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">My Learning</h1>
-          <p className="text-gray-500 dark:text-slate-400 font-medium">
+           <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+                 <GraduationCap size={16} />
+              </div>
+              <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">Learning Management</span>
+           </div>
+           <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-3 tracking-tighter leading-tight">My Academic Journey</h1>
+           <p className="text-gray-500 dark:text-slate-400 font-medium text-lg">
             {isAdmin 
-              ? "Admin accounts cannot enroll in courses. You are viewing this page in management mode." 
-              : "Access all your in-progress courses and resume your research."}
-          </p>
+              ? "Administrator Access: Viewing institutional learning activity." 
+              : "Track your research progress, certifications, and active enrollments."}
+           </p>
         </div>
         {isAdmin && (
-          <a href="/dashboard/admin/enrollments" className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 transition-all">
-            Admin Portal &rarr;
-          </a>
+           <Link 
+             href="/dashboard/admin/enrollments" 
+             className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all shadow-sm flex items-center gap-2"
+           >
+             Admin Portal Control
+             <ArrowRight size={14} />
+           </Link>
         )}
       </div>
 
-      {/* ACTIVE COURSES */}
-      <div className="mb-20">
-        <h2 className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-          <span className="w-8 h-[2px] bg-indigo-600 dark:bg-indigo-500"></span>
-          Active Research
-        </h2>
-        {enrollLoading ? <Loader /> : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* ── ACTIVE RESEARCH ── */}
+      <div className="mb-24 px-4">
+        <div className="flex items-center gap-4 mb-10">
+           <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Active Research</h2>
+           <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+        </div>
+
+        {enrollLoading ? (
+           <div className="flex justify-center py-20"><Loader /></div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {activeEnrollments.map((enrollment) => {
               const course = courses.find(c => c.id === enrollment.courseId);
               if (!course) return null;
               return (
-                <CourseCard 
-                  key={enrollment.id} 
-                  course={course} 
-                  actionLabel="Continue Learning"
-                  onAction={() => window.location.href = `/dashboard/lessons?courseId=${course.id}`} 
-                />
+                <div key={enrollment.id} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <CourseCard 
+                    course={course} 
+                    actionLabel="Resume Research"
+                    onAction={() => window.location.href = `/dashboard/lessons?courseId=${course.id}`} 
+                    secondaryActionLabel="Curriculum Info"
+                    onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+                  />
+                </div>
               );
             })}
             {activeEnrollments.length === 0 && (
-              <div className="col-span-full py-20 text-center bg-white dark:bg-slate-900 rounded-[2.5rem] border border-dashed border-gray-200 dark:border-slate-800">
-                <p className="text-gray-500 dark:text-slate-500 font-medium">You don't have any active courses at the moment.</p>
+              <div className="col-span-full py-24 text-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-gray-100 dark:border-slate-800 shadow-sm">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-[1.5rem] flex items-center justify-center mx-auto mb-8 text-gray-300 dark:text-slate-600">
+                   <BookOpen size={40} />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">No Active Studies</h3>
+                <p className="text-gray-500 dark:text-slate-500 font-medium text-lg max-w-sm mx-auto mb-10">You aren't currently participating in any active research tracks. Explore our catalog to begin.</p>
                 {!isAdmin && (
-                  <div className="flex gap-4 justify-center mt-6">
-                    <a href="/dashboard/active-courses" className="bg-indigo-600 dark:bg-indigo-500 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 hover:bg-indigo-700 transition-all">Enroll in a Course</a>
-                    <a href="/dashboard/history" className="bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all">View My History</a>
+                  <div className="flex gap-4 justify-center">
+                    <Link 
+                      href="/dashboard/active-courses" 
+                      className="bg-indigo-600 dark:bg-indigo-500 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all hover:-translate-y-1"
+                    >
+                      Browse Academic Catalog
+                    </Link>
                   </div>
                 )}
               </div>
@@ -96,6 +121,54 @@ export default function EnrollmentsPage() {
           </div>
         )}
       </div>
+
+      {/* ── APPLICATION STATUS ── */}
+      {!isAdmin && pendingOrRejected.length > 0 && (
+        <div className="px-4 mb-20 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+           <div className="flex items-center gap-4 mb-10">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Institutional Requests</h2>
+              <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+           </div>
+           
+           <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
+              <table className="w-full text-left border-collapse">
+                 <thead>
+                    <tr className="bg-gray-50/50 dark:bg-slate-800/50">
+                       <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Research Program</th>
+                       <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Request Date</th>
+                       <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Institution Status</th>
+                    </tr>
+                 </thead>
+                 <tbody className="divide-y divide-gray-50 dark:divide-slate-800/50">
+                    {pendingOrRejected.map((enrollment) => (
+                       <tr key={enrollment.id} className="group hover:bg-gray-50/30 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-8 py-8">
+                             <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black">
+                                   {enrollment.course?.name?.charAt(0) || "R"}
+                                </div>
+                                <div>
+                                   <p className="font-black text-gray-900 dark:text-white leading-none mb-1">{enrollment.course?.name || "Academic Track"}</p>
+                                   <p className="text-xs text-gray-500 dark:text-slate-500 font-bold uppercase tracking-widest">Institutional Research</p>
+                                </div>
+                             </div>
+                          </td>
+                          <td className="px-8 py-8">
+                             <div className="flex items-center gap-2 text-gray-500 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">
+                                <Calendar size={14} className="text-indigo-400" />
+                                {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                             </div>
+                          </td>
+                          <td className="px-8 py-8">
+                             {getStatusBadge(enrollment.status)}
+                          </td>
+                       </tr>
+                    ))}
+                 </tbody>
+              </table>
+           </div>
+        </div>
+      )}
     </div>
   );
 }

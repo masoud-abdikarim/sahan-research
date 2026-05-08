@@ -17,8 +17,12 @@ export async function GET(
       include: {
         course: {
           include: {
-            lessons: {
-              orderBy: { order: "asc" },
+            modules: {
+              include: {
+                lessons: {
+                  orderBy: { order: "asc" },
+                },
+              },
             },
           },
         },
@@ -41,7 +45,7 @@ export async function GET(
       );
     }
 
-    const lessons = enrollment.course.lessons;
+    const lessons = enrollment.course.modules.flatMap(m => m.lessons).sort((a, b) => a.order - b.order);
     const progress = enrollment.progress;
 
     // Find the highest order lesson the student has completed

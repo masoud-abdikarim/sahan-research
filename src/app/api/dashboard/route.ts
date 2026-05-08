@@ -12,13 +12,17 @@ export async function GET() {
     // 1. Fetch all APPROVED enrollments for this user with related lessons and progress
     const enrollments = await prisma.enrollment.findMany({
       where: { 
-        userId: session.id,
+        userId: Number(session.id),
         status: "APPROVED" 
       },
       include: {
         course: {
           include: {
-            lessons: true
+            modules: {
+              include: {
+                lessons: true
+              }
+            }
           }
         },
         progress: true
@@ -30,7 +34,9 @@ export async function GET() {
     let lessonsCompleted = 0;
 
     enrollments.forEach(enrollment => {
-      const totalLessonsInCourse = enrollment.course.lessons.length;
+      // Flatten lessons from all modules
+      const allLessons = enrollment.course.modules.flatMap(m => m.lessons);
+      const totalLessonsInCourse = allLessons.length;
       const completedInThisCourse = enrollment.progress.filter(p => p.completed).length;
       
       // Total lessons completed across all courses

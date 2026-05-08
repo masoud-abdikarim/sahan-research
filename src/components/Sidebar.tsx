@@ -17,6 +17,7 @@ import {
   LogOut,
   Search,
   History,
+  GraduationCap,
   X
 } from "lucide-react";
 import { logoutUser, logout } from "@/redux/slice/userSlice";
@@ -69,6 +70,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Admin Home", href: "/dashboard/admin", icon: Shield },
     { name: "Manage Courses", href: "/dashboard/courses", icon: BookOpen },
     { name: "Manage Lessons", href: "/dashboard/lessons", icon: Video },
+    { name: "Certificates", href: "/dashboard/admin/certificates", icon: GraduationCap },
     { name: "Approval Queue", href: "/dashboard/admin/enrollments", icon: UserCheck },
     { name: "Completion History", href: "/dashboard/admin/completion-history", icon: TrendingUp },
     { name: "Manage Users", href: "/dashboard/admin/users", icon: Users },
@@ -81,6 +83,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Active Courses", href: "/dashboard/active-courses", icon: Search },
     { name: "My Progress", href: "/dashboard/progress", icon: TrendingUp },
     { name: "My History", href: "/dashboard/history", icon: History },
+    { name: "Certificates", href: "/dashboard/certificates", icon: GraduationCap },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 

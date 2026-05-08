@@ -2,17 +2,25 @@ import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
-const connectionString = `${process.env.DATABASE_URL}`
+const connectionString = process.env.DATABASE_URL
 
-if (!process.env.DATABASE_URL) {
-  console.warn("Prisma: DATABASE_URL is not set in environment variables!");
+if (!connectionString) {
+  console.error("Prisma Error: DATABASE_URL is not set in environment variables!");
 }
 
-const pool = new Pool({ connectionString })
-const adapter = new PrismaPg(pool)
-
 const prismaClientSingleton = () => {
-  return new PrismaClient({ adapter })
+  if (!connectionString) {
+    throw new Error("Prisma Client cannot be initialized because DATABASE_URL is not set in environment variables.");
+  }
+  
+  try {
+    const pool = new Pool({ connectionString })
+    const adapter = new PrismaPg(pool)
+    return new PrismaClient({ adapter })
+  } catch (error: any) {
+    console.error("Failed to initialize Prisma Client:", error.message);
+    throw error;
+  }
 }
 
 declare global {

@@ -8,15 +8,16 @@ export async function GET() {
     if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const enrollments = await prisma.enrollment.findMany({
-      where: { userId: session.id },
+      where: { userId: Number(session.id) },
       include: { 
         course: {
           include: {
-            lessons: {
-              select: { id: true, order: true }
-            },
-            _count: {
-              select: { lessons: true }
+            modules: {
+              include: {
+                lessons: {
+                  select: { id: true, order: true }
+                }
+              }
             }
           }
         },
@@ -36,7 +37,9 @@ export async function GET() {
 
     // Transform to include percentage and counts directly
     const transformedEnrollments = enrollments.map((e) => {
-      let totalLessonsCount = e.course._count.lessons;
+      // Flatten lessons from all modules
+      const allLessons = e.course.modules.flatMap(m => m.lessons);
+      let totalLessonsCount = allLessons.length;
       let completedLessonsCount = e._count.progress;
 
       // 🔒 CORE RULE: Use Snapshot for Completed Students
@@ -50,9 +53,9 @@ export async function GET() {
 
         // Valid lessons = all lessons currently in course EXCEPT those with order < maxCompletedOrder that are NOT completed
         // Actually, it's simpler: Total lessons for THIS student = Total lessons in course - (Lessons with order < maxCompletedOrder that are NOT completed)
-        const ignoredLessons = e.course.lessons.filter(l => l.order < maxCompletedOrder && !completedOrders.includes(l.order));
+        const ignoredLessons = allLessons.filter(l => l.order < maxCompletedOrder && !completedOrders.includes(l.order));
         
-        totalLessonsCount = e.course.lessons.length - ignoredLessons.length;
+        totalLessonsCount = allLessons.length - ignoredLessons.length;
         completedLessonsCount = e.progress.length;
       }
       
@@ -90,7 +93,7 @@ export async function POST(req: Request) {
     const existingEnrollment = await prisma.enrollment.findUnique({
       where: {
         userId_courseId: {
-          userId: session.id,
+          userId: Number(session.id),
           courseId: Number(courseId)
         }
       }
@@ -98,16 +101,15 @@ export async function POST(req: Request) {
 
     if (existingEnrollment) {
       return NextResponse.json({ 
-        message: "You are already enrolled in this course." 
-      }, { status: 400 });
+        message: "Already enrolled" 
+      }, { status: 409 });
     }
 
     const enrollment = await prisma.enrollment.create({
       data: {
-        userId: session.id,
+        userId: Number(session.id),
         courseId: Number(courseId),
-        status: "PENDING",
-      }
+      },
     });
 
     return NextResponse.json({ enrollment });

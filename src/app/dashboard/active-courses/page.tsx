@@ -6,7 +6,8 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { getUserEnrollments, enrollCourse } from "@/redux/slice/enrollmentSlice";
 import { getCourses } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
-import { CheckCircle, XCircle, Clock, Calendar, BookOpen, GraduationCap, ArrowRight, ShieldCheck } from "lucide-react";
+import CourseCard from "@/components/CourseCard";
+import { CheckCircle, XCircle, Clock, Calendar, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Zap, Info } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ActiveCoursesPage() {
@@ -34,47 +35,65 @@ export default function ActiveCoursesPage() {
   const unrolledCourses = courses.filter(c => !enrollments.some(e => e.courseId === c.id));
 
   return (
-    <div className="max-w-7xl mx-auto transition-colors duration-500 pb-32">
+    <div className="max-w-7xl mx-auto transition-colors duration-500 pb-32 font-sans">
       {/* ── HEADER ── */}
-      <div className="mb-16">
-        <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-3 tracking-tight">Academic Catalog</h1>
-        <p className="text-gray-500 dark:text-slate-400 font-medium text-lg">
+      <div className="mb-20">
+        <div className="flex items-center gap-3 mb-6">
+           <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+              <BookOpen size={20} />
+           </div>
+           <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">Academic Catalog</span>
+        </div>
+        <h1 className="text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tighter leading-tight">Master Your Future</h1>
+        <p className="text-gray-500 dark:text-slate-400 font-medium text-lg max-w-2xl">
           {isAdmin 
-            ? "Manage and review all system courses and enrollment requests." 
-            : "Explore new research opportunities and track your pending applications."}
+            ? "Manage and review all system courses and enrollment requests across the platform." 
+            : "Explore world-class research programs and track your professional academic journey."}
         </p>
       </div>
 
-      {/* ── SECTION 1: PENDING REQUESTS (Full Width Row) ── */}
+      {/* ── SECTION 1: PENDING REQUESTS ── */}
       {!isAdmin && (pendingEnrollments.length > 0 || rejectedEnrollments.length > 0) && (
-        <section className="mb-20">
-          <div className="flex items-center gap-3 mb-8">
-             <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm border border-amber-100 dark:border-amber-900/30">
-                <Clock size={20} />
+        <section className="mb-24">
+          <div className="flex items-center gap-4 mb-10">
+             <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Active Applications</h2>
+             <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+             <div className="px-4 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest border border-amber-100 dark:border-amber-900/30 shadow-sm">
+                Action Required
              </div>
-             <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Your Enrollment Requests</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pendingEnrollments.map((enrollment) => {
               const course = courses.find(c => c.id === enrollment.courseId);
               return (
-                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-amber-100 dark:border-amber-900/30 shadow-xl shadow-amber-500/5 dark:shadow-none transition-all">
-                  <div className="flex flex-col gap-4 mb-4">
-                    <div>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30">
-                        <Clock size={12}/> Pending Approval
-                      </span>
+                <div key={enrollment.id} className="group relative bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-amber-100 dark:border-amber-900/30 shadow-2xl shadow-amber-500/5 dark:shadow-none transition-all hover:-translate-y-1">
+                  <div className="flex flex-col gap-6 mb-6">
+                    <div className="flex items-center justify-between">
+                      <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm">
+                         <Clock size={24} />
+                      </div>
+                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">#{enrollment.id}</span>
                     </div>
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white leading-tight">{course?.name || `Course #${enrollment.courseId}`}</h3>
+                    <div>
+                      <h3 className="text-2xl font-black text-gray-900 dark:text-white leading-tight mb-2">{course?.name || `Program #${enrollment.courseId}`}</h3>
+                      <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-2">
+                        <Zap size={14} className="fill-amber-600" /> Awaiting Institutional Review
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="space-y-4 pt-6 border-t border-gray-50 dark:border-slate-800/50">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">
-                      <span className="flex items-center gap-1.5"><Calendar size={12} className="text-indigo-500" /> Submitted {new Date(enrollment.createdAt).toLocaleDateString()}</span>
-                      <span>ID: {enrollment.id}</span>
+                  <div className="space-y-6 pt-8 border-t border-gray-50 dark:border-slate-800/50">
+                    <div className="flex items-center gap-3 text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">
+                       <Calendar size={14} className="text-indigo-500" /> 
+                       <span>Submitted {new Date(enrollment.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">This course will appear in your "My Learning" dashboard once approved by the administrator.</p>
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-start gap-3">
+                       <Info size={16} className="text-indigo-500 shrink-0 mt-0.5" />
+                       <p className="text-[10px] text-gray-500 dark:text-slate-400 font-bold leading-relaxed uppercase tracking-wide">
+                         Once approved, this course will automatically appear in your active learning dashboard.
+                       </p>
+                    </div>
                   </div>
                 </div>
               );
@@ -83,23 +102,24 @@ export default function ActiveCoursesPage() {
             {rejectedEnrollments.map((enrollment) => {
               const course = courses.find(c => c.id === enrollment.courseId);
               return (
-                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm transition-all grayscale opacity-80 hover:grayscale-0 hover:opacity-100">
-                  <div className="flex flex-col gap-4 mb-4">
-                    <div>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-900/30">
-                        <XCircle size={12}/> Request Rejected
-                      </span>
+                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-red-100 dark:border-red-900/30 shadow-sm transition-all grayscale opacity-80 hover:grayscale-0 hover:opacity-100">
+                  <div className="flex flex-col gap-6 mb-6">
+                    <div className="flex items-center justify-between">
+                       <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-red-600 dark:text-red-400 shadow-sm">
+                          <XCircle size={24} />
+                       </div>
+                       <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Rejected</span>
                     </div>
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white leading-tight">{course?.name || `Course #${enrollment.courseId}`}</h3>
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white leading-tight">{course?.name || `Program #${enrollment.courseId}`}</h3>
                   </div>
 
-                  <div className="pt-6 border-t border-gray-50 dark:border-slate-800/50 text-center">
-                    <p className="text-xs text-red-500 font-bold mb-4">The enrollment request was not successful.</p>
+                  <div className="pt-8 border-t border-gray-50 dark:border-slate-800/50">
+                    <p className="text-[10px] text-red-500 font-black uppercase tracking-widest mb-6 text-center">Enrollment Eligibility Not Met</p>
                     <button 
                        onClick={() => handleEnroll(enrollment.courseId)}
-                       className="w-full py-3 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white dark:hover:bg-red-500 dark:hover:text-white transition-all"
+                       className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
                     >
-                      Re-apply for Enrollment
+                      Retry Enrollment <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -109,95 +129,41 @@ export default function ActiveCoursesPage() {
         </section>
       )}
 
-      {/* ── SEPARATOR ── */}
-      {!isAdmin && (pendingEnrollments.length > 0 || rejectedEnrollments.length > 0) && unrolledCourses.length > 0 && (
-        <div className="relative py-12">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full border-t border-gray-200 dark:border-slate-800"></div>
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-white dark:bg-slate-950 px-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.3em]">
-              End of Requests
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ── SECTION 2: AVAILABLE CATALOG (New Layout) ── */}
+      {/* ── SECTION 2: AVAILABLE CATALOG ── */}
       <section>
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-900/30">
-                <GraduationCap size={20} />
-             </div>
-             <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Available for Enrollment</h2>
+        <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center gap-4">
+             <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Academic Library</h2>
+             <div className="h-px w-24 bg-indigo-200 dark:bg-indigo-900/50" />
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">
-            <ShieldCheck size={14} className="text-green-500" />
-            Institution Verified Modules
+          <div className="hidden sm:flex items-center gap-3 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/30 px-5 py-2 rounded-full border border-indigo-100 dark:border-indigo-900/30 shadow-sm">
+            <ShieldCheck size={14} className="text-emerald-500" />
+            Institution Verified Programs
           </div>
         </div>
 
         {coursesLoading ? (
-          <div className="flex justify-center py-20"><Loader /></div>
+          <div className="flex justify-center py-24"><Loader /></div>
         ) : unrolledCourses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
             {unrolledCourses.map(course => (
-              <div key={course.id} className="group flex flex-col bg-white dark:bg-slate-900 rounded-[2rem] border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-                {/* Course Image Side */}
-                <div className="w-full h-44 relative overflow-hidden shrink-0">
-                  {course.imageUrl ? (
-                    <img src={course.imageUrl} alt={course.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/30 text-indigo-200 dark:text-indigo-800 font-black text-4xl">
-                      {course.name.charAt(0)}
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent sm:hidden"></div>
-                  <div className="absolute top-3 left-3">
-                    <span className="px-2 py-0.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm text-indigo-600 dark:text-indigo-400 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-50 dark:border-indigo-900/30 shadow-sm">
-                      {course.category}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Content Side */}
-                <div className="p-6 flex flex-col flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">{course.durationMonths} Months Program</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Fee:</span>
-                      <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">${course.price}</span>
-                    </div>
-                  </div>
-
-                  <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">{course.name}</h3>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 line-clamp-2 mb-6 font-medium leading-relaxed">{course.description}</p>
-                  
-                  <div className="mt-auto flex items-center gap-3">
-                    {isAdmin ? (
-                      <div className="w-full text-center bg-gray-50 dark:bg-slate-800 py-2.5 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest border border-gray-100 dark:border-slate-700">Admin Management</div>
-                    ) : (
-                      <button 
-                        onClick={() => handleEnroll(course.id)}
-                        className="w-full group/btn relative overflow-hidden flex items-center justify-center gap-2 bg-indigo-600 dark:bg-indigo-500 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50"
-                      >
-                        Enroll Now
-                        <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <CourseCard 
+                key={course.id} 
+                course={course} 
+                actionLabel={isAdmin ? undefined : "Request Enrollment"}
+                onAction={isAdmin ? undefined : () => handleEnroll(course.id)} 
+                secondaryActionLabel="Explore Details"
+                onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+              />
             ))}
           </div>
         ) : (
-          <div className="py-24 text-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-slate-800">
-             <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/30 rounded-3xl flex items-center justify-center mx-auto mb-6 text-indigo-400 dark:text-indigo-600">
-                <BookOpen size={40} />
+          <div className="py-32 text-center bg-white dark:bg-slate-900 rounded-[4rem] border border-dashed border-gray-200 dark:border-slate-800 transition-all">
+             <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-950/30 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-indigo-600 dark:text-indigo-400">
+                <BookOpen size={48} />
              </div>
-             <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">You're All Set!</h3>
-             <p className="text-gray-500 dark:text-slate-400 max-w-sm mx-auto font-medium">You have requested enrollment in all our current research programs. Check your requests above for status updates.</p>
+             <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">You've Enrolled in All Programs!</h3>
+             <p className="text-gray-500 dark:text-slate-400 max-w-sm mx-auto font-medium text-lg leading-relaxed">Check your active applications above or visit your learning dashboard to start your journey.</p>
           </div>
         )}
       </section>

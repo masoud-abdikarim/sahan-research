@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma";
 
-
 // ✅ MARK LESSON AS COMPLETED
 export async function POST(req: NextRequest) {
   try {
@@ -21,17 +20,26 @@ export async function POST(req: NextRequest) {
       include: {
         course: {
           include: {
-            lessons: { orderBy: { order: 'asc' } }
-          }
-        }
-      }
+            modules: {
+              include: {
+                lessons: { orderBy: { order: "asc" } },
+              },
+              orderBy: { order: "asc" },
+            },
+          },
+        },
+      },
     });
 
-    if (!enrollment) return NextResponse.json({ message: "Enrollment not found" }, { status: 404 });
+    if (!enrollment)
+      return NextResponse.json({ message: "Enrollment not found" }, { status: 404 });
 
     // 🔒 CORE RULE: If already completed, ignore progress updates
     if (enrollment.isCompleted) {
-      return NextResponse.json({ message: "Course already completed. Progress is locked.", enrollment }, { status: 200 });
+      return NextResponse.json(
+        { message: "Course already completed. Progress is locked.", enrollment },
+        { status: 200 }
+      );
     }
 
     // 2. Mark lesson as completed
@@ -57,42 +65,28 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 3. Check for Course Completion (Dynamic & Immutable Logic)
-    const allProgress = await prisma.progress.findMany({
-      where: { 
-        enrollmentId: Number(enrollmentId), 
-        completed: true 
-      }
+    // 3. Update total progress percentage
+    const allCourseLessons = enrollment.course.modules.flatMap((m) => m.lessons);
+    const totalLessonsCount = allCourseLessons.length;
+
+    const completedProgress = await prisma.progress.count({
+      where: {
+        enrollmentId: Number(enrollmentId),
+        completed: true,
+      },
     });
 
-    const currentLessons = enrollment.course.lessons;
-    
-    // A student is completed if they have finished all lessons currently in the course
-    // (We simplify this to check if every lesson ID in the course has a corresponding completed progress)
-    const completedLessonIds = new Set(allProgress.map(p => p.lessonId));
-    const isFullyDone = currentLessons.every(lesson => completedLessonIds.has(lesson.id));
+    const progressPercentage = totalLessonsCount > 0 ? (completedProgress / totalLessonsCount) * 100 : 0;
 
-    if (currentLessons.length > 0 && isFullyDone) {
-      // Find max lesson order at time of completion
-      const maxOrder = Math.max(...currentLessons.map(l => l.order));
-
-      // Create Immutable Snapshot
-      await prisma.enrollment.update({
-        where: { id: Number(enrollmentId) },
-        data: {
-          isCompleted: true,
-          completedAt: new Date(),
-          lastLessonCompletedId: Number(lessonId),
-          totalLessonsAtTimeOfCompletion: currentLessons.length,
-          finalLessonOrder: maxOrder
-        }
-      });
-      
-      console.log(`[COMPLETION] Course ${enrollment.courseId} marked as COMPLETED for user ${enrollment.userId} (Max Order: ${maxOrder})`);
-    }
+    await prisma.enrollment.update({
+      where: { id: Number(enrollmentId) },
+      data: {
+        totalProgress: progressPercentage,
+      },
+    });
 
     return NextResponse.json(
-      { message: "Lesson marked as completed", progress },
+      { message: "Lesson marked as completed", progress, progressPercentage },
       { status: 200 }
     );
   } catch (error: any) {

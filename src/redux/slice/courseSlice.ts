@@ -8,10 +8,14 @@ export interface Course {
   id: number;
   name: string;
   description: string;
+  outcomes: string[];
+  instructor?: string;
   price: number;
   durationMonths: number;
   category: string;
   imageUrl?: string;
+  whoIsFor: string[];
+  prerequisites: string[];
   createdAt: string;
 }
 

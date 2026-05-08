@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -27,6 +25,23 @@ enum VideoType {
   URL
 }
 
+enum ExamType {
+  MODULE
+  FINAL
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+}
+
+enum CertificateStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -36,25 +51,49 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
 
-  courses   Course[]       // courses created by admin
-  enrollments Enrollment[]
+  courses      Course[] // courses created by admin
+  enrollments  Enrollment[]
+  examAttempts ExamAttempt[]
+  certificates Certificate[]
 }
 
 model Course {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  price       Float
-  durationMonths Int      // in months only
-  category    String   @default("Uncategorized")
-  imageUrl    String?
-  createdAt   DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String
+  outcomes       String[] @default([])
+  instructor     String?
+  price          Float
+  durationMonths Int // in months only
+  category       String   @default("Uncategorized")
+  imageUrl       String?
+  level          String   @default("All Levels")
+  totalHours     Int?     @default(0)
+  whoIsFor       String[] @default([])
+  prerequisites  String[] @default([])
+  lastUpdated    DateTime @default(now())
+  createdAt      DateTime @default(now())
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
 
-  lessons Lesson[]
+  modules     Module[]
   enrollments Enrollment[]
+  exams       Exam[]
+  certificates Certificate[]
+}
+
+model Module {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  order       Int
+  courseId    Int
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+  exam        Exam?
+
+  createdAt DateTime @default(now())
 }
 
 model Lesson {
@@ -64,28 +103,31 @@ model Lesson {
   videoUrl  String
   order     Int
 
-  Progress Progress[]
-  courseId Int
-  course   Course    @relation(fields: [courseId], references: [id])
+  moduleId Int
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  progress Progress[]
 }
 
 model Enrollment {
-  id        Int               @id @default(autoincrement())
-  userId    Int
-  courseId  Int
-  status    EnrollmentStatus @default(PENDING)
+  id       Int              @id @default(autoincrement())
+  userId   Int
+  courseId Int
+  status   EnrollmentStatus @default(PENDING)
 
   // Completion Snapshot
-  isCompleted           Boolean   @default(false)
-  completedAt           DateTime?
-  lastLessonCompletedId Int?
-  totalLessonsAtTimeOfCompletion Int? @default(0)
-  finalLessonOrder      Int?      @default(0)
+  isCompleted   Boolean   @default(false)
+  completedAt   DateTime?
+  totalProgress Float     @default(0) // Percentage
+  totalLessonsAtTimeOfCompletion Int?
+  finalLessonOrder Int? @default(0)
 
   user   User   @relation(fields: [userId], references: [id])
   course Course @relation(fields: [courseId], references: [id])
 
   progress Progress[]
+  examAttempts ExamAttempt[]
+  examScores EnrollmentExamScore[]
 
   createdAt DateTime @default(now())
 
@@ -93,13 +135,97 @@ model Enrollment {
 }
 
 model Progress {
-  id           Int  @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   enrollmentId Int
   lessonId     Int
   completed    Boolean @default(false)
 
-  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
-  lesson     Lesson     @relation(fields: [lessonId], references: [id])
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([enrollmentId, lessonId])
+}
+
+model Exam {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  type        ExamType
+  totalMarks  Int
+  passingMarks Int     @default(70)
+
+  courseId Int
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  moduleId Int?    @unique
+  module   Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  questions Question[]
+  attempts  ExamAttempt[]
+  enrollmentScores EnrollmentExamScore[]
+
+  createdAt DateTime @default(now())
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  examId        Int
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  type          QuestionType @default(MULTIPLE_CHOICE)
+  questionText  String
+  options       String[] @default([]) // options for MCQ/True-False; empty for short answer
+  correctOptions Int[]   @default([]) // index(es) of correct option(s) for MCQ/True-False
+  correctText   String?  // for SHORT_ANSWER (future-ready)
+  marks         Int      @default(1)
+
+  createdAt DateTime @default(now())
+}
+
+model ExamAttempt {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollmentId Int?
+  enrollment Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  examId    Int
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  score     Int
+  passed    Boolean
+  answers   Json // Store student answers
+  createdAt DateTime @default(now())
+}
+
+/// Stores permanent (locked) scores per enrollment+exam.
+/// Used to enforce: module quiz marks never reset; students only retake FINAL exams.
+model EnrollmentExamScore {
+  id           Int      @id @default(autoincrement())
+  enrollmentId Int
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  examId       Int
+  exam         Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  earnedMarks Int
+  totalMarks  Int
+  passed      Boolean
+  locked      Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([enrollmentId, examId])
+}
+
+model Certificate {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  Int
+  course    Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status    CertificateStatus @default(PENDING)
+  issueDate DateTime?
+  pdfUrl    String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
 }

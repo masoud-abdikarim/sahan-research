@@ -2,6 +2,44 @@ import { NextResponse } from "next/server";
 import prisma from "@/prisma";
 import { getSession } from "@/lib/auth";
 
+// ✅ GET COURSE STRUCTURE (Admin only)
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const courseId = Number(id);
+
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        modules: {
+          include: {
+            lessons: { orderBy: { order: "asc" } },
+            exam: { include: { questions: true } },
+          },
+          orderBy: { order: "asc" },
+        },
+        exams: {
+          where: { type: "FINAL" },
+          include: { questions: true },
+        },
+      },
+    });
+
+    return NextResponse.json({ course });
+  } catch (error: any) {
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+  }
+}
+
+// ✅ UPDATE COURSE (Basic Info)
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -20,8 +58,15 @@ export async function PATCH(
       data: {
         name: body.name,
         description: body.description,
+        outcomes: body.outcomes,
+        instructor: body.instructor,
         price: Number(body.price),
         durationMonths: Number(body.durationMonths),
+        level: body.level,
+        totalHours: body.totalHours ? Number(body.totalHours) : 0,
+        whoIsFor: body.whoIsFor,
+        prerequisites: body.prerequisites,
+        lastUpdated: new Date(),
         category: body.category,
         imageUrl: body.imageUrl
       }
@@ -33,11 +78,11 @@ export async function PATCH(
     return NextResponse.json({ 
       message: "Failed to update course", 
       details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 });
   }
 }
 
+// ✅ DELETE COURSE (Full Cleanup)
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -51,55 +96,13 @@ export async function DELETE(
     const { id } = await params;
     const courseId = Number(id);
 
-    // Perform a strict sequence of deletions
-    await prisma.$transaction(async (tx) => {
-      // 1. Get all lesson IDs for this course
-      const lessons = await tx.lesson.findMany({
-        where: { courseId: courseId },
-        select: { id: true }
-      });
-      const lessonIds = lessons.map(l => l.id);
-
-      // 2. Get all enrollment IDs for this course
-      const enrollments = await tx.enrollment.findMany({
-        where: { courseId: courseId },
-        select: { id: true }
-      });
-      const enrollmentIds = enrollments.map(e => e.id);
-
-      // 3. Delete Progress records using the IDs we found
-      // This avoids the "Unknown argument courseId" error in deleteMany
-      await tx.progress.deleteMany({
-        where: {
-          OR: [
-            { lessonId: { in: lessonIds } },
-            { enrollmentId: { in: enrollmentIds } }
-          ]
-        }
-      });
-
-      // 4. Delete Enrollments
-      await tx.enrollment.deleteMany({
-        where: { id: { in: enrollmentIds } }
-      });
-
-      // 5. Delete Lessons
-      await tx.lesson.deleteMany({
-        where: { id: { in: lessonIds } }
-      });
-
-      // 6. Finally delete the Course
-      await tx.course.delete({
-        where: { id: courseId }
-      });
+    await prisma.course.delete({
+      where: { id: courseId },
     });
 
     return NextResponse.json({ message: "Course and all related records deleted successfully" });
   } catch (error: any) {
     console.error("Delete Course Error:", error);
-    return NextResponse.json({ 
-      message: "Failed to delete course", 
-      details: error.message 
-    }, { status: 500 });
+    return NextResponse.json({ message: "Failed to delete course", error: error.message }, { status: 500 });
   }
 }

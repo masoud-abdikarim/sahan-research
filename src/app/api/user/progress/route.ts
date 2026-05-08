@@ -20,8 +20,12 @@ export async function GET(req: Request) {
       include: {
         course: {
           include: {
-            lessons: {
-              orderBy: { order: "asc" }
+            modules: {
+              include: {
+                lessons: {
+                  orderBy: { order: "asc" }
+                }
+              }
             }
           }
         },
@@ -32,26 +36,28 @@ export async function GET(req: Request) {
       }
     });
 
-    if (!enrollment || enrollment.userId !== session.id) {
+    if (!enrollment || enrollment.userId !== Number(session.id)) {
       return NextResponse.json({ message: "Enrollment not found" }, { status: 404 });
     }
+
+    const allLessons = enrollment.course.modules.flatMap(m => m.lessons).sort((a, b) => a.order - b.order);
 
     // 2. Identify completed lesson IDs
     const completedLessonIds = new Set(enrollment.progress.map(p => p.lessonId));
 
     // 3. Find the highest order lesson the student has completed
-    const completedOrders = enrollment.course.lessons
+    const completedOrders = allLessons
       .filter(l => completedLessonIds.has(l.id))
       .map(l => l.order);
     const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
 
     // 4. Find the first incomplete lesson that wasn't bypassed
-    const nextLesson = enrollment.course.lessons.find(lesson => 
+    const nextLesson = allLessons.find(lesson => 
       !completedLessonIds.has(lesson.id) && lesson.order >= maxCompletedOrder
     );
 
     // 5. Calculate stable progress for the UI
-    let totalLessonsCount = enrollment.course.lessons.length;
+    let totalLessonsCount = allLessons.length;
     let completedLessonsCount = completedLessonIds.size;
     let remainingLessons = totalLessonsCount - completedLessonsCount;
 
@@ -61,10 +67,10 @@ export async function GET(req: Request) {
       remainingLessons = 0;
     } else {
       // 🔒 Case 2: Ignore lessons inserted "behind" them
-      const ignoredLessons = enrollment.course.lessons.filter(l => 
+      const ignoredLessons = allLessons.filter(l => 
         l.order < maxCompletedOrder && !completedLessonIds.has(l.id)
       );
-      totalLessonsCount = enrollment.course.lessons.length - ignoredLessons.length;
+      totalLessonsCount = allLessons.length - ignoredLessons.length;
       completedLessonsCount = completedLessonIds.size;
       remainingLessons = totalLessonsCount - completedLessonsCount;
     }
@@ -102,7 +108,7 @@ export async function POST(req: Request) {
     const enrollment = await prisma.enrollment.findUnique({
       where: {
         userId_courseId: {
-          userId: session.id,
+          userId: Number(session.id),
           courseId: Number(courseId)
         }
       }

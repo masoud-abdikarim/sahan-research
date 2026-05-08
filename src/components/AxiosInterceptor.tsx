@@ -47,6 +47,30 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
           
           return new Promise(() => {});
         }
+
+        // Log 404 errors to help debugging
+        if (error.response?.status === 404) {
+          console.error(`[AxiosInterceptor] 404 Not Found on ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
+            data: error.response?.data
+          });
+        }
+
+        // Log 500 errors to help debugging
+        if (error.response?.status === 500) {
+          const config = error.config || {};
+          const response = error.response || {};
+          
+          console.error(`[AxiosInterceptor] 500 Error on ${config.method?.toUpperCase()} ${config.url}:`, {
+            data: response.data,
+            headers: response.headers,
+            config: config
+          });
+
+          // Show a descriptive toast for 500 errors
+          const errorMessage = response.data?.message || response.data?.details || "A server error occurred. Please try again later.";
+          toast.error(`Server Error: ${errorMessage}`, { id: "server-500-error" });
+        }
+
         return Promise.reject(error);
       }
     );

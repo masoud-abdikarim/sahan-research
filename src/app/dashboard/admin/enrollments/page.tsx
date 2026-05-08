@@ -7,16 +7,25 @@ import { getAllEnrollments, approveEnrollment } from "@/redux/slice/enrollmentSl
 import Loader from "@/components/Loader";
 import { CheckCircle, XCircle, Phone, Calendar } from "lucide-react";
 
+import { getCourses } from "@/redux/slice/courseSlice";
+
 export default function AdminEnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { enrollments, loading } = useSelector((state: RootState) => state.enrollment);
+  const { courses } = useSelector((state: RootState) => state.course);
   const [activeTab, setActiveTab] = useState<"PENDING" | "APPROVED" | "REJECTED">("PENDING");
+  const [selectedCourseId, setSelectedCourseId] = useState<number | "">("");
 
   useEffect(() => {
     dispatch(getAllEnrollments());
+    dispatch(getCourses());
   }, [dispatch]);
 
-  const filteredEnrollments = enrollments.filter(e => e.status === activeTab);
+  const filteredEnrollments = enrollments.filter(e => {
+    const tabMatch = e.status === activeTab;
+    const courseMatch = selectedCourseId === "" || e.courseId === Number(selectedCourseId);
+    return tabMatch && courseMatch;
+  });
 
   const handleAction = (id: number, status: "APPROVED" | "REJECTED") => {
     dispatch(approveEnrollment({ id, status }));
@@ -38,9 +47,23 @@ export default function AdminEnrollmentsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 transition-colors duration-500">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Manage Enrollments</h1>
-        <p className="text-gray-500 dark:text-slate-400 mt-1 font-medium">Review and approve student enrollment requests.</p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Manage Enrollments</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 font-medium text-sm">Review and approve student enrollment requests.</p>
+        </div>
+
+        <div className="w-full md:w-72">
+          <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Filter by Course</label>
+          <select 
+            value={selectedCourseId}
+            onChange={(e) => setSelectedCourseId(e.target.value === "" ? "" : Number(e.target.value))}
+            className="w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200 text-sm shadow-sm"
+          >
+            <option value="">All Courses</option>
+            {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
       </div>
 
       <div className="flex border-b border-gray-200 dark:border-slate-800 mb-8 overflow-x-auto">
