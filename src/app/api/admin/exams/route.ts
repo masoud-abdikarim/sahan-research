@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       moduleId: moduleId ? Number(moduleId) : null,
     };
 
-    let exam;
+    let exam: any;
     if (id) {
       // Update existing exam
       exam = await prisma.exam.update({
