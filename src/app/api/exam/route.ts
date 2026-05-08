@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     let score = 0;
     exam.questions.forEach((question, index) => {
       // answers is expected to be an object: { questionId: selectedOptionIndex }
-      if (answers[question.id] === question.correctOption) {
+      if (question.correctOptions.includes(Number(answers[question.id]))) {
         score += question.marks;
       }
     });

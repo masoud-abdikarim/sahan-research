@@ -24,7 +24,7 @@ export async function PATCH(
 
     const existingOrder = await prisma.lesson.findFirst({
       where: {
-        courseId: currentLesson.courseId,
+        moduleId: currentLesson.moduleId,
         order,
         NOT: { id: lessonId }
       },

@@ -7,7 +7,8 @@ import { getUserEnrollments, enrollCourse, approveEnrollment } from "@/redux/sli
 import { getCourses } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
 import CourseCard from "@/components/CourseCard";
-import { CheckCircle, XCircle, Clock, Calendar } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle, XCircle, Clock, Calendar, GraduationCap, ArrowRight, BookOpen } from "lucide-react";
 
 export default function EnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();

@@ -84,7 +84,7 @@ export default function LessonsPage() {
   }, [selectedCourseId, dispatch]);
 
   const filteredLessons = lessons.filter(lesson => {
-    if (selectedModuleId && selectedModuleId !== "") {
+    if (selectedModuleId) {
       return lesson.moduleId === Number(selectedModuleId);
     }
     return true;

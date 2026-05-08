@@ -306,7 +306,7 @@ export default function CoursesPage() {
                         <UploadButton
                           endpoint="courseImageUploader"
                           onClientUploadComplete={(res) => { if (res?.[0]) setFormData({ ...formData, imageUrl: res[0].url }); toast.success("Image uploaded!"); }}
-                          onUploadError={(error: Error) => toast.error(`Upload failed: ${error.message}`)}
+                          onUploadError={(error: Error) => { toast.error(`Upload failed: ${error.message}`); }}
                           appearance={{ button: "bg-indigo-600 px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all" }}
                         />
                       </div>

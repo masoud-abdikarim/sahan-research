@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             examId: exam.id,
             questionText: q.questionText,
             options: q.options,
-            correctOption: Number(q.correctOption),
+            correctOptions: [Number(q.correctOption)],
             marks: Number(q.marks),
           })),
         });
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
             create: questions.map((q: any) => ({
               questionText: q.questionText,
               options: q.options,
-              correctOption: Number(q.correctOption),
+              correctOptions: [Number(q.correctOption)],
               marks: Number(q.marks),
             })),
           },

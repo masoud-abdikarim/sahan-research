@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
     // 🔒 check if order already exists in this course
     const existingOrder = await prisma.lesson.findFirst({
       where: {
-        courseId,
-        order,
+        module: { courseId: Number(courseId) },
+        order: Number(order),
       },
     });
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         title,
         videoUrl,
         order: Number(order),
-        courseId,
+        moduleId: body.moduleId ? Number(body.moduleId) : 0, // Fallback if moduleId is missing
       },
     });
 
@@ -76,10 +76,12 @@ export async function GET(req: NextRequest) {
 
     const lessons = await prisma.lesson.findMany({
       where: {
-        courseId: Number(courseId),
+        module: {
+          courseId: Number(courseId),
+        },
       },
       orderBy: {
-        order: "asc", // 👈 important for correct sequence
+        order: "asc",
       },
     });
 
