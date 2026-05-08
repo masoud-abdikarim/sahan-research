@@ -615,7 +615,7 @@ export default function LessonsPage() {
           <p className="text-gray-500 dark:text-slate-400 max-w-sm mx-auto font-medium text-lg leading-relaxed">Select a course to view its curriculum or wait for the administrator to publish new modules.</p>
         </div>
       )}
-    </div>
+
 
 
       <ConfirmModal
