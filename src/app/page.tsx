@@ -5,7 +5,7 @@ import {
   BookOpen, FlaskConical, GraduationCap, TrendingUp,
   Users, ChevronRight, Star, CheckCircle2, ArrowRight,
   Microscope, Library, BarChart3, Globe2, Mail, Phone, MapPin,
-  Clock, DollarSign, Zap, UserPlus, Search, LineChart
+  Clock, DollarSign, Zap, UserPlus, Search, LineChart, Menu
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -212,183 +212,130 @@ export default function LandingPage() {
     <div className="min-h-screen font-sans transition-colors duration-500 relative">
       <MovingBackground />
 
-      {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
+      {/* ── MODERN NAVBAR ────────────────────────────────────────────────── */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 flex flex-col transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled 
-            ? "bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50 dark:border-slate-800/50 py-3" 
-            : "bg-white/50 dark:bg-slate-950/20 backdrop-blur-sm py-5"
+            ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-sm border-b border-slate-200/50 dark:border-slate-800/50 py-2" 
+            : "bg-transparent py-4"
         }`}
       >
-        
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between w-full">
-            {/* Left: Logo */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            {/* ── LOGO SECTION ── */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="flex items-center shrink-0"
+              className="shrink-0"
             >
-              <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
-                <img 
-                  src="/logo.jpeg" 
-                  alt="Sahan Research Logo" 
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 group-hover:scale-105 transition-all duration-500" 
-                />
-                <span className="text-lg sm:text-2xl font-black tracking-tighter text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-                  Sahan <span className="text-indigo-600 group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-300">Research $ Studies Center</span>
-                </span>
+              <Link href="/" className="flex items-center gap-3 group">
+                <div className="relative">
+                  <img 
+                    src="/logo.jpeg" 
+                    alt="Logo" 
+                    className="w-9 h-9 rounded-lg object-cover shadow-sm group-hover:scale-105 transition-transform duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-indigo-600/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="flex flex-col leading-none">
+                  <span className="text-[14px] font-black tracking-tight text-slate-900 dark:text-white uppercase">Sahan Research</span>
+                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.1em]">Studies Center</span>
+                </div>
               </Link>
             </motion.div>
 
-            {/* Middle: Nav */}
-            <nav className="hidden md:flex items-center justify-center flex-1 mx-4 gap-4 lg:gap-8">
-              {[
-                ["About", "#about", "about"],
-                ["Courses", "#courses", "courses"],
-                ["Features", "#features", "features"],
-                ["How It Works", "#how", "how"],
-                ["Testimonials", "#testimonials", "testimonials"],
-              ].map(([label, href, id], index) => (
-                <motion.a
-                  key={label}
-                  href={href}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  onClick={(e) => handleNavClick(e, href)}
-                  className={`text-[10px] lg:text-[12px] font-black tracking-[0.1em] lg:tracking-[0.2em] transition-all duration-300 relative py-1 uppercase group whitespace-nowrap ${
-                    activeSection === id 
-                      ? "text-indigo-600 dark:text-indigo-400" 
-                      : "text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  }`}
-                >
-                  {label}
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full transition-all duration-500 ${activeSection === id ? "w-full" : "w-0 group-hover:w-full"}`} />
-                </motion.a>
-              ))}
-            </nav>
+            {/* ── NAVIGATION & AUTH ── */}
+            <div className="flex items-center gap-8">
+              {/* Desktop Nav */}
+              <nav className="hidden md:flex items-center gap-7">
+                {[
+                  ["About", "#about", "about"],
+                  ["Courses", "#courses", "courses"],
+                  ["Features", "#features", "features"],
+                  ["How It Works", "#how", "how"],
+                  ["Testimonials", "#testimonials", "testimonials"],
+                ].map(([label, href, id]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    onClick={(e) => handleNavClick(e, href)}
+                    className={`text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 relative py-1 group ${
+                      activeSection === id 
+                        ? "text-indigo-600 dark:text-indigo-400" 
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    {label}
+                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full transition-all duration-500 ${activeSection === id ? "w-full" : "w-0 group-hover:w-full"}`} />
+                  </a>
+                ))}
+              </nav>
 
-            {/* Right: Auth Buttons & Mobile Toggle */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="flex items-center gap-2 sm:gap-4 shrink-0"
-            >
-              <div className="hidden md:flex items-center gap-1 lg:gap-3">
-                <span className="hidden md:inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                  <ThemeToggle />
-                </span>
-               
+              {/* Desktop Auth */}
+              <div className="hidden md:flex items-center gap-4 pl-4 border-l border-slate-200 dark:border-slate-800">
+                <ThemeToggle />
                 <Link
                   href="/login"
-                  className="text-[11px] lg:text-[13px] font-black tracking-widest text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all px-4 lg:px-6 py-2.5 lg:py-3 rounded-2xl hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 uppercase"
+                  className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest text-indigo-600 dark:text-white bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 transition-all duration-300"
                 >
                   Login
                 </Link>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Link
-                    href="/register"
-                    className="text-[11px] lg:text-[13px] font-black tracking-widest text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 px-5 lg:px-8 py-2.5 lg:py-3.5 rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 hover:shadow-indigo-200 dark:hover:shadow-indigo-900/50 transition-all duration-500 uppercase whitespace-nowrap inline-block"
-                  >
-                    Sign Up
-                  </Link>
-                </motion.div>
               </div>
 
-              {/* Mobile hamburger toggle - Hidden on md and up */}
-              <div className="md:hidden flex items-center gap-2">
+              {/* Mobile Actions */}
+              <div className="md:hidden flex items-center gap-3">
                 <ThemeToggle />
                 <button 
-                  className="p-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-xl transition-all" 
+                  className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-all" 
                   onClick={() => setMenuOpen(!menuOpen)} 
-                  aria-label="Toggle menu"
-                  aria-expanded={menuOpen}
                 >
-                  <div className="relative h-6 w-6">
-                    <motion.span
-                      aria-hidden
-                      className="absolute left-0 top-[6px] block h-0.5 w-6 bg-current rounded-full"
-                      animate={menuOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 34 }}
-                    />
-                    <motion.span
-                      aria-hidden
-                      className="absolute left-0 top-[12px] block h-0.5 w-6 bg-current rounded-full"
-                      animate={menuOpen ? { opacity: 0, scaleX: 0.6 } : { opacity: 1, scaleX: 1 }}
-                      transition={{ duration: 0.15 }}
-                    />
-                    <motion.span
-                      aria-hidden
-                      className="absolute left-0 top-[18px] block h-0.5 w-6 bg-current rounded-full"
-                      animate={menuOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 34 }}
-                    />
-                  </div>
+                  <Menu size={22} />
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* ── MOBILE MENU ── */}
         <AnimatePresence>
           {menuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -8, scaleY: 0.98 }}
-              animate={{ opacity: 1, y: 0, scaleY: 1 }}
-              exit={{ opacity: 0, y: -8, scaleY: 0.98 }}
-              transition={
-                shouldReduceMotion
-                  ? { duration: 0.01 }
-                  : { type: "spring", stiffness: 420, damping: 40 }
-              }
-              style={{ transformOrigin: "top" }}
-              className="md:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border-t border-slate-100 dark:border-slate-800 px-6 py-8 space-y-6 shadow-2xl overflow-hidden"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-900 overflow-hidden shadow-2xl"
             >
-              {[
-                ["About", "#about", "about"],
-                ["Courses", "#courses", "courses"],
-                ["Features", "#features", "features"],
-                ["How It Works", "#how", "how"],
-                ["Testimonials", "#testimonials", "testimonials"]
-              ].map(([label, href, id]) => (
-                <a 
-                  key={label} 
-                  href={href} 
-                  onClick={(e) => handleNavClick(e, href)} 
-                  className={`block text-lg font-black tracking-tighter transition-all ${
-                    activeSection === id ? "text-indigo-600 dark:text-indigo-400 translate-x-2" : "text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  }`}
-                >
-                  {label}
-                </a>
-              ))}
-              <div className="pt-6 flex flex-col gap-4 border-t border-slate-100 dark:border-slate-800">
-                <Link 
-                  href="/login" 
-                  onClick={() => setMenuOpen(false)}
-                  className="text-center text-sm font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-2xl py-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all uppercase tracking-widest"
-                >
-                  Login
-                </Link>
-                <Link 
-                  href="/register" 
-                  onClick={() => setMenuOpen(false)}
-                  className="text-center text-sm font-bold text-white bg-indigo-600 dark:bg-indigo-500 rounded-2xl py-4 hover:bg-indigo-700 dark:hover:bg-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 transition-all uppercase tracking-widest"
-                >
-                  Sign Up
-                </Link>
+              <div className="px-6 py-8 flex flex-col gap-5">
+                {[
+                  ["About", "#about"],
+                  ["Courses", "#courses"],
+                  ["Features", "#features"],
+                  ["How It Works", "#how"],
+                  ["Testimonials", "#testimonials"]
+                ].map(([label, href]) => (
+                  <a 
+                    key={label} 
+                    href={href} 
+                    onClick={(e) => handleNavClick(e, href)} 
+                    className="text-sm font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest hover:text-indigo-600"
+                  >
+                    {label}
+                  </a>
+                ))}
+                <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-900 flex flex-col gap-3">
+                  <Link 
+                    href="/login" 
+                    className="w-full py-4 rounded-xl bg-indigo-600 text-white text-center text-xs font-black uppercase tracking-widest"
+                  >
+                    Login
+                  </Link>
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </header>
+
 
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-32 pb-24 lg:pt-44 lg:pb-32 transition-colors duration-500">
