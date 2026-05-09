@@ -51,6 +51,12 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
 
+  // Rate Limiting and Lockout Fields
+  failedLoginAttempts Int       @default(0)
+  loginLockUntil      DateTime?
+  lockLevel           Int       @default(0)
+  lastFailedLogin     DateTime?
+
   courses      Course[] // courses created by admin
   enrollments  Enrollment[]
   examAttempts ExamAttempt[]

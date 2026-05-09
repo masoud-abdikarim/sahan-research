@@ -17,18 +17,22 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
       (response) => response,
       (error) => {
         const isManualLogout = typeof window !== "undefined" && localStorage.getItem("manual-logout");
-        const isAuthRequest = error.config?.url?.includes("/api/auth/login") || error.config?.url?.includes("/api/user");
+        const isAuthRequest = error.config?.url?.includes("/api/auth/login") || (error.config?.url?.includes("/api/user") && error.config?.method?.toLowerCase() === 'post');
 
         // If it's a 401 and we are already redirecting or it's a manual logout, 
         // just suppress the error and don't show any toasts.
         if (error.response?.status === 401) {
-          if (isRedirecting.current || isManualLogout || isAuthRequest) {
+          if (isManualLogout || isAuthRequest) {
             return Promise.reject(error); // Return the error for auth requests to handle locally
           }
 
           // If already on login page, just ignore 401s
           if (window.location.pathname === "/login") {
             return Promise.reject(error);
+          }
+
+          if (isRedirecting.current) {
+            return new Promise(() => {}); // Hang subsequent requests while redirecting to avoid console errors
           }
 
           isRedirecting.current = true;
