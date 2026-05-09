@@ -730,7 +730,7 @@ export default function LessonsPage() {
 
                   <div className="absolute top-5 right-5">
                     <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-indigo-600 dark:text-indigo-400 shadow-lg border border-indigo-50 dark:border-indigo-900/30 uppercase tracking-[0.2em]">
-                      Step {lesson.order}
+                      lesson {lesson.order}
                     </span>
                   </div>
                   
