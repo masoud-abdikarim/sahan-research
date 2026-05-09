@@ -12,165 +12,163 @@ export async function GET(req: Request) {
 
     const finalLessons: any[] = [];
 
-    if (courseId) {
-      // ── SINGLE COURSE VIEW ──
-      const cid = Number(courseId);
-      if (isNaN(cid)) {
-        return NextResponse.json({ message: "Invalid Course ID" }, { status: 400 });
-      }
-      
-      // Security Check: Only Admin or Approved Students
-      const enrollment = await prisma.enrollment.findUnique({
-        where: { userId_courseId: { userId: Number(session.id), courseId: cid } }
-      });
-
-      if (session.role !== "ADMIN" && (!enrollment || enrollment.status !== "APPROVED")) {
-        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-      }
-
+    // Helper to process a single course's lessons
+    async function processCourseLessons(cid: number, enrollment: any, isAdmin: boolean) {
       const courseLessons = await prisma.lesson.findMany({
-        where: { 
-          module: {
-            courseId: cid 
-          }
-        },
+        where: { module: { courseId: cid } },
         orderBy: { order: 'asc' },
         include: {
-          module: {
-            include: {
-              course: true
-            }
-          },
-          progress: {
-            where: { enrollmentId: enrollment?.id || 0 }
-          }
+          module: { include: { course: true } },
+          progress: { where: { enrollmentId: enrollment?.id || 0 } }
         }
       });
 
-      courseLessons.forEach((lesson, index) => {
+      if (isAdmin) {
+        courseLessons.forEach(lesson => {
+          finalLessons.push({ 
+            ...lesson, 
+            courseId: lesson.module?.courseId, // Ensure courseId is mapped
+            unlocked: true, 
+            completed: lesson.progress?.[0]?.completed || false 
+          });
+        });
+        return;
+      }
+
+      // Fetch Modules and Exams for strict locking
+      const modules = await prisma.module.findMany({
+        where: { courseId: cid },
+        orderBy: { order: 'asc' },
+        include: { exam: true }
+      });
+
+      // Fetch Passed Exams
+      const stableScores = await prisma.enrollmentExamScore.findMany({
+        where: { enrollmentId: enrollment.id, passed: true }
+      });
+      const passedExamIds = new Set(stableScores.map(s => s.examId));
+
+      // Determine Unlocked Modules
+      const unlockedModules = new Set<number>();
+      for (let i = 0; i < modules.length; i++) {
+        const m = modules[i];
+        if (i === 0) {
+          unlockedModules.add(m.id);
+        } else {
+          const prevM = modules[i - 1];
+          const prevExamPassed = !prevM.exam || passedExamIds.has(prevM.exam.id);
+          if (prevExamPassed) {
+            unlockedModules.add(m.id);
+          } else {
+            break; // If a module is locked, all subsequent are locked
+          }
+        }
+      }
+
+      // Group lessons by moduleId
+      const lessonsByModule = new Map<number, typeof courseLessons>();
+      courseLessons.forEach(l => {
+        if (!lessonsByModule.has(l.moduleId)) lessonsByModule.set(l.moduleId, []);
+        lessonsByModule.get(l.moduleId)!.push(l);
+      });
+
+      // Maintain max completed order for "wasInsertedLater" logic
+      const completedOrders = courseLessons.filter(l => l.progress?.[0]?.completed).map(l => l.order);
+      const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
+
+      courseLessons.forEach((lesson) => {
         const isCompleted = lesson.progress?.[0]?.completed || false;
         
-        if (session.role === "ADMIN") {
-          finalLessons.push({ ...lesson, unlocked: true, completed: isCompleted });
-          return;
-        }
-
         // 🔒 CORE RULE: Completion Snapshot Enforcement
         if (enrollment?.isCompleted) {
-          // Only show lessons that were part of the course when they completed it
           if (lesson.order <= (enrollment.finalLessonOrder || 0)) {
             finalLessons.push({
               ...lesson,
+              courseId: lesson.module?.courseId,
               unlocked: true,
               completed: true,
-              isSnapshot: true // Flag for UI
+              isSnapshot: true
             });
           }
-          // Lessons with order > finalLessonOrder are NOT returned for completed students
           return;
         }
 
-        const isFirst = index === 0;
-        const prevLessonCompleted = index > 0 ? (courseLessons[index - 1].progress?.[0]?.completed || false) : false;
-        const unlocked = isFirst || prevLessonCompleted;
+        const isModuleUnlocked = unlockedModules.has(lesson.moduleId);
+        let unlocked = false;
+
+        if (isModuleUnlocked) {
+          const modLessons = lessonsByModule.get(lesson.moduleId)!;
+          // Sort by order just to be safe, though findMany already did
+          modLessons.sort((a, b) => a.order - b.order);
+          const lessonIndex = modLessons.findIndex(l => l.id === lesson.id);
+          
+          if (lessonIndex === 0) {
+            unlocked = true; // First lesson in unlocked module is unlocked
+          } else {
+            const prevLesson = modLessons[lessonIndex - 1];
+            // Treat 'wasInsertedLater' lessons as completed for unlocking purposes
+            const prevCompleted = prevLesson.progress?.[0]?.completed || (!isCompleted && prevLesson.order < maxCompletedOrder);
+            unlocked = prevCompleted;
+          }
+        }
+
+        // Soft-lock prevention for current lesson
+        const wasInsertedLater = !isCompleted && lesson.order < maxCompletedOrder;
+        if (wasInsertedLater) {
+          unlocked = true;
+        }
 
         const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
 
         finalLessons.push({
           ...safeLesson,
+          courseId: lesson.module?.courseId, // THE FIX FOR FRONTEND ENROLLMENT ERROR!
           unlocked,
-          completed: isCompleted
+          completed: isCompleted,
+          ignored: wasInsertedLater
         });
       });
+    }
+
+    if (courseId) {
+      // ── SINGLE COURSE VIEW ──
+      const cid = Number(courseId);
+      if (isNaN(cid)) return NextResponse.json({ message: "Invalid Course ID" }, { status: 400 });
+      
+      let enrollment = null;
+      if (session.role !== "ADMIN") {
+        enrollment = await prisma.enrollment.findUnique({
+          where: { userId_courseId: { userId: Number(session.id), courseId: cid } }
+        });
+        if (!enrollment || enrollment.status !== "APPROVED") {
+          return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        }
+      }
+
+      await processCourseLessons(cid, enrollment, session.role === "ADMIN");
+
     } else {
       // ── ALL ENROLLED LESSONS VIEW ──
       if (session.role === "ADMIN") {
         const allLessons = await prisma.lesson.findMany({
           orderBy: { order: 'asc' },
-          include: {
-            module: {
-              include: {
-                course: true
-              }
-            },
-          }
+          include: { module: { include: { course: true } } }
         });
-        
         allLessons.forEach(lesson => {
           finalLessons.push({
             ...lesson,
+            courseId: lesson.module?.courseId,
             unlocked: true,
             completed: false
           });
         });
       } else {
         const myEnrollments = await prisma.enrollment.findMany({
-          where: { userId: Number(session.id), status: "APPROVED" },
-          select: { id: true, courseId: true, isCompleted: true, finalLessonOrder: true }
+          where: { userId: Number(session.id), status: "APPROVED" }
         });
 
         for (const enrollment of myEnrollments) {
-          const courseLessons = await prisma.lesson.findMany({
-            where: { 
-              module: {
-                courseId: enrollment.courseId 
-              }
-            },
-            orderBy: { order: 'asc' },
-            include: {
-              progress: {
-                where: { enrollmentId: enrollment.id }
-              }
-            }
-          });
-
-          // Find the highest order lesson the student has completed
-          const completedOrders = courseLessons
-            .filter(l => l.progress?.[0]?.completed)
-            .map(l => l.order);
-          const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
-
-          courseLessons.forEach((lesson, index) => {
-            const isCompleted = lesson.progress?.[0]?.completed || false;
-            
-            // 🔒 CORE RULE: Completion Snapshot Enforcement
-            if (enrollment.isCompleted) {
-              if (lesson.order <= (enrollment.finalLessonOrder || 0)) {
-                finalLessons.push({
-                  ...lesson,
-                  unlocked: true,
-                  completed: true,
-                  isSnapshot: true
-                });
-              }
-              return;
-            }
-
-            // 🔒 Case 2: If this lesson has a lower order than the highest completed lesson,
-            // and it's NOT completed, it was likely inserted later. 
-            // We skip/ignore it for sequential blocking.
-            const wasInsertedLater = !isCompleted && lesson.order < maxCompletedOrder;
-
-            const isFirst = index === 0;
-            
-            // Find the "real" previous lesson (ignoring later inserted ones)
-            let prevLessonCompleted = false;
-            if (index > 0) {
-               const prevLesson = courseLessons[index - 1];
-               prevLessonCompleted = (prevLesson.progress?.[0]?.completed) || (prevLesson.order < maxCompletedOrder);
-            }
-
-            const unlocked = isFirst || prevLessonCompleted || wasInsertedLater;
-
-            const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
-
-            finalLessons.push({
-              ...safeLesson,
-              unlocked,
-              completed: isCompleted,
-              ignored: wasInsertedLater // Metadata for UI if needed
-            });
-          });
+          await processCourseLessons(enrollment.courseId, enrollment, false);
         }
       }
     }

@@ -11,35 +11,41 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { userId, courseId } = body;
+    const { courseId } = body;
 
-    if (!userId || !courseId) {
-      return NextResponse.json({ message: "userId and courseId are required" }, { status: 400 });
+    if (!courseId) {
+      return NextResponse.json({ message: "courseId is required" }, { status: 400 });
     }
 
-    // 1. Verify eligibility (Total marks >= 70)
-    const examAttempts = await prisma.examAttempt.findMany({
+    const enrollment = await prisma.enrollment.findUnique({
       where: {
-        userId: Number(userId),
-        exam: { courseId: Number(courseId) },
-        passed: true,
+        userId_courseId: {
+          userId: Number(session.id),
+          courseId: Number(courseId),
+        },
       },
-      include: { exam: true },
+    });
+    if (!enrollment || enrollment.status !== "APPROVED") {
+      return NextResponse.json({ message: "Approved enrollment required" }, { status: 403 });
+    }
+
+    // 1. Verify eligibility from stable enrollment scores
+    const scores = await prisma.enrollmentExamScore.findMany({
+      where: {
+        enrollmentId: enrollment.id,
+        exam: { courseId: Number(courseId) },
+      },
+      include: { exam: { select: { type: true } } },
     });
 
-    // Get best score for each unique exam
-    const bestScores = new Map();
-    examAttempts.forEach((att) => {
-      const currentBest = bestScores.get(att.examId) || 0;
-      if (att.score > currentBest) bestScores.set(att.examId, att.score);
-    });
+    const totalEarned = scores.reduce((sum, s) => sum + s.earnedMarks, 0);
+    const totalPossible = scores.reduce((sum, s) => sum + s.totalMarks, 0);
+    const finalPassed = scores.some((s) => s.exam.type === "FINAL" && s.passed);
+    const totalPercent = totalPossible > 0 ? (totalEarned / totalPossible) * 100 : 0;
 
-    let totalMarks = 0;
-    bestScores.forEach((score) => (totalMarks += score));
-
-    if (totalMarks < 70) {
+    if (!finalPassed || totalPercent < 70) {
       return NextResponse.json(
-        { message: "Not eligible for certificate. Total marks must be 70 or higher.", totalMarks },
+        { message: "Not eligible. Need 70+ total and a passed final exam.", totalMarks: totalEarned, totalPercent },
         { status: 403 }
       );
     }
@@ -48,13 +54,13 @@ export async function POST(req: NextRequest) {
     const certificate = await prisma.certificate.upsert({
       where: {
         userId_courseId: {
-          userId: Number(userId),
+          userId: Number(session.id),
           courseId: Number(courseId),
         },
       },
       update: { status: "PENDING" },
       create: {
-        userId: Number(userId),
+        userId: Number(session.id),
         courseId: Number(courseId),
         status: "PENDING",
       },
@@ -95,13 +101,50 @@ export async function GET(req: Request) {
       where,
       include: {
         user: { select: { name: true, email: true } },
-        course: { select: { name: true } },
+        course: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: "desc" },
     });
 
+    const enriched = await Promise.all(
+      certificates.map(async (cert) => {
+        const enrollment = await prisma.enrollment.findUnique({
+          where: {
+            userId_courseId: {
+              userId: cert.userId,
+              courseId: cert.courseId,
+            },
+          },
+          select: { id: true },
+        });
+        if (!enrollment) return { ...cert, result: null };
+
+        const scores = await prisma.enrollmentExamScore.findMany({
+          where: { enrollmentId: enrollment.id },
+          include: { exam: { select: { type: true, title: true } } },
+        });
+        const totalEarned = scores.reduce((sum, s) => sum + s.earnedMarks, 0);
+        const totalPossible = scores.reduce((sum, s) => sum + s.totalMarks, 0);
+        const moduleItems = scores.filter((s) => s.exam.type === "MODULE");
+        const finalItem = scores.find((s) => s.exam.type === "FINAL");
+
+        return {
+          ...cert,
+          result: {
+            moduleEarned: moduleItems.reduce((sum, s) => sum + s.earnedMarks, 0),
+            moduleTotal: moduleItems.reduce((sum, s) => sum + s.totalMarks, 0),
+            finalEarned: finalItem?.earnedMarks ?? 0,
+            finalTotal: finalItem?.totalMarks ?? 0,
+            totalEarned,
+            totalPossible,
+            percent: totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0,
+          },
+        };
+      })
+    );
+
     return NextResponse.json({ 
-      certificates: certificates || [] 
+      certificates: enriched || [] 
     });
   } catch (error: any) {
     console.error("GET Certificates Error:", error);

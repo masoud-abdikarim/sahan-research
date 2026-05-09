@@ -9,6 +9,7 @@ import {
   LayoutDashboard, 
   BookOpen, 
   Video, 
+  FileQuestion,
   UserCheck, 
   TrendingUp,
   Users,
@@ -70,6 +71,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Admin Home", href: "/dashboard/admin", icon: Shield },
     { name: "Manage Courses", href: "/dashboard/courses", icon: BookOpen },
     { name: "Manage Lessons", href: "/dashboard/lessons", icon: Video },
+    { name: "Exams Management", href: "/dashboard/admin/exams", icon: FileQuestion },
     { name: "Certificates", href: "/dashboard/admin/certificates", icon: GraduationCap },
     { name: "Approval Queue", href: "/dashboard/admin/enrollments", icon: UserCheck },
     { name: "Completion History", href: "/dashboard/admin/completion-history", icon: TrendingUp },
@@ -80,6 +82,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const studentNav = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "My Learning", href: "/dashboard/enrollments", icon: BookOpen },
+    { name: "Exams", href: "/dashboard/exams", icon: FileQuestion },
     { name: "Active Courses", href: "/dashboard/active-courses", icon: Search },
     { name: "My Progress", href: "/dashboard/progress", icon: TrendingUp },
     { name: "My History", href: "/dashboard/history", icon: History },

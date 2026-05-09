@@ -8,11 +8,34 @@ import { getCourses } from "@/redux/slice/courseSlice";
 import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
 import { markLessonComplete } from "@/redux/slice/progressSlice";
 import Loader from "@/components/Loader";
-import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, HardDrive, Lock, CheckCircle2, Edit, Trash2, X, Star, Layers, BarChart3, BookOpen, GraduationCap, ChevronRight, ArrowRight, Clock } from "lucide-react";
+import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, Lock, CheckCircle2, Edit, Trash2, X, Star, Layers, BarChart3, BookOpen, GraduationCap, ChevronRight, ArrowRight, Clock, Sparkles } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { UploadButton, UploadDropzone } from "@/lib/uploadthing";
+import { UploadDropzone } from "@/lib/uploadthing";
 import ConfirmModal from "@/components/ConfirmModal";
+
+type UploadPhase = "idle" | "uploading" | "complete" | "error";
+
+function getYoutubeId(url: string): string | null {
+  const m = url.trim().match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+  return m ? m[1] : null;
+}
+
+function getVimeoId(url: string): string | null {
+  const m = url.trim().match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return m ? m[1] : null;
+}
+
+/** Accept YouTube, Vimeo, direct video files, or generic HTTPS (CDN). */
+function isValidLessonVideoUrl(raw: string): boolean {
+  const url = raw.trim();
+  if (!url) return false;
+  if (getYoutubeId(url)) return true;
+  if (getVimeoId(url)) return true;
+  if (/^https?:\/\/.+\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return true;
+  if (/^https:\/\//i.test(url) && url.length > 12) return true;
+  return false;
+}
 
 export default function LessonsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -43,6 +66,24 @@ export default function LessonsPage() {
 
   // Modal State
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+  const [formCourseId, setFormCourseId] = useState<number | "">("");
+  const [formModuleId, setFormModuleId] = useState<number | "">("");
+  const [formModules, setFormModules] = useState<{ id: number; title: string; order: number }[]>([]);
+  const [formModulesLoading, setFormModulesLoading] = useState(false);
+
+  const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const resetUploadState = () => {
+    setUploadPhase("idle");
+    setUploadProgress(0);
+  };
+
+  const refreshLessonsList = async () => {
+    const cid = selectedCourseId === "" ? 0 : Number(selectedCourseId);
+    await dispatch(getLessonsByCourse(cid));
+  };
 
   useEffect(() => {
     if (isAdmin) {
@@ -83,6 +124,26 @@ export default function LessonsPage() {
     fetchModules();
   }, [selectedCourseId, dispatch]);
 
+  useEffect(() => {
+    if (formCourseId === "" || formCourseId === 0) {
+      setFormModules([]);
+      setFormModuleId("");
+      return;
+    }
+    const load = async () => {
+      setFormModulesLoading(true);
+      try {
+        const res = await axios.get(`/api/admin/modules?courseId=${formCourseId}`);
+        setFormModules(res.data.modules ?? []);
+      } catch {
+        setFormModules([]);
+      } finally {
+        setFormModulesLoading(false);
+      }
+    };
+    load();
+  }, [formCourseId]);
+
   const filteredLessons = lessons.filter(lesson => {
     if (selectedModuleId) {
       return lesson.moduleId === Number(selectedModuleId);
@@ -92,37 +153,71 @@ export default function LessonsPage() {
 
   const handleCreateModule = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newModuleTitle.trim() || !selectedCourseId) return;
+    const cid =
+      showForm && formCourseId !== ""
+        ? Number(formCourseId)
+        : selectedCourseId !== ""
+          ? Number(selectedCourseId)
+          : 0;
+    if (!newModuleTitle.trim() || !cid) return;
 
     setIsCreatingModule(true);
     try {
+      const moduleCount =
+        showForm && formCourseId === cid ? formModules.length : modules.length;
       const res = await axios.post("/api/admin/modules", {
         title: newModuleTitle.trim(),
-        courseId: Number(selectedCourseId),
-        order: modules.length + 1
+        courseId: cid,
+        order: moduleCount + 1,
       });
-      setModules([...modules, res.data.module]);
-      setSelectedModuleId(res.data.module.id);
+      const created = res.data.module;
+      if (selectedCourseId === cid) {
+        setModules((prev) => [...prev, created]);
+        setSelectedModuleId(created.id);
+      }
+      if (formCourseId === cid) {
+        setFormModules((prev) => [...prev, created]);
+        setFormModuleId(created.id);
+      }
       setShowModuleModal(false);
       setNewModuleTitle("");
       toast.success("Module created successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to create module");
     } finally {
       setIsCreatingModule(false);
     }
   };
 
+  const openAddLessonModal = () => {
+    setEditingLesson(null);
+    resetUploadState();
+    setFormData({ title: "", videoUrl: "", order: "" });
+    setVideoSource("URL");
+    const cid = selectedCourseId !== "" ? selectedCourseId : (courses[0]?.id ?? "");
+    setFormCourseId(cid);
+    setFormModuleId(selectedModuleId !== "" ? Number(selectedModuleId) : "");
+    setShowForm(true);
+  };
+
   const handleEditInit = (lesson: Lesson) => {
     setEditingLesson(lesson);
     setSelectedCourseId(lesson.courseId);
     setSelectedModuleId(lesson.moduleId);
+    setFormCourseId(lesson.courseId);
+    setFormModuleId(lesson.moduleId);
     setFormData({
       title: lesson.title,
       videoUrl: lesson.videoUrl,
       order: lesson.order.toString(),
     });
     setVideoSource(lesson.videoType);
+    if (lesson.videoType === "UPLOAD" && lesson.videoUrl) {
+      setUploadPhase("complete");
+      setUploadProgress(100);
+    } else {
+      resetUploadState();
+    }
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -130,32 +225,68 @@ export default function LessonsPage() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingLesson(null);
-    setSelectedModuleId("");
+    setFormCourseId("");
+    setFormModuleId("");
+    setFormModules([]);
+    resetUploadState();
     setFormData({ title: "", videoUrl: "", order: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.order || !selectedCourseId || !selectedModuleId || !formData.videoUrl) {
-      toast.error("Please fill in all required fields, including Course and Module.");
+
+    if (!formData.title.trim() || !formData.order || formCourseId === "" || formModuleId === "") {
+      toast.error("Course, module, title, and order are required.");
+      return;
+    }
+
+    const ord = parseInt(formData.order, 10);
+    if (Number.isNaN(ord) || ord < 1) {
+      toast.error("Order must be a positive number.");
+      return;
+    }
+
+    if (videoSource === "UPLOAD") {
+      if (uploadPhase === "uploading") {
+        toast.error("Wait for the upload to finish.");
+        return;
+      }
+      if (!formData.videoUrl.trim()) {
+        toast.error("A video file or URL is required.");
+        return;
+      }
+      if (!editingLesson && uploadPhase !== "complete") {
+        toast.error("Upload must reach 100% before creating a new lesson.");
+        return;
+      }
+    } else if (!isValidLessonVideoUrl(formData.videoUrl)) {
+      toast.error("Enter a valid YouTube, Vimeo, or HTTPS video URL.");
       return;
     }
 
     const payload = {
       title: formData.title.trim(),
-      order: parseInt(formData.order, 10),
-      courseId: Number(selectedCourseId),
-      moduleId: Number(selectedModuleId),
+      order: ord,
+      courseId: Number(formCourseId),
+      moduleId: Number(formModuleId),
       videoType: videoSource,
-      videoUrl: formData.videoUrl
+      videoUrl: formData.videoUrl.trim(),
     };
 
     if (editingLesson) {
       const res = await dispatch(updateLesson({ id: editingLesson.id, data: payload }));
-      if (updateLesson.fulfilled.match(res)) handleCancel();
+      if (updateLesson.fulfilled.match(res)) {
+        handleCancel();
+        await refreshLessonsList();
+      }
     } else {
       const res = await dispatch(createLesson(payload));
-      if (createLesson.fulfilled.match(res)) handleCancel();
+      if (createLesson.fulfilled.match(res)) {
+        setSelectedCourseId(Number(formCourseId));
+        setSelectedModuleId(Number(formModuleId));
+        handleCancel();
+        await dispatch(getLessonsByCourse(Number(formCourseId)));
+      }
     }
   };
 
@@ -208,6 +339,20 @@ export default function LessonsPage() {
     }
   };
 
+  const videoRequirementMet =
+    videoSource === "URL"
+      ? isValidLessonVideoUrl(formData.videoUrl)
+      : uploadPhase === "complete" ||
+        (Boolean(editingLesson) && Boolean(formData.videoUrl.trim()));
+
+  const lessonFormSubmitReady =
+    Boolean(formData.title.trim()) &&
+    Boolean(formData.order) &&
+    formCourseId !== "" &&
+    formModuleId !== "" &&
+    videoRequirementMet &&
+    !(videoSource === "UPLOAD" && uploadPhase === "uploading");
+
   const renderPlayer = (lesson: any) => {
     const handleEnded = () => handleLessonComplete(lesson.id);
 
@@ -221,13 +366,13 @@ export default function LessonsPage() {
     };
 
     if (lesson.videoType === "URL") {
-      const ytMatch = lesson.videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/||.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-      if (ytMatch) {
+      const ytId = getYoutubeId(lesson.videoUrl);
+      if (ytId) {
         return (
           <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative">
             <iframe
               className="w-full h-full"
-              src={`https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&rel=0&modestbranding=1`}
+              src={`https://www.youtube.com/embed/${ytId}?enablejsapi=1&rel=0&modestbranding=1`}
               title={lesson.title}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -236,6 +381,32 @@ export default function LessonsPage() {
             {!isAdmin && !lesson.completed && (
               <div className="absolute bottom-4 right-4 animate-pulse">
                 <button 
+                  onClick={handleEnded}
+                  className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
+                >
+                  <CheckCircle2 size={16} /> I have watched fully
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      }
+      const vimeoId = getVimeoId(lesson.videoUrl);
+      if (vimeoId) {
+        return (
+          <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative">
+            <iframe
+              className="w-full h-full"
+              src={`https://player.vimeo.com/video/${vimeoId}`}
+              title={lesson.title}
+              frameBorder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+            {!isAdmin && !lesson.completed && (
+              <div className="absolute bottom-4 right-4 animate-pulse">
+                <button
+                  type="button"
                   onClick={handleEnded}
                   className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
                 >
@@ -293,14 +464,15 @@ export default function LessonsPage() {
         
         {isAdmin && (
            <button
-             onClick={() => (showForm ? handleCancel() : setShowForm(true))}
+             type="button"
+             onClick={() => (showForm ? handleCancel() : openAddLessonModal())}
              className={`flex items-center justify-center gap-3 px-8 py-4 rounded-2xl transition-all shadow-xl font-black text-xs uppercase tracking-widest ${
                showForm 
                  ? "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700" 
                  : "bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 shadow-indigo-100 dark:shadow-none hover:-translate-y-1"
              }`}
            >
-             {showForm ? <X size={18} /> : <><Plus size={18} /> Publish Lesson</>}
+             {showForm ? <X size={18} /> : <><Plus size={18} /> Add Lesson</>}
            </button>
         )}
       </div>
@@ -505,7 +677,7 @@ export default function LessonsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredLessons.map((lesson) => {
             const isLocked = !isAdmin && !lesson.unlocked;
-            const ytMatch = lesson.videoUrl?.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/||.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+            const ytId = lesson.videoUrl ? getYoutubeId(lesson.videoUrl) : null;
             const isMp4 = lesson.videoUrl?.match(/\.(mp4|webm|ogg|mov)$/i) || lesson.videoType === "UPLOAD";
             
             return (
@@ -529,9 +701,9 @@ export default function LessonsPage() {
               >
                 {/* Thumbnail */}
                 <div className="relative h-56 w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
-                  {ytMatch ? (
+                  {ytId ? (
                     <img 
-                      src={`https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`}
+                      src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
                       alt={lesson.title} 
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
@@ -617,6 +789,288 @@ export default function LessonsPage() {
       )}
 
 
+      {isAdmin && showForm && (
+        <div
+          className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center p-0 sm:p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lesson-form-title"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            aria-label="Close lesson form"
+            onClick={handleCancel}
+          />
+          <div className="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-4 px-6 sm:px-8 py-5 border-b border-gray-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="shrink-0 p-2 rounded-xl bg-indigo-600 text-white">
+                  <Sparkles size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">
+                    Lesson workspace
+                  </p>
+                  <h2
+                    id="lesson-form-title"
+                    className="text-lg font-black text-gray-900 dark:text-white truncate uppercase tracking-tight"
+                  >
+                    {editingLesson ? "Edit Lesson" : "Create Lesson"}
+                  </h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 transition-colors shrink-0"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-8 pb-10">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">
+                  Target course
+                </label>
+                <div className="relative group">
+                  <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                  <select
+                    required
+                    value={formCourseId === "" ? "" : formCourseId}
+                    onChange={(e) => {
+                      const v = e.target.value === "" ? "" : Number(e.target.value);
+                      setFormCourseId(v);
+                      setFormModuleId("");
+                    }}
+                    className="w-full pl-12 pr-10 py-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950 font-bold text-gray-900 dark:text-slate-100 outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 appearance-none cursor-pointer"
+                  >
+                    <option value="">Select a course</option>
+                    {availableCourses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <ChevronRight size={18} className="rotate-90" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">
+                    Target module
+                  </label>
+                  <button
+                    type="button"
+                    disabled={formCourseId === "" || formModulesLoading}
+                    onClick={() => setShowModuleModal(true)}
+                    className="text-xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                  >
+                    <Plus size={14} /> Create New Module
+                  </button>
+                </div>
+                <div className="relative group">
+                  <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                  <select
+                    required
+                    value={formModuleId === "" ? "" : formModuleId}
+                    onChange={(e) =>
+                      setFormModuleId(e.target.value === "" ? "" : Number(e.target.value))
+                    }
+                    disabled={formCourseId === "" || formModulesLoading}
+                    className="w-full pl-12 pr-10 py-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950 font-bold disabled:opacity-50 outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 appearance-none cursor-pointer"
+                  >
+                    <option value="">
+                      {formModulesLoading ? "Loading modules…" : "Select a module"}
+                    </option>
+                    {formModules.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.title}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <ChevronRight size={18} className="rotate-90" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Lesson title
+                  </label>
+                  <input
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-4 py-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 font-bold outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30"
+                    placeholder="Introduction to Flexbox"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Order / position
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min={1}
+                    value={formData.order}
+                    onChange={(e) => setFormData({ ...formData, order: e.target.value })}
+                    className="w-full px-4 py-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 font-bold outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Video source
+                </label>
+                <div className="flex rounded-2xl border border-gray-100 dark:border-slate-800 p-1 bg-gray-50 dark:bg-slate-950">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVideoSource("URL");
+                      resetUploadState();
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                      videoSource === "URL"
+                        ? "bg-white dark:bg-slate-900 shadow-sm text-indigo-600 dark:text-indigo-400"
+                        : "text-gray-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <LinkIcon size={16} /> Use URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVideoSource("UPLOAD");
+                      setFormData((p) => ({ ...p, videoUrl: "" }));
+                      resetUploadState();
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                      videoSource === "UPLOAD"
+                        ? "bg-white dark:bg-slate-900 shadow-sm text-indigo-600 dark:text-indigo-400"
+                        : "text-gray-500 dark:text-slate-400"
+                    }`}
+                  >
+                    <Upload size={16} /> Upload Video
+                  </button>
+                </div>
+
+                {videoSource === "URL" ? (
+                  <div className="space-y-2">
+                    <input
+                      value={formData.videoUrl}
+                      onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                      className="w-full px-4 py-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 font-medium text-sm outline-none focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30"
+                      placeholder="YouTube, Vimeo, or MP4 URL"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      YouTube, Vimeo, direct MP4/WebM, or HTTPS CDN URLs.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 rounded-2xl border border-dashed border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20 p-6">
+                    <UploadDropzone
+                      endpoint="videoUploader"
+                      uploadProgressGranularity="fine"
+                      onUploadBegin={() => {
+                        setUploadPhase("uploading");
+                        setUploadProgress(0);
+                        setFormData((p) => ({ ...p, videoUrl: "" }));
+                      }}
+                      onUploadProgress={(p) => setUploadProgress(Math.round(p))}
+                      onClientUploadComplete={(res) => {
+                        const first = res?.[0] as { url?: string; ufsUrl?: string } | undefined;
+                        const url = first?.url ?? first?.ufsUrl ?? "";
+                        if (url) {
+                          setFormData((p) => ({ ...p, videoUrl: url }));
+                          setUploadPhase("complete");
+                          setUploadProgress(100);
+                          toast.success("Video uploaded successfully");
+                        }
+                      }}
+                      onUploadError={(e) => {
+                        setUploadPhase("error");
+                        toast.error(e.message || "Upload failed");
+                      }}
+                      appearance={{
+                        container: "border-0 bg-transparent items-center",
+                        uploadIcon: "text-indigo-600 dark:text-indigo-400",
+                        button:
+                          "bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-xl px-6 py-3 transition-colors",
+                      }}
+                      content={{
+                        label: ({ ready, isUploading, uploadProgress: prog }) =>
+                          !ready
+                            ? "Preparing uploader…"
+                            : isUploading
+                              ? `Uploading… ${Math.round(prog)}%`
+                              : "Drop a video here or click to browse",
+                      }}
+                    />
+                    <div className="space-y-2">
+                      <div className="h-3 w-full rounded-full bg-gray-200 dark:bg-slate-800 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            uploadPhase === "complete"
+                              ? "bg-emerald-500"
+                              : uploadPhase === "error"
+                                ? "bg-red-500"
+                                : "bg-indigo-600"
+                          }`}
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-slate-400">
+                        {uploadPhase === "idle" && "No upload in progress"}
+                        {uploadPhase === "uploading" && `Uploading… ${uploadProgress}%`}
+                        {uploadPhase === "complete" && "100% — Ready to create lesson"}
+                        {uploadPhase === "error" && "Upload failed — try again"}
+                      </p>
+                    </div>
+                    {formData.videoUrl && uploadPhase === "complete" && (
+                      <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700 bg-black aspect-video">
+                        <video
+                          src={`${formData.videoUrl}#t=0.1`}
+                          controls
+                          className="w-full h-full"
+                          preload="metadata"
+                          playsInline
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="flex-1 py-4 rounded-2xl border border-gray-200 dark:border-slate-700 text-xs font-black uppercase tracking-widest text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!lessonFormSubmitReady || lessonsLoading}
+                  className="flex-1 py-4 rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white text-xs font-black uppercase tracking-widest hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-100 dark:shadow-none transition-colors"
+                >
+                  {lessonsLoading ? "Saving…" : editingLesson ? "Update Lesson" : "Create Lesson"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={confirmDeleteId !== null}

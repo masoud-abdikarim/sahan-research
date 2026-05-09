@@ -98,23 +98,33 @@ export async function POST(req: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { lessonId, courseId } = await req.json();
+    const body = await req.json();
+    const { lessonId, courseId, enrollmentId } = body;
 
-    if (!lessonId || !courseId) {
+    if (!lessonId) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
     // 1. Find Enrollment
-    const enrollment = await prisma.enrollment.findUnique({
-      where: {
-        userId_courseId: {
-          userId: Number(session.id),
-          courseId: Number(courseId)
+    let enrollment;
+    if (enrollmentId) {
+      enrollment = await prisma.enrollment.findUnique({
+         where: { id: Number(enrollmentId) }
+      });
+    } else if (courseId) {
+      enrollment = await prisma.enrollment.findUnique({
+        where: {
+          userId_courseId: {
+            userId: Number(session.id),
+            courseId: Number(courseId)
+          }
         }
-      }
-    });
+      });
+    } else {
+      return NextResponse.json({ message: "Provide enrollmentId or courseId" }, { status: 400 });
+    }
 
-    if (!enrollment || enrollment.status !== "APPROVED") {
+    if (!enrollment || enrollment.status !== "APPROVED" || enrollment.userId !== Number(session.id)) {
       return NextResponse.json({ message: "Valid enrollment required" }, { status: 403 });
     }
 

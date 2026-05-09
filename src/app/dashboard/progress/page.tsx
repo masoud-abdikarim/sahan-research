@@ -8,6 +8,7 @@ import { getNextLesson, markLessonComplete } from "@/redux/slice/progressSlice";
 import Loader from "@/components/Loader";
 import { PlayCircle, CheckCircle, BookOpen, Clock, ChevronRight, Layout, BarChart3, Trophy } from "lucide-react";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 export default function ProgressPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -16,6 +17,16 @@ export default function ProgressPage() {
   const { currentUser } = useSelector((state: RootState) => state.user);
   
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<number | "">("");
+  const [examSummary, setExamSummary] = useState<null | {
+    moduleEarned: number;
+    moduleTotal: number;
+    finalEarned: number;
+    finalTotal: number;
+    totalEarned: number;
+    totalPossible: number;
+    status: string;
+    certificateEligible: boolean;
+  }>(null);
 
   // Only show approved enrollments
   const approvedEnrollments = enrollments.filter(e => e.status === "APPROVED");
@@ -31,6 +42,24 @@ export default function ProgressPage() {
       dispatch(getNextLesson(Number(selectedEnrollmentId)));
     }
   }, [selectedEnrollmentId, dispatch]);
+
+  useEffect(() => {
+    const fetchExamSummary = async () => {
+      if (selectedEnrollmentId === "") {
+        setExamSummary(null);
+        return;
+      }
+      const enrollment = approvedEnrollments.find((e) => e.id === Number(selectedEnrollmentId));
+      if (!enrollment) return;
+      try {
+        const res = await axios.get(`/api/user/exams?courseId=${enrollment.courseId}`);
+        setExamSummary(res.data.summary);
+      } catch {
+        setExamSummary(null);
+      }
+    };
+    fetchExamSummary();
+  }, [selectedEnrollmentId, approvedEnrollments]);
 
   const handleComplete = async () => {
     if (!nextLesson || selectedEnrollmentId === "") return;
@@ -184,6 +213,37 @@ export default function ProgressPage() {
                   </div>
                 </div>
               </div>
+
+              {examSummary && (
+                <div className="bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-[3rem] border border-gray-100 dark:border-slate-800 shadow-xl shadow-indigo-100/20 dark:shadow-indigo-950/10">
+                  <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-5">
+                    Exam Performance
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+                    <div className="bg-gray-50 dark:bg-slate-950 p-4 rounded-2xl">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Module</p>
+                      <p className="text-xl font-black text-gray-900 dark:text-white">{examSummary.moduleEarned}/{examSummary.moduleTotal}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-slate-950 p-4 rounded-2xl">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Final</p>
+                      <p className="text-xl font-black text-gray-900 dark:text-white">{examSummary.finalEarned}/{examSummary.finalTotal}</p>
+                    </div>
+                    <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-2xl">
+                      <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total</p>
+                      <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{examSummary.totalEarned}/{examSummary.totalPossible}</p>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-slate-950 p-4 rounded-2xl">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                      <p className={`text-xl font-black ${examSummary.status === "PASSED" ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                        {examSummary.status}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">
+                    Certificate: {examSummary.certificateEligible ? "Eligible" : "Locked"}
+                  </p>
+                </div>
+              )}
 
               {/* Up Next / Continue Learning Section */}
               <div className="bg-indigo-600 dark:bg-indigo-900/90 p-8 sm:p-10 rounded-[3rem] shadow-2xl shadow-indigo-200 dark:shadow-black/50 text-white relative overflow-hidden group transition-colors duration-500">

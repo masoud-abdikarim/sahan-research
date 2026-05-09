@@ -82,6 +82,7 @@ export default function AdminCertificatesPage() {
               <tr className="bg-gray-50 dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800">
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">Student</th>
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">Course</th>
+                <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">Result</th>
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">Request Date</th>
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em]">Status</th>
                 <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em] text-right">Actions</th>
@@ -106,6 +107,18 @@ export default function AdminCertificatesPage() {
                       <BookOpen size={14} className="text-indigo-500" />
                       <span className="text-sm font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wide">{cert.course.name}</span>
                     </div>
+                  </td>
+                  <td className="px-8 py-6 whitespace-nowrap">
+                    {cert.result ? (
+                      <div className="text-xs font-bold text-gray-600 dark:text-slate-300">
+                        <div>{cert.result.totalEarned}/{cert.result.totalPossible}</div>
+                        <div className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-widest">
+                          M {cert.result.moduleEarned}/{cert.result.moduleTotal} · F {cert.result.finalEarned}/{cert.result.finalTotal}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">N/A</span>
+                    )}
                   </td>
                   <td className="px-8 py-6 whitespace-nowrap">
                     <div className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">{new Date(cert.createdAt).toLocaleDateString()}</div>
@@ -157,7 +170,7 @@ export default function AdminCertificatesPage() {
               ))}
               {filteredCerts.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-8 py-24 text-center">
+                  <td colSpan={6} className="px-8 py-24 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="w-20 h-20 rounded-3xl bg-gray-50 dark:bg-slate-950 flex items-center justify-center text-gray-200 dark:text-slate-800">
                         <Filter size={40} />

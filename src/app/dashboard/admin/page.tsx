@@ -103,6 +103,9 @@ export default function AdminOverview() {
               <a href="/dashboard/lessons" className="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center border border-white/10">
                 Manage Lessons
               </a>
+              <a href="/dashboard/admin/exams" className="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center border border-white/10">
+                Manage Exams
+              </a>
             </div>
           </div>
           <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
