@@ -75,7 +75,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Certificates", href: "/dashboard/admin/certificates", icon: GraduationCap },
     { name: "Approval Queue", href: "/dashboard/admin/enrollments", icon: UserCheck },
     { name: "Completion History", href: "/dashboard/admin/completion-history", icon: TrendingUp },
-    { name: "Manage Users", href: "/dashboard/admin/users", icon: Users },
+    { name: "Manage Students", href: "/dashboard/admin/students", icon: Users },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 

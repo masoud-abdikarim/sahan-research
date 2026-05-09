@@ -79,42 +79,65 @@ export async function POST(req: NextRequest) {
 
     const parsedQuestions = normalizeQuestions(questions);
     const computedTotal = parsedQuestions.reduce((sum, q) => sum + q.marks, 0);
-    if (Number(totalMarks) !== computedTotal) {
-      return NextResponse.json(
-        { message: `Total marks mismatch. Expected ${computedTotal} from questions.` },
-        { status: 400 }
-      );
-    }
+
+    // ── 100 MARKS LOGIC ENFORCEMENT ──
+    const existingModuleExams = await prisma.exam.findMany({
+      where: {
+        courseId: Number(courseId),
+        type: "MODULE",
+        NOT: id ? { id: Number(id) } : undefined,
+      },
+    });
+
+    const currentModuleSum = existingModuleExams.reduce((sum, e) => sum + e.totalMarks, 0);
+
+    const existingFinalExam = await prisma.exam.findFirst({
+      where: {
+        courseId: Number(courseId),
+        type: "FINAL",
+        NOT: (id && type === "FINAL") ? { id: Number(id) } : undefined,
+      },
+    });
+
+    let finalTotalMarks = Number(totalMarks);
 
     if (type === "MODULE") {
-      const existingModuleExam = await prisma.exam.findFirst({
+      if (existingFinalExam) {
+        return NextResponse.json({ message: "Cannot modify module exams because a Final Exam already exists. Delete the Final Exam first." }, { status: 403 });
+      }
+      
+      if (currentModuleSum + finalTotalMarks > 100) {
+        return NextResponse.json(
+          { message: `Total course marks cannot exceed 100. Current modules sum to ${currentModuleSum}. Adding this exam (${finalTotalMarks}) exceeds 100.` },
+          { status: 400 }
+        );
+      }
+
+      const existingModuleExamForThisModule = await prisma.exam.findFirst({
         where: {
           type: "MODULE",
           moduleId: Number(moduleId),
           NOT: id ? { id: Number(id) } : undefined,
         },
       });
-      if (existingModuleExam) {
+      if (existingModuleExamForThisModule) {
         return NextResponse.json({ message: "This module already has an exam" }, { status: 409 });
       }
     } else {
-      const existingFinal = await prisma.exam.findFirst({
-        where: {
-          type: "FINAL",
-          courseId: Number(courseId),
-          NOT: id ? { id: Number(id) } : undefined,
-        },
-      });
-      if (existingFinal) {
+      // type === "FINAL"
+      if (existingFinalExam) {
         return NextResponse.json({ message: "This course already has a final exam" }, { status: 409 });
       }
+
+      const requiredFinalMarks = 100 - currentModuleSum;
+      finalTotalMarks = requiredFinalMarks; // Auto-calculate logic
     }
 
     const examData = {
       title: String(title).trim(),
       description: description ? String(description).trim() : null,
       type,
-      totalMarks: Number(totalMarks),
+      totalMarks: finalTotalMarks,
       passingMarks: Number(passingMarks),
       courseId: Number(courseId),
       moduleId: moduleId ? Number(moduleId) : null,
@@ -122,7 +145,6 @@ export async function POST(req: NextRequest) {
 
     let exam: any;
     if (id) {
-      // Update existing exam
       exam = await prisma.exam.update({
         where: { id: Number(id) },
         data: examData,
@@ -133,7 +155,6 @@ export async function POST(req: NextRequest) {
         data: parsedQuestions.map((q) => ({ ...q, examId: exam.id })),
       });
     } else {
-      // Create new exam
       exam = await prisma.exam.create({
         data: {
           ...examData,
@@ -161,6 +182,21 @@ export async function DELETE(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
+
+    if (!id) return NextResponse.json({ message: "Missing exam ID" }, { status: 400 });
+
+    const exam = await prisma.exam.findUnique({ where: { id: Number(id) } });
+    if (!exam) return NextResponse.json({ message: "Exam not found" }, { status: 404 });
+
+    // Enforce 100 mark logic safety on delete
+    if (exam.type === "MODULE") {
+      const existingFinal = await prisma.exam.findFirst({
+        where: { courseId: exam.courseId, type: "FINAL" },
+      });
+      if (existingFinal) {
+        return NextResponse.json({ message: "Cannot delete a module exam because a Final Exam already exists. Delete the Final Exam first." }, { status: 403 });
+      }
+    }
 
     await prisma.exam.delete({
       where: { id: Number(id) },

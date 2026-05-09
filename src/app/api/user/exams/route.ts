@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
     const finalEarned = finalScore?.earnedMarks ?? 0;
     const finalTotal = finalExam?.totalMarks ?? 0;
     const totalEarned = moduleEarned + finalEarned;
-    const totalPossible = moduleTotal + finalTotal;
+    const totalPossible = 100;
     const overallPercent = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0;
 
     return NextResponse.json({

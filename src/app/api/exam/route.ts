@@ -42,7 +42,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Approved enrollment required" }, { status: 403 });
     }
 
+    // 2. Enforce Attempt Rules & Prerequisites
+    const existingScore = await prisma.enrollmentExamScore.findUnique({
+      where: {
+        enrollmentId_examId: {
+          enrollmentId: enrollment.id,
+          examId: exam.id,
+        },
+      },
+    });
+
     if (exam.type === "MODULE") {
+      // Rule: Single attempt for module exams
+      if (existingScore) {
+        return NextResponse.json({ message: "Module exams can only be attempted once." }, { status: 403 });
+      }
+
       if (!exam.moduleId) {
         return NextResponse.json({ message: "Invalid module exam configuration" }, { status: 400 });
       }
@@ -57,6 +72,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (exam.type === "FINAL") {
+      // Rule: Final exam locked if already passed course
+      if (existingScore?.locked) {
+        return NextResponse.json({ message: "Final exam is locked. You have already passed the course." }, { status: 403 });
+      }
+
+      // Rule: All module exams must be taken before final exam
       const moduleExams = await prisma.exam.findMany({
         where: { courseId: exam.courseId, type: "MODULE" },
         select: { id: true },
@@ -65,30 +86,35 @@ export async function POST(req: NextRequest) {
         where: {
           enrollmentId: enrollment.id,
           exam: { type: "MODULE", courseId: exam.courseId },
-          passed: true,
         },
         select: { examId: true },
       });
-      const passedSet = new Set(moduleScores.map((s) => s.examId));
-      const allModulesPassed = moduleExams.every((e) => passedSet.has(e.id));
-      if (!allModulesPassed) {
-        return NextResponse.json({ message: "Pass all module exams before final exam" }, { status: 403 });
+      const takenSet = new Set(moduleScores.map((s) => s.examId));
+      const allModulesTaken = moduleExams.every((e) => takenSet.has(e.id));
+      if (!allModulesTaken) {
+        return NextResponse.json({ message: "Take all module exams before attempting the final exam" }, { status: 403 });
       }
     }
 
-    // 2. Calculate score
-    let score = 0;
+    // 3. Calculate raw score from questions
+    let rawScore = 0;
+    let maxRawScore = 0;
     exam.questions.forEach((question) => {
+      maxRawScore += question.marks;
       // answers is expected to be an object: { questionId: selectedOptionIndex }
       if (question.correctOptions.includes(Number(answers[question.id]))) {
-        score += question.marks;
+        rawScore += question.marks;
       }
     });
 
-    const percentage = (score / exam.totalMarks) * 100;
-    const passed = percentage >= exam.passingMarks;
+    const percentage = maxRawScore > 0 ? (rawScore / maxRawScore) * 100 : 0;
+    
+    // The final score earned is proportional to the admin-assigned totalMarks
+    const score = maxRawScore > 0 ? Math.round((rawScore / maxRawScore) * exam.totalMarks * 100) / 100 : 0;
 
-    // 3. Save attempt
+    const passed = percentage >= exam.passingMarks; // Individual exam pass status (less important for final total calculation)
+
+    // 4. Save attempt
     const attempt = await prisma.examAttempt.create({
       data: {
         userId: Number(session.id),
@@ -100,44 +126,35 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 4. Save stable score state
-    const existingScore = await prisma.enrollmentExamScore.findUnique({
-      where: {
-        enrollmentId_examId: {
-          enrollmentId: enrollment.id,
-          examId: exam.id,
-        },
-      },
-    });
-
+    // 5. Save stable score state
     if (exam.type === "MODULE") {
-      // Preserve module marks once passed (locked).
-      if (!existingScore || (!existingScore.locked && score > existingScore.earnedMarks)) {
-        await prisma.enrollmentExamScore.upsert({
-          where: {
-            enrollmentId_examId: {
-              enrollmentId: enrollment.id,
-              examId: exam.id,
-            },
-          },
-          update: {
-            earnedMarks: score,
-            totalMarks: exam.totalMarks,
-            passed,
-            locked: passed ? true : existingScore?.locked ?? false,
-          },
-          create: {
+      // Module marks are permanently locked immediately after first attempt
+      await prisma.enrollmentExamScore.upsert({
+        where: {
+          enrollmentId_examId: {
             enrollmentId: enrollment.id,
             examId: exam.id,
-            earnedMarks: score,
-            totalMarks: exam.totalMarks,
-            passed,
-            locked: passed,
           },
-        });
-      }
+        },
+        update: {
+          // Should not hit update since we block duplicate module attempts, but just in case
+          earnedMarks: score,
+          totalMarks: exam.totalMarks,
+          passed,
+          locked: true,
+        },
+        create: {
+          enrollmentId: enrollment.id,
+          examId: exam.id,
+          earnedMarks: score,
+          totalMarks: exam.totalMarks,
+          passed,
+          locked: true,
+        },
+      });
     } else {
-      // Final exam can be retaken; keep best score.
+      // Final exam can be retaken; keep best score. 
+      // Do NOT lock here, we lock during course recomputation if Total >= 70
       await prisma.enrollmentExamScore.upsert({
         where: {
           enrollmentId_examId: {
@@ -162,7 +179,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 5. Recompute course completion eligibility (>= 70 total)
+    // 6. Recompute course completion eligibility (Total Course Score >= 70)
     const stableScores = await prisma.enrollmentExamScore.findMany({
       where: {
         enrollmentId: enrollment.id,
@@ -170,28 +187,50 @@ export async function POST(req: NextRequest) {
       },
       include: { exam: { select: { type: true } } },
     });
+    
     const totalEarned = stableScores.reduce((sum, s) => sum + s.earnedMarks, 0);
-    const totalPossible = stableScores.reduce((sum, s) => sum + s.totalMarks, 0);
-    const finalScore = stableScores.find((s) => s.exam.type === "FINAL");
+    // Based on the 100-mark rule, the course total is always out of 100
+    const totalPossible = 100;
+    const finalScoreRecord = stableScores.find((s) => s.exam.type === "FINAL");
+    
+    // We base passing on total marks earned out of 100
+    // Actually, percent can just be `totalEarned` if totalPossible is 100.
     const percent = totalPossible > 0 ? (totalEarned / totalPossible) * 100 : 0;
-    const canComplete = Boolean(finalScore?.passed) && percent >= 70;
+    
+    // Pass course if they took final exam AND total percent >= 70
+    const canComplete = Boolean(finalScoreRecord) && percent >= 70;
 
-    await prisma.enrollment.update({
-      where: { id: enrollment.id },
-      data: canComplete
-        ? { isCompleted: true, completedAt: enrollment.completedAt ?? new Date() }
-        : { isCompleted: false, completedAt: null },
-    });
+    if (canComplete) {
+      // Lock the final exam because they passed the course
+      if (finalScoreRecord) {
+        await prisma.enrollmentExamScore.update({
+          where: { id: finalScoreRecord.id },
+          data: { locked: true, passed: true }
+        });
+      }
+
+      await prisma.enrollment.update({
+        where: { id: enrollment.id },
+        data: { isCompleted: true, completedAt: enrollment.completedAt ?? new Date() },
+      });
+    } else {
+      // Ensure it is not completed if they dropped below 70 (unlikely since we keep best score, but safe)
+      await prisma.enrollment.update({
+        where: { id: enrollment.id },
+        data: { isCompleted: false, completedAt: null },
+      });
+    }
 
     return NextResponse.json(
       {
-        message: "Exam submitted",
+        message: canComplete ? "Congratulations! You passed the course." : "Exam submitted",
         attempt,
-        percentage,
-        passed,
-        totalEarned,
-        totalPossible,
+        percentage, // Exam percentage
+        passed, // Exam passed
+        totalEarned, // Total course score
+        totalPossible, // Should be 100
         finalPercentage: totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 0,
+        coursePassed: canComplete
       },
       { status: 200 }
     );

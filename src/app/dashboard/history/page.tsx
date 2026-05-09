@@ -1,107 +1,185 @@
 "use client";
 
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
-import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
-import { getCourses } from "@/redux/slice/courseSlice";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import Loader from "@/components/Loader";
-import CourseCard from "@/components/CourseCard";
-import { CheckCircle2, History, ArrowRight, Calendar } from "lucide-react";
+import toast from "react-hot-toast";
+import { CheckCircle2, XCircle, FileQuestion, GraduationCap, History, Lock } from "lucide-react";
 
-export default function MyHistoryPage() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
-  const { courses, loading: coursesLoading } = useSelector((state: RootState) => state.course);
-  const { currentUser } = useSelector((state: RootState) => state.user);
-  const isAdmin = currentUser?.role === "ADMIN";
+type Attempt = {
+  id: number;
+  score: number;
+  passed: boolean;
+  createdAt: string;
+};
+
+type ModuleExam = {
+  id: number;
+  title: string;
+  moduleId: number;
+  earnedMarks: number;
+  totalMarks: number;
+  locked: boolean;
+  date: string;
+  attempt: Attempt | null;
+};
+
+type FinalExam = {
+  id: number;
+  title: string;
+  earnedMarks: number;
+  totalMarks: number;
+  locked: boolean;
+  attemptsCount: number;
+  attemptsHistory: Attempt[];
+};
+
+type HistoryData = {
+  enrollmentId: number;
+  courseId: number;
+  courseName: string;
+  isCompleted: boolean;
+  totalEarned: number;
+  totalPossible: number;
+  certificateEligible: boolean;
+  moduleExams: ModuleExam[];
+  finalExam: FinalExam | null;
+};
+
+export default function ExamHistoryPage() {
+  const [data, setData] = useState<HistoryData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dispatch(getCourses());
-    if (currentUser) {
-      dispatch(getUserEnrollments());
-    }
-  }, [dispatch, currentUser]);
+    const fetchHistory = async () => {
+      try {
+        const res = await axios.get("/api/user/history");
+        setData(res.data.history || []);
+      } catch (error: any) {
+        toast.error("Failed to load exam history");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, []);
 
-  const completedEnrollments = enrollments.filter(e => e.status === "APPROVED" && e.isCompleted);
+  if (loading) return <Loader />;
 
   return (
-    <div className="max-w-7xl mx-auto transition-colors duration-500 pb-20">
-      <div className="flex justify-between items-center mb-12">
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">My History</h1>
-          <p className="text-gray-500 dark:text-slate-400 font-medium">Review courses you have successfully completed</p>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Exam History</h1>
+        <p className="text-gray-500 dark:text-slate-400 mt-1">Review your module marks, final exam attempts, and total course scores.</p>
       </div>
 
-      <div className="mb-20">
-        <h2 className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-          <span className="w-8 h-[2px] bg-green-500"></span>
-          Completed Research
-        </h2>
-        
-        {enrollLoading || coursesLoading ? <Loader /> : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {completedEnrollments.map((enrollment) => {
-              const course = courses.find(c => c.id === enrollment.courseId);
-              if (!course) return null;
-              
-              return (
-                <div key={enrollment.id} className="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-green-50 dark:bg-green-950/30 flex items-center justify-center text-green-600 dark:text-green-400">
-                      <CheckCircle2 size={24} />
-                    </div>
-                    <span className="px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100 dark:border-green-900/30">
-                      Completed
+      {data.length === 0 ? (
+        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-8 text-center">
+          <History className="mx-auto text-gray-400 mb-4" size={48} />
+          <h2 className="text-xl font-bold">No History Found</h2>
+          <p className="text-gray-500 mt-2">You haven't taken any exams yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {data.map((course) => (
+            <div key={course.enrollmentId} className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
+              {/* Course Header */}
+              <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 border-b border-indigo-100 dark:border-indigo-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-indigo-900 dark:text-indigo-100">{course.courseName}</h2>
+                  <div className="flex items-center gap-3 mt-2 text-sm font-bold">
+                    <span className={course.isCompleted ? "text-emerald-600 dark:text-emerald-400 flex items-center gap-1" : "text-amber-600 dark:text-amber-400 flex items-center gap-1"}>
+                      {course.isCompleted ? <CheckCircle2 size={16} /> : <FileQuestion size={16} />}
+                      {course.isCompleted ? "PASSED" : "IN PROGRESS"}
+                    </span>
+                    <span className="text-indigo-300 dark:text-indigo-500/50">|</span>
+                    <span className={course.certificateEligible ? "text-emerald-600 flex items-center gap-1" : "text-gray-500 flex items-center gap-1"}>
+                      <GraduationCap size={16} />
+                      {course.certificateEligible ? "Certificate Eligible" : "Certificate Locked"}
                     </span>
                   </div>
-
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                    {course.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-slate-400 line-clamp-2 mb-6 font-medium leading-relaxed">
-                    {course.description}
-                  </p>
-                  
-                  <div className="pt-6 border-t border-gray-50 dark:border-slate-800 flex items-center justify-between mb-8">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                        <Calendar size={12} /> Finished On
-                      </span>
-                      <span className="text-xs font-black text-gray-900 dark:text-white mt-1">
-                        {enrollment.completedAt ? new Date(enrollment.completedAt).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        }) : "Verified"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => window.location.href = `/dashboard/lessons?courseId=${course.id}`}
-                    className="w-full flex items-center justify-center gap-2 bg-gray-50 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 text-gray-700 dark:text-slate-200 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-gray-100 dark:border-slate-700 group/btn"
-                  >
-                    Review Course
-                    <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
                 </div>
-              );
-            })}
-
-            {completedEnrollments.length === 0 && (
-              <div className="col-span-full py-24 text-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-slate-800">
-                <History size={48} className="mx-auto text-gray-200 dark:text-slate-800 mb-4" />
-                <h3 className="text-xl font-black text-gray-900 dark:text-white">No history yet</h3>
-                <p className="text-gray-500 dark:text-slate-400 max-w-xs mx-auto font-medium mt-2">
-                  Complete all lessons in a course to see it listed here in your academic history.
-                </p>
+                <div className="text-right">
+                  <p className="text-xs text-indigo-400 uppercase tracking-widest font-bold">Total Course Marks</p>
+                  <p className="text-4xl font-black text-indigo-600 dark:text-indigo-400">
+                    {course.totalEarned}<span className="text-xl text-indigo-300">/{course.totalPossible}</span>
+                  </p>
+                </div>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+
+              <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Module Exams */}
+                <div>
+                  <h3 className="text-lg font-black mb-4 flex items-center gap-2">
+                    <FileQuestion className="text-gray-400" /> Module Exams
+                  </h3>
+                  {course.moduleExams.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">No module exams taken yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {course.moduleExams.map((mod) => (
+                        <div key={mod.id} className="border border-gray-100 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+                          <div>
+                            <p className="font-bold text-gray-900 dark:text-white">{mod.title}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {mod.attempt ? new Date(mod.attempt.createdAt).toLocaleDateString() : "No date"}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-black text-gray-900 dark:text-white">{mod.earnedMarks}/{mod.totalMarks}</p>
+                            <p className="text-xs text-emerald-500 font-bold flex items-center justify-end gap-1 mt-1">
+                              <Lock size={12} /> Locked
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Final Exam History */}
+                <div>
+                  <h3 className="text-lg font-black mb-4 flex items-center gap-2">
+                    <History className="text-gray-400" /> Final Exam Attempts
+                  </h3>
+                  {!course.finalExam ? (
+                    <div className="border border-dashed border-gray-200 dark:border-slate-700 rounded-2xl p-6 text-center text-gray-500">
+                      <p className="font-bold">Not attempted yet</p>
+                      <p className="text-xs mt-1">Pass all module exams to unlock the final exam.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-indigo-600 text-white rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-indigo-100 dark:shadow-none">
+                        <div>
+                          <p className="text-xs text-indigo-200 uppercase font-bold tracking-widest">Best Score</p>
+                          <p className="font-black text-xl">{course.finalExam.title}</p>
+                        </div>
+                        <p className="text-2xl font-black">{course.finalExam.earnedMarks}/{course.finalExam.totalMarks}</p>
+                      </div>
+
+                      <div className="space-y-2 mt-4">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Attempt History</p>
+                        {course.finalExam.attemptsHistory.map((attempt, idx) => (
+                          <div key={attempt.id} className="border border-gray-100 dark:border-slate-800 rounded-xl p-3 flex items-center justify-between bg-gray-50 dark:bg-slate-800/50">
+                            <div>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white">Attempt {course.finalExam!.attemptsHistory.length - idx}</p>
+                              <p className="text-xs text-gray-500">{new Date(attempt.createdAt).toLocaleString()}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-black text-gray-900 dark:text-white">{attempt.score}/{course.finalExam!.totalMarks}</p>
+                              {/* Passed in attempt context means they hit the exam's personal passing threshold, but what matters is course passed */}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
