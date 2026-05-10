@@ -22,8 +22,7 @@ export async function GET() {
     let studentsPassed = 0;
     let studentsFailed = 0;
     let studentsStudying = 0;
-    let completedModules = 0;
-    let certRequests = 0;
+    let approvedCertificates = 0;
     let averageMarks = 0;
 
     try {
@@ -60,8 +59,6 @@ export async function GET() {
           }
         }
 
-        const modScores = enr.examScores.filter(s => s.exam.type === "MODULE");
-        completedModules += modScores.length;
 
         // For average marks, sum everything up
         totalEarnedPlatformWide += enr.examScores.reduce((sum, s) => sum + s.earnedMarks, 0);
@@ -69,7 +66,7 @@ export async function GET() {
       }
 
       averageMarks = totalPossiblePlatformWide > 0 ? Math.round((totalEarnedPlatformWide / totalPossiblePlatformWide) * 100) : 0;
-      certRequests = await prisma.certificate.count();
+      approvedCertificates = await prisma.certificate.count({ where: { status: "APPROVED" } });
 
     } catch (dbError: any) {
       console.error("[STATS_API_DB_ERROR]", dbError.message || dbError);
@@ -84,8 +81,7 @@ export async function GET() {
         studentsPassed,
         studentsFailed,
         studentsStudying,
-        completedModules,
-        certRequests,
+        approvedCertificates,
         averageMarks
       }
     });

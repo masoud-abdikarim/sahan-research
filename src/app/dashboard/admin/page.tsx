@@ -40,8 +40,7 @@ export default function AdminOverview() {
     studentsPassed: 0,
     studentsFailed: 0,
     studentsStudying: 0,
-    completedModules: 0,
-    certRequests: 0,
+    approvedCertificates: 0,
     averageMarks: 0
   };
 
@@ -56,8 +55,7 @@ export default function AdminOverview() {
     { label: "Passed Courses", value: displayStats.studentsPassed, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-500/20" },
     { label: "Failed Courses", value: displayStats.studentsFailed, icon: XCircle, color: "text-red-500", bg: "bg-red-100 dark:bg-red-500/20" },
     { label: "Actively Studying", value: displayStats.studentsStudying, icon: BookOpenCheck, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-500/20" },
-    { label: "Modules Completed", value: displayStats.completedModules, icon: CheckCircle2, color: "text-indigo-500", bg: "bg-indigo-100 dark:bg-indigo-500/20" },
-    { label: "Cert Requests", value: displayStats.certRequests, icon: Award, color: "text-amber-500", bg: "bg-amber-100 dark:bg-amber-500/20" },
+    { label: "Approved Certs", value: displayStats.approvedCertificates, icon: Award, color: "text-amber-500", bg: "bg-amber-100 dark:bg-amber-500/20" },
     { label: "Platform Avg Marks", value: `${displayStats.averageMarks}%`, icon: Percent, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-500/20" },
   ];
 
@@ -87,7 +85,7 @@ export default function AdminOverview() {
 
       <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Advanced Analytics</h2>
       
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-12">
         {advancedCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
