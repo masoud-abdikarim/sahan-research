@@ -1003,7 +1003,15 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Copyright */}
+          </motion.div>
+
+          {/* Copyright Section - Centered */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="mt-12 text-center"
+          >
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
               © Sahan Research and Studies Center 2026
             </p>

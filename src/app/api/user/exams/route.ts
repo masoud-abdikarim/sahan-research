@@ -90,9 +90,11 @@ export async function GET(req: NextRequest) {
     });
 
     const moduleExams = moduleItems.filter((m) => m.exam).map((m) => m.exam!);
-    const allModuleExamsPassed = moduleExams.length > 0 && moduleExams.every((e) => e.passed);
+    const allModuleExamsAttempted = moduleExams.every((e) => e.attempts > 0);
+    const allLessonsDone = moduleItems.every((m) => m.allLessonsDone);
+    
     const finalScore = finalExam ? stableByExam.get(finalExam.id) : null;
-    const finalUnlocked = allModuleExamsPassed && Boolean(finalExam);
+    const finalUnlocked = allModuleExamsAttempted && allLessonsDone && Boolean(finalExam);
 
     const moduleEarned = moduleExams.reduce((sum, e) => sum + e.earnedMarks, 0);
     const moduleTotal = moduleExams.reduce((sum, e) => sum + e.totalMarks, 0);

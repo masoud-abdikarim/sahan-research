@@ -174,11 +174,13 @@ export default function ExamsPage() {
                   {m.exam ? (
                     <button
                       onClick={() => openExam(m.exam)}
-                      disabled={!m.exam.unlocked}
+                      disabled={!m.exam.unlocked || m.exam.attempts > 0}
                       className="px-4 py-2 rounded-xl text-sm font-bold border border-indigo-300 text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                     >
                       {m.exam.unlocked ? <FileQuestion size={16} /> : <Lock size={16} />}
-                      {m.exam.passed ? `Passed (${m.exam.earnedMarks}/${m.exam.totalMarks})` : "Take Module Exam"}
+                      {m.exam.attempts > 0 
+                        ? (m.exam.passed ? `Passed (${m.exam.earnedMarks}/${m.exam.totalMarks})` : `Completed (${m.exam.earnedMarks}/${m.exam.totalMarks})`)
+                        : "Take Module Exam"}
                     </button>
                   ) : (
                     <p className="text-xs text-gray-500">No exam configured</p>
