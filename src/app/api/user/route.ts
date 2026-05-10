@@ -1,39 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/prisma";
-import { encrypt } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { sendOtpEmail } from "@/lib/mail";
 
-// ✅ CREATE USER (SIGNUP)
+// Strong email regex — rejects test@test, abc.com, hello@, fake123
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+
+// Password: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// ✅ CREATE USER (SIGNUP) — now sends OTP before account is active
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { name, email, phone, password, role } = body;
 
     if (!name || !email || !phone || !password) {
+      return NextResponse.json({ message: "All fields are required" }, { status: 400 });
+    }
+
+    // Validate email format strictly
+    if (!EMAIL_REGEX.test(email)) {
       return NextResponse.json(
-        { message: "All fields are required" },
+        { message: "Please enter a valid email address (e.g. name@domain.com)" },
         { status: 400 }
       );
     }
 
-    // check if user exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { phone }],
-      },
-    });
-
-    if (existingUser) {
+    // Validate password strength
+    if (!PASSWORD_REGEX.test(password)) {
       return NextResponse.json(
-        { message: "User already exists" },
-        { status: 409 }
+        { message: "Password must be at least 8 characters with uppercase, lowercase and a number" },
+        { status: 400 }
       );
     }
 
-    // hash password
+    // Check if user exists
+    const existingUser = await prisma.user.findFirst({
+      where: { OR: [{ email }, { phone }] },
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return NextResponse.json({ message: "An account with this email already exists" }, { status: 409 });
+      }
+      return NextResponse.json({ message: "An account with this phone number already exists" }, { status: 409 });
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate OTP
+    const otp = generateOtp();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Create user — NOT verified yet
     const user = await prisma.user.create({
       data: {
         name,
@@ -41,45 +67,47 @@ export async function POST(req: Request) {
         phone,
         password: hashedPassword,
         role: role || "USER",
+        emailVerified: false,
+        otpCode: hashedOtp,
+        otpExpiresAt,
+        otpAttempts: 0,
       },
     });
 
-    // Create session so user is logged in after registration
-    const sessionData = { id: user.id, role: user.role, email: user.email, name: user.name };
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    const session = await encrypt(sessionData);
+    // Send OTP email
+    try {
+      await sendOtpEmail(user.email, user.name, otp);
+    } catch (mailErr: any) {
+      // If email fails, delete the user so they can retry
+      await prisma.user.delete({ where: { id: user.id } });
+      console.error("Mail send failed:", mailErr.message);
+      return NextResponse.json(
+        { message: "Failed to send verification email. Please check your email address and try again." },
+        { status: 500 }
+      );
+    }
 
-    const cookieStore = await cookies();
-    cookieStore.set("session", session, {
-      expires,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
-
+    // Return userId so frontend can redirect to /verify-otp
     return NextResponse.json(
-      { message: "User created successfully", user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role } },
+      {
+        message: "Account created! Please check your email for the verification code.",
+        userId: user.id,
+        requiresVerification: true,
+      },
       { status: 201 }
     );
   } catch (error) {
     console.error("Registration Error:", error);
-    return NextResponse.json(
-      { message: "Server error", error },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Server error", error }, { status: 500 });
   }
 }
 
-//get all
-
+// Get all users
 export async function GET(req: NextRequest) {
   try {
     const users = await prisma.user.findMany();
     return NextResponse.json({ users }, { status: 200 });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Server error", error },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Server error", error }, { status: 500 });
   }
 }

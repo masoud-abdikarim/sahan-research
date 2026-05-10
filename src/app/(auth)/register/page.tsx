@@ -7,21 +7,54 @@ import { registerUser } from "@/redux/slice/userSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Lock, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { PasswordInput } from "@/components/PasswordInput";
+
+// Strict email validation regex
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 2) return { score, label: "Weak", color: "#ef4444" };
+  if (score === 3) return { score, label: "Fair", color: "#f59e0b" };
+  if (score === 4) return { score, label: "Good", color: "#3b82f6" };
+  return { score, label: "Strong", color: "#22c55e" };
+}
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-  });
-  
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.user);
   const router = useRouter();
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
+  const validateEmail = (email: string) => {
+    if (!email) return "Email is required";
+    if (!EMAIL_REGEX.test(email)) return "Please enter a valid email address (e.g. name@domain.com)";
+    return "";
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === "email") setEmailError(validateEmail(value));
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTouched({ ...touched, [e.target.name]: true });
+    if (e.target.name === "email") setEmailError(validateEmail(formData.email));
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,29 +65,37 @@ export default function RegisterPage() {
       return;
     }
 
+    const emailErr = validateEmail(email);
+    if (emailErr) {
+      setEmailError(emailErr);
+      toast.error(emailErr);
+      return;
+    }
+
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
+      toast.error("Password must be at least 8 characters with uppercase, lowercase and a number");
+      return;
+    }
+
     try {
       const resultAction = await dispatch(registerUser(formData));
       if (registerUser.fulfilled.match(resultAction)) {
-        toast.success("Account created successfully!");
-        router.push("/dashboard");
+        const { userId } = resultAction.payload as any;
+        toast.success("Account created! Check your email for the verification code.");
+        router.push(`/verify-otp?userId=${userId}`);
       } else {
-        // Show the specific error message from the backend (e.g. "User already exists")
         const errorMsg = resultAction.payload as string;
         toast.error(errorMsg || "Registration failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred");
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-colors duration-500">
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className="absolute top-8 left-8 p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-900 rounded-full transition-all shadow-sm sm:shadow-none"
         title="Back to home"
       >
@@ -67,10 +108,10 @@ export default function RegisterPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <img 
-            src="/logo.jpeg" 
-            alt="Sahan Research Logo" 
-            className="w-16 h-16 rounded-2xl object-cover shadow-xl dark:shadow-indigo-950/50" 
+          <img
+            src="/logo.jpeg"
+            alt="Sahan Research Logo"
+            className="w-16 h-16 rounded-2xl object-cover shadow-xl dark:shadow-indigo-950/50"
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-black text-gray-900 dark:text-white tracking-tight">
@@ -84,57 +125,128 @@ export default function RegisterPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-slate-900 py-10 px-4 shadow-xl shadow-indigo-100/20 dark:shadow-black/20 sm:rounded-2xl sm:px-10 border border-gray-100/50 dark:border-slate-800/50">
           <form className="space-y-5" onSubmit={handleRegister}>
+
+            {/* Full Name */}
             <div>
               <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Full Name</label>
-              <input
-                type="text"
-                name="name"
-                required
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleChange}
-                className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
-              />
+              <div className="relative">
+                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  name="name"
+                  id="register-name"
+                  required
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="appearance-none block w-full pl-10 pr-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
+                />
+              </div>
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder="Enter your email address"
-                value={formData.email}
-                onChange={handleChange}
-                className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
-              />
+              <div className="relative">
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  name="email"
+                  id="register-email"
+                  required
+                  placeholder="name@domain.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`appearance-none block w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 transition-all outline-none font-medium text-gray-700 dark:text-slate-200 ${
+                    touched.email && emailError
+                      ? "border-red-400 dark:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/20 focus:border-red-500"
+                      : "border-gray-100 dark:border-slate-800 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400"
+                  }`}
+                />
+              </div>
+              {touched.email && emailError && (
+                <p className="mt-1.5 text-xs text-red-500 font-medium">{emailError}</p>
+              )}
             </div>
 
+            {/* Phone */}
             <div>
               <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Phone Number</label>
-              <input
-                type="tel"
-                name="phone"
-                required
-                placeholder="Enter your phone number"
-                value={formData.phone}
-                onChange={handleChange}
-                className="appearance-none block w-full px-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
-              />
+              <div className="relative">
+                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="tel"
+                  name="phone"
+                  id="register-phone"
+                  required
+                  placeholder="Enter your phone number"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="appearance-none block w-full pl-10 pr-4 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
+                />
+              </div>
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Password</label>
-              <PasswordInput
-                value={formData.password}
-                onChange={handleChange}
-              />
+              <div className="relative">
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  id="register-password"
+                  required
+                  placeholder="Min 8 chars, uppercase, number"
+                  value={formData.password}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="appearance-none block w-full pl-10 pr-12 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+
+              {/* Password strength bar */}
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className="h-1 flex-1 rounded-full transition-all duration-300"
+                        style={{ backgroundColor: i <= passwordStrength.score ? passwordStrength.color : "#e2e8f0" }}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs font-medium" style={{ color: passwordStrength.color }}>
+                    {passwordStrength.label} password
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* OTP info notice */}
+            <div className="flex items-start gap-2.5 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl p-3.5 border border-indigo-100 dark:border-indigo-900/50">
+              <CheckCircle size={16} className="text-indigo-500 mt-0.5 shrink-0" />
+              <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+                A <strong>6-digit verification code</strong> will be sent to your email to confirm your account.
+              </p>
             </div>
 
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
+                id="register-submit"
                 className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all transform active:scale-[0.98] uppercase tracking-widest"
               >
                 {loading ? "Creating account..." : "Create Account"}

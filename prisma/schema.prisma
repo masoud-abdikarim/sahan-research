@@ -57,6 +57,14 @@ model User {
   lockLevel           Int       @default(0)
   lastFailedLogin     DateTime?
 
+  // Email OTP Verification (registration only)
+  emailVerified   Boolean   @default(false)
+  otpCode         String?
+  otpExpiresAt    DateTime?
+  otpAttempts     Int       @default(0)
+  otpResendCount  Int       @default(0)
+  otpResendAt     DateTime?
+
   courses      Course[] // courses created by admin
   enrollments  Enrollment[]
   examAttempts ExamAttempt[]

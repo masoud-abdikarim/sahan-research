@@ -38,15 +38,41 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// ✅ REGISTER USER
+// ✅ REGISTER USER — returns { userId, requiresVerification }
 export const registerUser = createAsyncThunk(
   "user/register",
   async (data: any, { rejectWithValue }) => {
     try {
       const res = await axios.post("/api/user", data);
-      return res.data.user;
+      return res.data; // { message, userId, requiresVerification }
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || "Register failed");
+    }
+  }
+);
+
+// ✅ VERIFY OTP — completes registration
+export const verifyOtp = createAsyncThunk(
+  "user/verifyOtp",
+  async (data: { userId: string | number; otp: string }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post("/api/auth/verify-otp", data);
+      return res.data.user;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || "Verification failed");
+    }
+  }
+);
+
+// ✅ RESEND OTP
+export const resendOtp = createAsyncThunk(
+  "user/resendOtp",
+  async (data: { userId: string | number }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post("/api/auth/resend-otp", data);
+      return res.data.message;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || "Resend failed");
     }
   }
 );
@@ -81,16 +107,11 @@ export const logoutUser = createAsyncThunk(
   "user/logout",
   async (_, { dispatch }) => {
     try {
-      // Clear state immediately in Redux
       dispatch(logout());
-      
-      // Attempt to clear session cookie on server
       await axios.post("/api/auth/me");
-      
       localStorage.setItem("logout-event", Date.now().toString());
       return null;
     } catch (err: any) {
-      // Handle silently - if server logout fails, we still want to be logged out locally
       return null;
     }
   }
@@ -115,6 +136,27 @@ const userSlice = createSlice({
       state.loading = false;
       state.error = action.payload as string;
     });
+
+    builder.addCase(registerUser.pending, (state) => { state.loading = true; state.error = null; });
+    builder.addCase(registerUser.fulfilled, (state) => { state.loading = false; });
+    builder.addCase(registerUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    builder.addCase(verifyOtp.pending, (state) => { state.loading = true; state.error = null; });
+    builder.addCase(verifyOtp.fulfilled, (state, action: PayloadAction<User>) => {
+      state.loading = false;
+      state.currentUser = action.payload;
+    });
+    builder.addCase(verifyOtp.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    builder.addCase(resendOtp.pending, (state) => { state.loading = true; });
+    builder.addCase(resendOtp.fulfilled, (state) => { state.loading = false; });
+    builder.addCase(resendOtp.rejected, (state) => { state.loading = false; });
 
     builder.addCase(fetchSession.pending, (state) => { state.loading = true; });
     builder.addCase(fetchSession.fulfilled, (state, action: PayloadAction<User>) => {
