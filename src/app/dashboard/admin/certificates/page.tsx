@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Loader from "@/components/Loader";
-import { Award, Check, X, Download, User, BookOpen, ExternalLink, ShieldCheck, Filter } from "lucide-react";
+import { Award, Check, X, Download, User, BookOpen, ExternalLink, ShieldCheck, Filter, Upload } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { UploadButton } from "@/lib/uploadthing";
 
 export default function AdminCertificatesPage() {
   const [certificates, setCertificates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
+  const [uploadingCertId, setUploadingCertId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchCertificates();
@@ -27,20 +29,17 @@ export default function AdminCertificatesPage() {
     }
   };
 
-  const handleStatusUpdate = async (id: number, status: string) => {
-    try {
-      let pdfUrl = "";
-      if (status === "APPROVED") {
-        pdfUrl = prompt("Please enter the PDF URL for the certificate:") || "";
-        if (!pdfUrl) {
-          toast.error("PDF URL is required for approval");
-          return;
-        }
-      }
+  const handleStatusUpdate = async (id: number, status: string, providedPdfUrl?: string) => {
+    let rejectionReason = "";
+    if (status === "REJECTED") {
+      rejectionReason = prompt("Optionally, provide a reason for rejection:") || "";
+    }
 
-      await axios.patch("/api/certificates", { certificateId: id, status, pdfUrl });
+    try {
+      await axios.patch("/api/certificates", { certificateId: id, status, pdfUrl: providedPdfUrl || null, rejectionReason });
       toast.success(`Certificate ${status.toLowerCase()} successfully`);
       fetchCertificates();
+      setUploadingCertId(null);
     } catch (error) {
       toast.error("Failed to update certificate status");
     }
@@ -135,35 +134,71 @@ export default function AdminCertificatesPage() {
                     </span>
                   </td>
                   <td className="px-8 py-6 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2">
-                      {cert.status === "PENDING" && (
-                        <>
-                          <button
-                            onClick={() => handleStatusUpdate(cert.id, "APPROVED")}
-                            className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-600 hover:text-white transition-all"
-                            title="Approve Request"
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center justify-end gap-2">
+                        {cert.status === "PENDING" && (
+                          <>
+                            {uploadingCertId !== cert.id && (
+                              <>
+                                <button
+                                  onClick={() => handleStatusUpdate(cert.id, "APPROVED")}
+                                  className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-600 hover:text-white transition-all"
+                                  title="Approve Without File"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  onClick={() => setUploadingCertId(cert.id)}
+                                  className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-600 hover:text-white transition-all"
+                                  title="Upload PDF & Approve"
+                                >
+                                  <Upload size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleStatusUpdate(cert.id, "REJECTED")}
+                                  className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-900/30 hover:bg-red-600 hover:text-white transition-all"
+                                  title="Reject Request"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </>
+                            )}
+                            {uploadingCertId === cert.id && (
+                              <div className="flex items-center gap-2">
+                                <div className="scale-75 origin-right">
+                                  <UploadButton
+                                    endpoint="certificateUploader"
+                                    onClientUploadComplete={(res) => {
+                                      if (res?.[0]) {
+                                        handleStatusUpdate(cert.id, "APPROVED", res[0].url);
+                                      }
+                                    }}
+                                    onUploadError={(error: Error) => {
+                                      toast.error(`Error: ${error.message}`);
+                                    }}
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => setUploadingCertId(null)}
+                                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {cert.status === "APPROVED" && cert.pdfUrl && (
+                          <a
+                            href={cert.pdfUrl}
+                            target="_blank"
+                            className="p-2 bg-gray-100 dark:bg-slate-800 text-gray-500 hover:text-indigo-600 rounded-lg transition-all"
+                            title="View Certificate"
                           >
-                            <Check size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleStatusUpdate(cert.id, "REJECTED")}
-                            className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-900/30 hover:bg-red-600 hover:text-white transition-all"
-                            title="Reject Request"
-                          >
-                            <X size={16} />
-                          </button>
-                        </>
-                      )}
-                      {cert.status === "APPROVED" && cert.pdfUrl && (
-                        <a
-                          href={cert.pdfUrl}
-                          target="_blank"
-                          className="p-2 bg-gray-100 dark:bg-slate-800 text-gray-500 hover:text-indigo-600 rounded-lg transition-all"
-                          title="View Certificate"
-                        >
-                          <ExternalLink size={16} />
-                        </a>
-                      )}
+                            <ExternalLink size={16} />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>

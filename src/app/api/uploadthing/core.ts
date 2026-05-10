@@ -31,6 +31,18 @@ export const ourFileRouter = {
       console.log("File URL:", file.url);
       return { uploadedBy: metadata.userId, url: file.url };
     }),
+
+  certificateUploader: f({ pdf: { maxFileSize: "8MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const session = await getSession();
+      if (!session || session.role !== "ADMIN") {
+        throw new Error("Unauthorized");
+      }
+      return { userId: session.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, url: file.url };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

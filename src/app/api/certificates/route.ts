@@ -143,8 +143,43 @@ export async function GET(req: Request) {
       })
     );
 
+    let eligibleCourses: any[] = [];
+    if (targetUserId) {
+      const enrollments = await prisma.enrollment.findMany({
+        where: {
+          userId: targetUserId,
+          status: "APPROVED"
+        },
+        include: {
+          course: { select: { id: true, name: true } },
+          examScores: {
+            include: { exam: { select: { type: true } } }
+          }
+        }
+      });
+
+      for (const en of enrollments) {
+        const hasCert = certificates.some(c => c.courseId === en.courseId);
+        if (!hasCert) {
+          const totalEarned = en.examScores.reduce((sum, s) => sum + s.earnedMarks, 0);
+          const totalPossible = en.examScores.reduce((sum, s) => sum + s.totalMarks, 0);
+          const finalPassed = en.examScores.some((s) => s.exam.type === "FINAL" && s.passed);
+          const totalPercent = totalPossible > 0 ? (totalEarned / totalPossible) * 100 : 0;
+          
+          if (finalPassed && totalPercent >= 70) {
+            eligibleCourses.push({
+              courseId: en.courseId,
+              courseName: en.course.name,
+              totalPercent,
+            });
+          }
+        }
+      }
+    }
+
     return NextResponse.json({ 
-      certificates: enriched || [] 
+      certificates: enriched || [],
+      eligibleCourses
     });
   } catch (error: any) {
     console.error("GET Certificates Error:", error);
@@ -165,7 +200,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { certificateId, status, pdfUrl } = body;
+    const { certificateId, status, pdfUrl, rejectionReason } = body;
 
     if (!certificateId || !status) {
       return NextResponse.json({ message: "certificateId and status are required" }, { status: 400 });
@@ -176,6 +211,7 @@ export async function PATCH(req: NextRequest) {
       data: {
         status,
         pdfUrl,
+        rejectionReason: status === "REJECTED" ? (rejectionReason || null) : null,
         issueDate: status === "APPROVED" ? new Date() : null,
       },
     });

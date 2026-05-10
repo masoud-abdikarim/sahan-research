@@ -222,14 +222,15 @@ model EnrollmentExamScore {
 }
 
 model Certificate {
-  id        Int               @id @default(autoincrement())
-  userId    Int
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId  Int
-  course    Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  status    CertificateStatus @default(PENDING)
-  issueDate DateTime?
-  pdfUrl    String?
+  id              Int               @id @default(autoincrement())
+  userId          Int
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId        Int
+  course          Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status          CertificateStatus @default(PENDING)
+  issueDate       DateTime?
+  pdfUrl          String?
+  rejectionReason String?
 
   createdAt DateTime @default(now())
 
