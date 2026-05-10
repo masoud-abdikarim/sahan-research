@@ -5,7 +5,7 @@ import {
   BookOpen, FlaskConical, GraduationCap, TrendingUp,
   Users, ChevronRight, Star, CheckCircle2, ArrowRight,
   Microscope, Library, BarChart3, Globe2, Mail, Phone, MapPin,
-  Clock, DollarSign, Zap, UserPlus, Search, LineChart, Menu
+  Clock, DollarSign, Zap, UserPlus, Search, LineChart, Menu, PlaySquare, MonitorPlay
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -64,7 +64,7 @@ function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
 
 const features = [
   {
-    icon: Microscope,
+    icon: MonitorPlay,
     title: "Research Lectures",
     desc: "Access curated academic lectures designed by leading researchers and subject-matter experts.",
     color: "from-indigo-500 to-indigo-700",
@@ -80,7 +80,7 @@ const features = [
     text: "text-violet-600",
   },
   {
-    icon: BarChart3,
+    icon: TrendingUp,
     title: "Progress Tracking",
     desc: "Monitor your academic journey with real-time progress dashboards and lesson completion analytics.",
     color: "from-sky-500 to-sky-700",
@@ -458,41 +458,7 @@ export default function LandingPage() {
               organised courses, and progress tracking tools — built for students, lecturers, and researchers.
             </motion.p>
 
-            <motion.div 
-              variants={fadeInUp}
-              className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-5"
-            >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  href="/register"
-                  className="group flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 hover:shadow-indigo-200 dark:hover:shadow-indigo-900/50 transition-all text-sm uppercase tracking-widest"
-                >
-                  Start Learning Free
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  href="/login"
-                  className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-black px-8 py-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all text-sm uppercase tracking-widest shadow-sm"
-                >
-                  Sign In to Dashboard
-                  <ChevronRight size={18} />
-                </Link>
-              </motion.div>
-            </motion.div>
-
-            {/* Trust badges */}
-            <motion.div 
-              variants={fadeInUp}
-              className="mt-12 flex flex-wrap items-center justify-center gap-8 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"
-            >
-              {["No credit card required", "Free to get started", "Approved by educators"].map(t => (
-                <span key={t} className="flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-500" /> {t}
-                </span>
-              ))}
-            </motion.div>
+            {/* Buttons and Trust badges removed as per request */}
           </motion.div>
 
           {/* Stats row */}
@@ -517,6 +483,79 @@ export default function LandingPage() {
               </div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── COURSES SECTION ────────────────────────────────────────────────── */}
+      <section id="courses" className="py-32 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <motion.div 
+            initial="initial"
+            whileInView="whileInView"
+            variants={staggerContainer}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <motion.div 
+              variants={fadeInUp}
+              className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full mb-6 uppercase tracking-widest shadow-sm"
+            >
+              <BookOpen size={12} />
+              Academic Programs
+            </motion.div>
+            <motion.h2 
+              variants={fadeInUp}
+              className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight"
+            >
+              Explore Our Academic Courses
+            </motion.h2>
+            <motion.p 
+              variants={fadeInUp}
+              className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto font-medium"
+            >
+              Choose from a wide range of structured academic courses designed to elevate your research skills.
+            </motion.p>
+          </motion.div>
+
+          {coursesLoading ? (
+            <div className="py-20 flex justify-center">
+              <Loader />
+            </div>
+          ) : (
+            <motion.div 
+              initial="initial"
+              whileInView="whileInView"
+              variants={staggerContainer}
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
+            >
+              {courses.map((course) => (
+                <motion.div 
+                  key={course.id} 
+                  variants={fadeInUp}
+                  whileHover={{ y: -10 }}
+                  className="group transition-all duration-500"
+                >
+                  <CourseCard 
+                    course={course} 
+                    actionLabel={currentUser ? "Enroll Now" : "Quick Enroll"}
+                    onAction={() => window.location.href = currentUser ? '/dashboard/active-courses' : '/login'}
+                    secondaryActionLabel="View Details"
+                    onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+                  />
+                </motion.div>
+              ))}
+              {courses.length === 0 && (
+                <motion.div 
+                  variants={fadeInUp}
+                  className="col-span-full py-32 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800 transition-colors"
+                >
+                  <BookOpen className="mx-auto text-slate-300 dark:text-slate-700 mb-6" size={64} />
+                  <p className="text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-xs">No courses are currently available.</p>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -612,79 +651,6 @@ export default function LandingPage() {
               })}
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      {/* ── COURSES SECTION ────────────────────────────────────────────────── */}
-      <section id="courses" className="py-32 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <motion.div 
-            initial="initial"
-            whileInView="whileInView"
-            variants={staggerContainer}
-            viewport={{ once: true }}
-            className="text-center mb-20"
-          >
-            <motion.div 
-              variants={fadeInUp}
-              className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full mb-6 uppercase tracking-widest shadow-sm"
-            >
-              <BookOpen size={12} />
-              Academic Programs
-            </motion.div>
-            <motion.h2 
-              variants={fadeInUp}
-              className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight"
-            >
-              Explore Our Academic Courses
-            </motion.h2>
-            <motion.p 
-              variants={fadeInUp}
-              className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto font-medium"
-            >
-              Choose from a wide range of structured academic courses designed to elevate your research skills.
-            </motion.p>
-          </motion.div>
-
-          {coursesLoading ? (
-            <div className="py-20 flex justify-center">
-              <Loader />
-            </div>
-          ) : (
-            <motion.div 
-              initial="initial"
-              whileInView="whileInView"
-              variants={staggerContainer}
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
-            >
-              {courses.map((course) => (
-                <motion.div 
-                  key={course.id} 
-                  variants={fadeInUp}
-                  whileHover={{ y: -10 }}
-                  className="group transition-all duration-500"
-                >
-                  <CourseCard 
-                    course={course} 
-                    actionLabel={currentUser ? "Enroll Now" : "Quick Enroll"}
-                    onAction={() => window.location.href = currentUser ? '/dashboard/active-courses' : '/login'}
-                    secondaryActionLabel="View Details"
-                    onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
-                  />
-                </motion.div>
-              ))}
-              {courses.length === 0 && (
-                <motion.div 
-                  variants={fadeInUp}
-                  className="col-span-full py-32 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800 transition-colors"
-                >
-                  <BookOpen className="mx-auto text-slate-300 dark:text-slate-700 mb-6" size={64} />
-                  <p className="text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-xs">No courses are currently available.</p>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
         </div>
       </section>
 
