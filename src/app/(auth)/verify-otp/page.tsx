@@ -138,7 +138,7 @@ function VerifyOtpContent() {
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-colors duration-500">
       <Link
-        href="/register"
+        href="/login"
         className="absolute top-8 left-8 p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-900 rounded-full transition-all"
         title="Back to register"
       >

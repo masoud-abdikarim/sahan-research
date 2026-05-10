@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { loginUser } from "@/redux/slice/userSlice";
+import { loginUser, resendOtp } from "@/redux/slice/userSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { BookOpen, ArrowLeft, Lock } from "lucide-react";
+import { BookOpen, ArrowLeft, Lock, ShieldAlert, Mail, Send } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PasswordInput } from "@/components/PasswordInput";
 
@@ -18,6 +18,8 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.user);
+  const [unverifiedUser, setUnverifiedUser] = useState<{ userId: number; identifier: string } | null>(null);
+  const [isInitiatingVerify, setIsInitiatingVerify] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -81,9 +83,32 @@ export default function LoginPage() {
         if (errorPayload?.locked && errorPayload?.lockUntil) {
           setLockUntil(new Date(errorPayload.lockUntil));
         }
+
+        if (errorPayload?.emailNotVerified) {
+          setUnverifiedUser({ userId: errorPayload.userId, identifier });
+        }
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
+    }
+  };
+
+  const handleInitiateVerification = async () => {
+    if (!unverifiedUser) return;
+    
+    setIsInitiatingVerify(true);
+    try {
+      const result = await dispatch(resendOtp({ userId: unverifiedUser.userId }));
+      if (resendOtp.fulfilled.match(result)) {
+        toast.success("Verification code sent!");
+        router.push(`/verify-otp?userId=${unverifiedUser.userId}`);
+      } else {
+        toast.error(result.payload as string || "Failed to initiate verification");
+      }
+    } catch (error) {
+      toast.error("Failed to initiate verification");
+    } finally {
+      setIsInitiatingVerify(false);
     }
   };
 
@@ -155,6 +180,40 @@ export default function LoginPage() {
                 <p className="text-sm font-bold text-red-700 dark:text-red-400">
                   Account locked. Try again in {countdown}.
                 </p>
+              </div>
+            )}
+
+            {unverifiedUser && !lockUntil && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 p-5 rounded-2xl space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" size={20} />
+                  <div className="space-y-1">
+                    <p className="text-sm font-black text-amber-900 dark:text-amber-200 uppercase tracking-tight">
+                      Verification Required
+                    </p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 font-medium leading-relaxed">
+                      Your account exists but your email is not verified yet. Please verify to continue.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleInitiateVerification}
+                  disabled={isInitiatingVerify}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black uppercase tracking-[0.15em] rounded-xl transition-all shadow-lg shadow-amber-200 dark:shadow-none disabled:opacity-50"
+                >
+                  {isInitiatingVerify ? (
+                    <span className="flex items-center gap-2">
+                      <RefreshCw className="animate-spin" size={14} />
+                      Sending...
+                    </span>
+                  ) : (
+                    <>
+                      <Send size={14} />
+                      Verify Account Now
+                    </>
+                  )}
+                </button>
               </div>
             )}
 
