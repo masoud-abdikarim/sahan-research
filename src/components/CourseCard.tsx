@@ -103,7 +103,7 @@ export default function CourseCard({
               <DollarSign size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Enrollment</p>
+              <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">Fee/month</p>
               <p className="text-xs font-black text-gray-900 dark:text-white">${course.price.toFixed(2)}</p>
             </div>
           </div>
