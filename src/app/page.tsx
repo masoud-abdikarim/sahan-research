@@ -108,7 +108,7 @@ const testimonials = [
   {
     name: "Dr. Amina Hassan",
     role: "Researcher, University of Hargiesa",
-    quote: "Sahan Research transformed how I access academic materials. The structured lectures are world-class.",
+    quote: "Sahan transformed how I access academic materials. The structured lectures are world-class.",
     rating: 5,
   },
   {
@@ -536,7 +536,7 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full mb-8 uppercase tracking-widest shadow-sm"
               >
                 <Users size={12} />
-                About Sahan Research
+                About Sahan
               </motion.div>
               <motion.h2 
                 variants={fadeInUp}
@@ -548,7 +548,7 @@ export default function LandingPage() {
                 variants={fadeInUp}
                 className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-6 font-medium"
               >
-                Sahan Research was founded to bridge the gap between research institutions and learners. 
+                Sahan was founded to bridge the gap between research institutions and learners. 
                 We believe that high-quality academic knowledge should be structured, accessible, and impactful 
                 — regardless of where you are in the world.
               </motion.p>
@@ -829,7 +829,7 @@ export default function LandingPage() {
                 href="/register"
                 className="inline-flex items-center gap-2 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-black px-10 py-5 rounded-[2rem] shadow-xl shadow-indigo-100 dark:shadow-indigo-950/50 transition-all text-xs uppercase tracking-widest"
               >
-                Join Sahan Research Today <ArrowRight size={18} />
+                Join Sahan Today <ArrowRight size={18} />
               </Link>
             </motion.div>
           </motion.div>
@@ -863,7 +863,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto font-medium"
             >
-              Hear from the researchers, students, and lecturers who rely on Sahan Research every day.
+              Hear from the researchers, students, and lecturers who rely on Sahan every day.
             </motion.p>
           </motion.div>
 
@@ -952,78 +952,95 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-white dark:bg-slate-950 py-20 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <motion.div 
-            initial="initial"
-            whileInView="whileInView"
-            variants={staggerContainer}
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16"
-          >
-            {/* Brand */}
-            <motion.div variants={fadeInUp} className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-6">
-                <img 
-                  src="/logo.jpeg" 
-                  alt="Sahan Research Logo" 
-                  className="w-10 h-10 rounded-xl object-cover shadow-lg" 
-                />
-                <span className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Sahan <span className="text-indigo-600 dark:text-indigo-400">Research</span></span>
+      <footer className="relative bg-slate-900 pt-24 pb-12 overflow-hidden transition-colors duration-500">
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 to-slate-950 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-20">
+            {/* Brand & Mission */}
+            <motion.div variants={fadeInUp} className="space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="bg-white p-1.5 rounded-xl">
+                  <img src="/logo.jpeg" alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
+                </div>
+                <span className="text-xl font-black text-white uppercase tracking-tight">Sahan <span className="text-indigo-400"></span></span>
               </div>
-              <p className="text-slate-500 dark:text-slate-400 max-w-xs font-medium leading-relaxed">
-                A structured academic platform for research lectures, courses, and progress tracking. Built for learners who mean business.
+              <p className="text-slate-400 text-sm leading-relaxed max-w-xs font-medium">
+                Imagine your academic journey accelerating with structured research, expert lectures, and guided excellence.
               </p>
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center gap-3 text-sm font-bold text-slate-600 dark:text-slate-300">
-                   <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                     <Mail size={16} />
-                   </div>
-                   contact@sahanresearch.so
-                </div>
-                <div className="flex items-center gap-3 text-sm font-bold text-slate-600 dark:text-slate-300">
-                   <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                     <Phone size={16} />
-                   </div>
-                   +252 063 7736519
-                </div>
-              </div>
             </motion.div>
 
-            {/* Platform links */}
+            {/* Pages */}
             <motion.div variants={fadeInUp}>
-              <h4 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-6">Platform</h4>
-              <ul className="space-y-4 text-sm font-bold text-slate-500 dark:text-slate-400">
-                {[["About Us", "#about"], ["Features", "#features"], ["How It Works", "#how"], ["Success Stories", "#testimonials"]].map(([l, h]) => (
-                  <li key={l}><a href={h} onClick={(e) => handleNavClick(e, h)} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-widest text-[10px]">{l}</a></li>
+              <h3 className="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8">Pages</h3>
+              <ul className="space-y-4">
+                {["Home", "Services", "Features", "Projects", "Demo"].map((item) => (
+                  <li key={item}>
+                    <a href={item === "Home" ? "#" : `#${item.toLowerCase()}`} onClick={(e) => item !== "Home" && handleNavClick(e, `#${item.toLowerCase()}`)} className="text-slate-400 hover:text-indigo-400 transition-colors text-[11px] font-black uppercase tracking-widest">{item}</a>
+                  </li>
                 ))}
               </ul>
             </motion.div>
 
-            {/* Account links */}
+            {/* Services */}
             <motion.div variants={fadeInUp}>
-              <h4 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-6">Account</h4>
-              <ul className="space-y-4 text-sm font-bold text-slate-500 dark:text-slate-400">
-                <li><Link href="/login" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-widest text-[10px]">Sign In</Link></li>
-                <li><Link href="/register" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-widest text-[10px]">Register</Link></li>
-                <li><Link href="/dashboard" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-widest text-[10px]">Dashboard</Link></li>
+              <h3 className="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8">Services</h3>
+              <ul className="space-y-4">
+                {["Web design", "Web Development", "Web Apps", "Desktop apps", "Mobile apps"].map((item) => (
+                  <li key={item}>
+                    <a href="#" className="text-slate-400 hover:text-indigo-400 transition-colors text-[11px] font-black uppercase tracking-widest">{item}</a>
+                  </li>
+                ))}
               </ul>
             </motion.div>
-          </motion.div>
 
+            {/* Information */}
+            <motion.div variants={fadeInUp}>
+              <h3 className="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8">Information</h3>
+              <ul className="space-y-4">
+                {["Developers", "Features", "About us"].map((item) => (
+                  <li key={item}>
+                    <a href="#" className="text-slate-400 hover:text-indigo-400 transition-colors text-[11px] font-black uppercase tracking-widest">{item}</a>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+
+          {/* Bottom Section */}
           <motion.div 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="border-t border-slate-100 dark:border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-6"
+            className="pt-12 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-10"
           >
-            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              &copy; {new Date().getFullYear()} Sahan Research & Academic Studies Center. All rights reserved.
-            </p>
-            <div className="flex gap-8 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              <a href="#" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Terms of Service</a>
+            {/* Socials */}
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Also we are available on:</span>
+              <div className="flex gap-4">
+                <a href="https://www.facebook.com/share/1AiVQKQPmS/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-lg">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-sky-500 hover:text-white transition-all shadow-lg">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-pink-600 hover:text-white transition-all shadow-lg">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                </a>
+                <a href="https://wa.me/252637736519" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-emerald-500 hover:text-white transition-all shadow-lg">
+                  <Phone size={18} />
+                </a>
+                <a href="mailto:SahanResearch252@gmail.com" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-lg">
+                  <Mail size={18} />
+                </a>
+              </div>
             </div>
+
+            {/* Copyright */}
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
+              © Sahan Research and Studies Center 2026
+            </p>
           </motion.div>
         </div>
       </footer>
