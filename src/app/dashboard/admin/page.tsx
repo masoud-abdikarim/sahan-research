@@ -11,15 +11,21 @@ export default function AdminOverview() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      // Don't fetch if we don't have a user yet or they aren't admin
+      // The layout handles the session fetch
       try {
         const res = await axios.get("/api/admin/stats");
         setStats(res.data.stats);
       } catch (error: any) {
-        console.error("Failed to fetch stats");
+        // If it's a 401/403, the interceptor will handle it
+        if (error.response?.status !== 401 && error.response?.status !== 403) {
+          console.error("Failed to fetch stats");
+        }
       } finally {
         setLoading(false);
       }
     };
+    
     fetchStats();
   }, []);
 

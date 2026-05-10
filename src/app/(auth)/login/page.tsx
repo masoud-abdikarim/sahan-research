@@ -7,7 +7,7 @@ import { loginUser, resendOtp } from "@/redux/slice/userSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { BookOpen, ArrowLeft, Lock, ShieldAlert, Mail, Send } from "lucide-react";
+import { BookOpen, ArrowLeft, Lock, ShieldAlert, Mail, Send, RefreshCw } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PasswordInput } from "@/components/PasswordInput";
 
