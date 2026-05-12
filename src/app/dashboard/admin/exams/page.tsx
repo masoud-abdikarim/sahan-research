@@ -232,11 +232,17 @@ export default function AdminExamsPage() {
               required
             >
               <option value="">Select module</option>
-              {modules.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {`Module ${m.order} - ${m.title}`}
-                </option>
-              ))}
+              {modules.map((m) => {
+                const prefix = `Module ${m.order}`;
+                const displayTitle = m.title.toLowerCase().startsWith(prefix.toLowerCase()) 
+                  ? m.title 
+                  : `${prefix} - ${m.title}`;
+                return (
+                  <option key={m.id} value={m.id}>
+                    {displayTitle}
+                  </option>
+                );
+              })}
             </select>
           ) : (
             <div className="px-4 py-3 rounded-xl border border-dashed border-indigo-300 text-indigo-600 dark:text-indigo-400 text-sm font-bold flex items-center gap-2">
@@ -374,7 +380,18 @@ export default function AdminExamsPage() {
                 <div>
                   <p className="font-black text-gray-900 dark:text-white">{exam.title}</p>
                   <p className="text-xs text-gray-500 dark:text-slate-400">
-                    {exam.course?.name} · {exam.type} {exam.module ? `· Module ${exam.module.order}` : ""} · {exam.questions?.length || 0} questions
+                    {exam.course?.name} · {exam.type} 
+                    {exam.module && (
+                      (() => {
+                        const m = exam.module;
+                        const prefix = `Module ${m.order}`;
+                        const display = m.title.toLowerCase().startsWith(prefix.toLowerCase())
+                          ? m.title
+                          : `${prefix}: ${m.title}`;
+                        return ` · ${display}`;
+                      })()
+                    )}
+                    · {exam.questions?.length || 0} questions
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

@@ -583,7 +583,13 @@ export default function LessonsPage() {
                 className="w-full pl-16 pr-6 py-5 border border-gray-100 dark:border-slate-800 rounded-2xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-8 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-bold text-gray-800 dark:text-slate-200 appearance-none disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
               >
                 <option value="">Full Course Roadmap</option>
-                {modules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                {modules.map(m => {
+                  const prefix = `Module ${m.order}`;
+                  const displayTitle = m.title.toLowerCase().startsWith(prefix.toLowerCase()) 
+                    ? m.title 
+                    : `${prefix}: ${m.title}`;
+                  return <option key={m.id} value={m.id}>{displayTitle}</option>;
+                })}
               </select>
               <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                  <ChevronRight size={18} className="rotate-90" />
@@ -887,11 +893,17 @@ export default function LessonsPage() {
                     <option value="">
                       {formModulesLoading ? "Loading modules…" : "Select a module"}
                     </option>
-                    {formModules.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.title}
-                      </option>
-                    ))}
+                    {formModules.map((m) => {
+                      const prefix = `Module ${m.order}`;
+                      const displayTitle = m.title.toLowerCase().startsWith(prefix.toLowerCase()) 
+                        ? m.title 
+                        : `${prefix}: ${m.title}`;
+                      return (
+                        <option key={m.id} value={m.id}>
+                          {displayTitle}
+                        </option>
+                      );
+                    })}
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                     <ChevronRight size={18} className="rotate-90" />

@@ -166,7 +166,14 @@ export default function ExamsPage() {
               <div key={m.id} className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-5">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div>
-                    <p className="font-black text-gray-900 dark:text-white">{`Module ${m.order}: ${m.title}`}</p>
+                    <p className="font-black text-gray-900 dark:text-white">
+                      {(() => {
+                        const prefix = `Module ${m.order}`;
+                        return m.title.toLowerCase().startsWith(prefix.toLowerCase())
+                          ? m.title
+                          : `${prefix}: ${m.title}`;
+                      })()}
+                    </p>
                     <p className="text-xs text-gray-500">
                       Lessons: {m.completedLessonCount}/{m.lessonCount}
                     </p>

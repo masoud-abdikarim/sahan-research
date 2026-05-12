@@ -13,6 +13,21 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, description, order, courseId } = body;
 
+    // Check for existing module with same title in same course
+    const existing = await prisma.module.findFirst({
+      where: { 
+        courseId: Number(courseId),
+        title: {
+          equals: title.trim(),
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (existing) {
+      return NextResponse.json({ message: "Module with this title already exists in this course" }, { status: 400 });
+    }
+
     const module = await prisma.module.create({
       data: {
         title,
