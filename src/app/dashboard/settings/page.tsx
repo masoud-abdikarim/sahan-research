@@ -8,6 +8,8 @@ import Loader from "@/components/Loader";
 import { User, Mail, Phone, Calendar, Shield, BadgeCheck, Lock, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { PasswordInput } from "@/components/PasswordInput";
+import { validatePassword } from "@/lib/validation";
 
 export default function SettingsPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -29,8 +31,9 @@ export default function SettingsPage() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters long");
+    const passwordErr = validatePassword(newPassword);
+    if (passwordErr) {
+      toast.error(passwordErr);
       return;
     }
 
@@ -173,24 +176,20 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">New Password</label>
-                    <input
-                      type="password"
+                    <PasswordInput
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Min. 6 characters"
-                      className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-slate-200 font-bold"
-                      required
+                      placeholder="Letters and numbers only"
+                      showRequirements={true}
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
-                    <input
-                      type="password"
+                    <PasswordInput
+                      name="confirmPassword"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Repeat new password"
-                      className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-slate-200 font-bold"
-                      required
                     />
                   </div>
                 </div>

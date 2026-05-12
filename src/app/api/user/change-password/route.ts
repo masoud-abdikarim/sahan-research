@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/prisma";
 import bcrypt from "bcryptjs";
 import { getSession } from "@/lib/auth";
+import { validatePassword } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
@@ -22,9 +23,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Passwords do not match" }, { status: 400 });
     }
 
-    // 3. Length validation (minimum 6 characters as per requirements)
-    if (newPassword.length < 6) {
-      return NextResponse.json({ message: "Password must be at least 6 characters long" }, { status: 400 });
+    // 3. Password complexity check
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      return NextResponse.json({ message: passwordError }, { status: 400 });
     }
 
     // 4. Hash the new password

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/prisma";
 import bcrypt from "bcryptjs";
 import { getSession } from "@/lib/auth";
+import { validatePassword } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
@@ -49,8 +50,9 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "Identifier and new password are required" }, { status: 400 });
       }
 
-      if (newPassword.length < 6) {
-        return NextResponse.json({ message: "Password must be at least 6 characters long" }, { status: 400 });
+      const passwordError = validatePassword(newPassword);
+      if (passwordError) {
+        return NextResponse.json({ message: passwordError }, { status: 400 });
       }
 
       const user = await prisma.user.findFirst({

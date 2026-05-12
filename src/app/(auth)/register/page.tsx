@@ -10,34 +10,21 @@ import toast from "react-hot-toast";
 import { ArrowLeft, User, Mail, Phone, Lock, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
+import { validatePassword } from "@/lib/validation";
+
 // Strict email validation regex
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
 
-function getPasswordStrength(password: string): { score: number; label: string; color: string } {
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/\d/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 2) return { score, label: "Weak", color: "#ef4444" };
-  if (score === 3) return { score, label: "Fair", color: "#f59e0b" };
-  if (score === 4) return { score, label: "Good", color: "#3b82f6" };
-  return { score, label: "Strong", color: "#22c55e" };
-}
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "" });
-  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.user);
   const router = useRouter();
-
-  const passwordStrength = getPasswordStrength(formData.password);
 
   const validateEmail = (email: string) => {
     if (!email) return "Email is required";
@@ -72,8 +59,9 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
-      toast.error("Password must be at least 8 characters with uppercase, lowercase and a number");
+    const passwordErr = validatePassword(password);
+    if (passwordErr) {
+      toast.error(passwordErr);
       return;
     }
 
@@ -193,45 +181,14 @@ export default function RegisterPage() {
             {/* Password */}
             <div>
               <label className="block text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Password</label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  id="register-password"
-                  required
-                  placeholder="Min 8 chars, uppercase, number"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className="appearance-none block w-full pl-10 pr-12 py-3 border border-gray-100 dark:border-slate-800 rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all outline-none font-medium text-gray-700 dark:text-slate-200"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-
-              {/* Password strength bar */}
-              {formData.password && (
-                <div className="mt-2">
-                  <div className="flex gap-1 mb-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className="h-1 flex-1 rounded-full transition-all duration-300"
-                        style={{ backgroundColor: i <= passwordStrength.score ? passwordStrength.color : "#e2e8f0" }}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs font-medium" style={{ color: passwordStrength.color }}>
-                    {passwordStrength.label} password
-                  </p>
-                </div>
-              )}
+              <PasswordInput
+                name="password"
+                id="register-password"
+                placeholder="Letters and numbers only"
+                value={formData.password}
+                onChange={handleChange}
+                showRequirements={true}
+              />
             </div>
 
             {/* OTP info notice */}

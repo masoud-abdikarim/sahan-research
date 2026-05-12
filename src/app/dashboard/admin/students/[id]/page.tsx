@@ -7,8 +7,10 @@ import toast from "react-hot-toast";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { 
   User, Mail, Phone, Calendar, ArrowLeft, GraduationCap, 
-  BookOpen, CheckCircle2, FileQuestion, History, Lock, ChevronDown, Award
+  BookOpen, CheckCircle2, FileQuestion, History, Lock, ChevronDown, Award,
+  ShieldAlert
 } from "lucide-react";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function StudentProfilePage() {
   const params = useParams();
@@ -20,6 +22,11 @@ export default function StudentProfilePage() {
   const [student, setStudent] = useState<any>(null);
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Admin reset state
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [adminNewPassword, setAdminNewPassword] = useState("");
+  const [isAdminResetting, setIsAdminResetting] = useState(false);
 
   // We default to the enrollment passed in query, or just the first one
   const [activeEnrollmentId, setActiveEnrollmentId] = useState<number | null>(
@@ -46,6 +53,31 @@ export default function StudentProfilePage() {
     fetchStudentDetails();
   }, [studentId]);
 
+  const handleAdminResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminNewPassword) {
+      toast.error("Please enter a new password");
+      return;
+    }
+    
+    try {
+      setIsAdminResetting(true);
+      await axios.post("/api/admin/users/reset-password", {
+        action: "reset",
+        identifier: student.email,
+        newPassword: adminNewPassword
+      });
+      
+      toast.success("Password reset successfully");
+      setShowResetModal(false);
+      setAdminNewPassword("");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to reset password");
+    } finally {
+      setIsAdminResetting(false);
+    }
+  };
+
   if (loading) return <Loader />;
   if (!student) return <div className="p-8 text-center text-gray-500">Student not found</div>;
 
@@ -65,7 +97,7 @@ export default function StudentProfilePage() {
     if (status === "ISSUED" || status === "APPROVED") return <span className="px-3 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-xl font-bold flex items-center gap-1"><Award size={14}/> ISSUED</span>;
     if (status === "PENDING") return <span className="px-3 py-1 bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-xl font-bold flex items-center gap-1"><Award size={14}/> PENDING</span>;
     if (status === "ELIGIBLE") return <span className="px-3 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold flex items-center gap-1"><Award size={14}/> ELIGIBLE</span>;
-    return <span className="px-3 py-1 bg-gray-50 text-gray-500 dark:bg-slate-800 dark:text-slate-400 border border-gray-200 dark:border-slate-700 rounded-xl font-bold flex items-center gap-1"><Award size={14}/> {status.toUpperCase()}</span>;
+    return <span className="px-3 py-1 bg-gray-50 text-gray-500 dark:bg-slate-800 dark:text-slate-400 border border-gray-200 dark:border-slate-700 rounded-xl font-bold flex items-center gap-1"><Award size={14}/> {status?.toUpperCase()}</span>;
   };
 
   return (
@@ -240,6 +272,53 @@ export default function StudentProfilePage() {
                       <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Lessons Complete</p>
                       <p className="text-xl font-black text-gray-900 dark:text-white">{activeEnrollment.lessonsCompletedCount}</p>
                     </div>
+                  </div>
+
+                  {/* Admin Account Actions */}
+                  <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/30 rounded-3xl p-6">
+                    <h3 className="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <ShieldAlert size={16} /> Admin Actions
+                    </h3>
+                    
+                    {!showResetModal ? (
+                      <button 
+                        onClick={() => setShowResetModal(true)}
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 transition-all shadow-sm"
+                      >
+                        <Lock size={14} /> Force Reset Password
+                      </button>
+                    ) : (
+                      <form onSubmit={handleAdminResetPassword} className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">New Student Password</label>
+                          <PasswordInput
+                            value={adminNewPassword}
+                            onChange={(e) => setAdminNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            showRequirements={true}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={isAdminResetting}
+                            className="flex-1 py-3 px-4 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 dark:shadow-none disabled:opacity-50"
+                          >
+                            {isAdminResetting ? "Resetting..." : "Confirm Reset"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowResetModal(false);
+                              setAdminNewPassword("");
+                            }}
+                            className="px-4 py-3 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 text-xs font-black uppercase tracking-widest rounded-xl"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import { BookOpen, ArrowLeft, Phone, Mail, Lock, CheckCircle2 } from "lucide-rea
 import axios from "axios";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PasswordInput } from "@/components/PasswordInput";
+import { validatePassword } from "@/lib/validation";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState(1);
@@ -73,8 +74,9 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    const passwordErr = validatePassword(formData.password);
+    if (passwordErr) {
+      toast.error(passwordErr);
       return;
     }
 
@@ -203,6 +205,7 @@ export default function ForgotPasswordPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  showRequirements={true}
                 />
               </div>
               <div>

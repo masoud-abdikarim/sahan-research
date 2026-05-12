@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/prisma";
 import bcrypt from "bcryptjs";
+import { validatePassword } from "@/lib/validation";
 
 export async function POST(req: Request) {
   try {
@@ -53,9 +54,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "Invalid verification state" }, { status: 400 });
       }
 
-      // Password complexity check (basic)
-      if (password.length < 6) {
-        return NextResponse.json({ message: "Password must be at least 6 characters" }, { status: 400 });
+      // Password complexity check
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        return NextResponse.json({ message: passwordError }, { status: 400 });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);

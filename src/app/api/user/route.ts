@@ -3,11 +3,10 @@ import bcrypt from "bcryptjs";
 import prisma from "@/prisma";
 import { sendOtpEmail } from "@/lib/mail";
 
+import { PASSWORD_REGEX, validatePassword } from "@/lib/validation";
+
 // Strong email regex — rejects test@test, abc.com, hello@, fake123
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
-
-// Password: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -32,11 +31,9 @@ export async function POST(req: Request) {
     }
 
     // Validate password strength
-    if (!PASSWORD_REGEX.test(password)) {
-      return NextResponse.json(
-        { message: "Password must be at least 8 characters with uppercase, lowercase and a number" },
-        { status: 400 }
-      );
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return NextResponse.json({ message: passwordError }, { status: 400 });
     }
 
     // Check if user exists
