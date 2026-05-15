@@ -58,19 +58,24 @@ export default function LessonsPage() {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [videoSource, setVideoSource] = useState<"UPLOAD" | "URL">("URL");
   const [activeLesson, setActiveLesson] = useState<any>(null);
+  const [isOpening, setIsOpening] = useState<number | null>(null);
+  const [lastScrollPos, setLastScrollPos] = useState(0);
   const playerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to player when active lesson changes
+  // Auto-scroll to the specific lesson card when it becomes active
   useEffect(() => {
-    if (activeLesson && playerRef.current) {
-      const offset = 100; // More buffer for better visibility
-      const elementPosition = playerRef.current.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
+    if (activeLesson) {
+      const activeCard = document.getElementById(`lesson-card-${activeLesson.id}`);
+      if (activeCard) {
+        const offset = 100;
+        const elementPosition = activeCard.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
     }
   }, [activeLesson]);
 
@@ -392,10 +397,11 @@ export default function LessonsPage() {
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-            ></iframe>
+            />
             {!isAdmin && !lesson.completed && (
               <div className="absolute bottom-4 right-4 animate-pulse">
-                <button 
+                <button
+                  type="button"
                   onClick={handleEnded}
                   className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
                 >
@@ -460,6 +466,211 @@ export default function LessonsPage() {
         </div>
       );
     }
+  };
+
+  const LessonCard = ({ lesson }: { lesson: any }) => {
+    const isLocked = !isAdmin && !lesson.unlocked;
+    const ytId = lesson.videoUrl ? getYoutubeId(lesson.videoUrl) : null;
+    const isMp4 =
+      lesson.videoUrl?.match(/\.(mp4|webm|ogg|mov)$/i) ||
+      lesson.videoType === "UPLOAD";
+
+    return (
+      <div
+        id={`lesson-card-${lesson.id}`}
+        className={`bg-white dark:bg-slate-900 overflow-hidden shadow-sm rounded-[2rem] border transition-all flex flex-col h-full group ${
+          activeLesson?.id === lesson.id
+            ? "border-indigo-600 dark:border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/20 md:col-span-2 lg:col-span-3"
+            : isOpening === lesson.id
+              ? "border-amber-400 ring-4 ring-amber-100 animate-pulse"
+              : isLocked
+                ? "opacity-60 grayscale border-gray-100 dark:border-slate-800"
+                : "border-gray-100 dark:border-slate-800 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-indigo-900/10 hover:border-indigo-200 dark:hover:border-indigo-900/50 cursor-pointer"
+        }`}
+        onClick={() => {
+          if (activeLesson?.id === lesson.id) return;
+          if (isLocked) {
+            toast.error(
+              "Prerequisite Not Met: Complete the previous lesson to unlock this content."
+            );
+            return;
+          }
+          if (isOpening) return;
+
+          setIsOpening(lesson.id);
+          setTimeout(() => {
+            setActiveLesson(lesson);
+            setIsOpening(null);
+          }, 500);
+        }}
+      >
+        {/* Player or Thumbnail */}
+        {activeLesson?.id === lesson.id ? (
+          <div className="w-full bg-black relative animate-in fade-in zoom-in duration-500 overflow-hidden">
+            {renderPlayer(lesson)}
+          </div>
+        ) : (
+          <div className="relative h-56 w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
+            {ytId ? (
+              <img
+                src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
+                alt={lesson.title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+            ) : isMp4 ? (
+              <video
+                src={`${lesson.videoUrl}#t=0.1`}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                preload="metadata"
+                muted
+                playsInline
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
+                <PlayCircle
+                  size={48}
+                  className="text-indigo-400/50 group-hover:text-indigo-400 transition-colors"
+                />
+              </div>
+            )}
+
+            {/* Play Overlay */}
+            <div
+              className={`absolute inset-0 backdrop-blur-[2px] flex items-center justify-center transition-all duration-500 ${
+                isOpening === lesson.id
+                  ? "bg-amber-600/20 opacity-100"
+                  : "bg-indigo-600/10 opacity-0 group-hover:opacity-100"
+              }`}
+            >
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-500 ${
+                  isOpening === lesson.id
+                    ? "bg-amber-500 text-white scale-110"
+                    : "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 scale-75 group-hover:scale-100"
+                }`}
+              >
+                {isLocked ? (
+                  <Lock size={24} />
+                ) : isOpening === lesson.id ? (
+                  <Loader />
+                ) : (
+                  <PlayCircle size={32} />
+                )}
+              </div>
+              {isOpening === lesson.id && (
+                <div className="absolute bottom-4 left-0 right-0 text-center">
+                  <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg">
+                    Opening Lesson...
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="absolute top-5 right-5">
+              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-indigo-600 dark:text-indigo-400 shadow-lg border border-indigo-50 dark:border-indigo-900/30 uppercase tracking-[0.2em]">
+                Lesson {lesson.order}
+              </span>
+            </div>
+
+            {lesson.completed && (
+              <div className="absolute top-5 left-5">
+                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg">
+                  <CheckCircle2 size={16} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="p-8 flex-1 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  className="text-amber-400 fill-amber-400"
+                />
+              ))}
+              <span className="text-[10px] font-black text-gray-400 ml-2 uppercase tracking-widest">
+                Mastery Content
+              </span>
+            </div>
+            {activeLesson?.id === lesson.id && (
+              <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg animate-bounce">
+                Now Playing
+              </span>
+            )}
+          </div>
+
+          <h3
+            className={`text-2xl font-black mb-6 transition-colors leading-tight ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}
+          >
+            {lesson.title}
+          </h3>
+
+          <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {lesson.completed ? (
+                <span className="flex items-center gap-2 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                  <CheckCircle2 size={14} /> Completed
+                </span>
+              ) : isLocked ? (
+                <span className="flex items-center gap-2 text-[10px] font-black text-amber-500 uppercase tracking-widest">
+                  <Lock size={14} /> Restricted
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                  <PlayCircle size={14} />{" "}
+                  {activeLesson?.id === lesson.id
+                    ? "Playing Now"
+                    : "Start Learning"}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {activeLesson?.id === lesson.id && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveLesson(null);
+                  }}
+                  className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-slate-700 transition-all border border-gray-200 dark:border-slate-700"
+                >
+                  <X size={14} /> Close Player
+                </button>
+              )}
+              {isAdmin && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditInit(lesson);
+                    }}
+                    className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDeleteId(lesson.id);
+                    }}
+                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+              <ArrowRight
+                size={18}
+                className={`transition-all ${isLocked ? "text-gray-200" : "text-indigo-400 group-hover:translate-x-1"}`}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -614,80 +825,7 @@ export default function LessonsPage() {
         </div>
       </div>
 
-      {activeLesson && (
-        <div 
-          ref={playerRef}
-          className="mb-20 animate-in fade-in zoom-in slide-in-from-top-8 duration-700 max-w-6xl mx-auto scroll-mt-24"
-        >
-          {isCourseCompleted && (
-            <div className="mb-8 p-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-3xl flex items-center gap-5 shadow-sm">
-              <div className="w-14 h-14 bg-emerald-500 rounded-2xl text-white flex items-center justify-center shadow-lg shadow-emerald-200 dark:shadow-none">
-                <CheckCircle2 size={28} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-[0.2em] mb-1">Academic Status: Graduated</p>
-                <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">You've successfully completed this course. This lesson is now in Review Mode.</p>
-              </div>
-            </div>
-          )}
-          
-          <div className="bg-black p-1.5 rounded-[3.5rem] shadow-2xl shadow-indigo-500/20 dark:shadow-none border-[6px] border-slate-900 dark:border-slate-800 overflow-hidden">
-            {renderPlayer(activeLesson)}
-          </div>
 
-          <div className="mt-12 px-6 flex flex-col md:flex-row justify-between items-start gap-8">
-            <div className="flex-1">
-              <div className="text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
-                <div className="h-0.5 w-12 bg-indigo-600 dark:bg-indigo-400"></div>
-                {activeLesson.course?.name || "Curriculum Lesson"}
-              </div>
-              <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter leading-tight mb-4">{activeLesson.title}</h2>
-              <div className="flex flex-wrap items-center gap-4">
-                <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/30">
-                  Lesson Sequence #{activeLesson.order}
-                </span>
-                <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest">
-                   {isCourseCompleted ? (
-                     <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                       <CheckCircle2 size={16}/> Mastered
-                     </span>
-                   ) : activeLesson.completed ? (
-                     <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                       <CheckCircle2 size={16}/> Completed
-                     </span>
-                   ) : (
-                     <span className="text-amber-600 dark:text-amber-500 flex items-center gap-2">
-                       <Clock size={16}/> In Progress
-                     </span>
-                   )}
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex gap-3">
-               {isAdmin && (
-                 <>
-                  <button onClick={() => handleEditInit(activeLesson)} className="p-4 bg-white dark:bg-slate-900 text-gray-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-                      <Edit size={22} />
-                  </button>
-                  <button onClick={() => setConfirmDeleteId(activeLesson.id)} className="p-4 bg-white dark:bg-slate-900 text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-                      <Trash2 size={22} />
-                  </button>
-                 </>
-               )}
-               <button 
-                onClick={() => {
-                  setActiveLesson(null);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }} 
-                className="flex items-center gap-3 bg-gray-900 dark:bg-slate-800 text-white dark:text-slate-200 px-8 py-4 rounded-2xl text-xs font-black hover:bg-black dark:hover:bg-slate-700 transition-all uppercase tracking-widest border border-transparent shadow-xl"
-              >
-                  <X size={18} /> Exit Theater
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── LESSONS GRID ── */}
       <div className="flex items-center gap-4 mb-10">
@@ -697,7 +835,8 @@ export default function LessonsPage() {
 
       {lessonsLoading ? (
         <div className="flex justify-center py-32"><Loader /></div>
-      ) : filteredLessons.length > 0 ? (
+      ) : (
+        filteredLessons.length > 0 ? (
         <div className="space-y-16">
           {modules.length > 0 ? (
             modules.map((module) => {
@@ -717,242 +856,18 @@ export default function LessonsPage() {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {moduleLessons.map((lesson) => {
-                      const isLocked = !isAdmin && !lesson.unlocked;
-                      const ytId = lesson.videoUrl ? getYoutubeId(lesson.videoUrl) : null;
-                      const isMp4 = lesson.videoUrl?.match(/\.(mp4|webm|ogg|mov)$/i) || lesson.videoType === "UPLOAD";
-                      
-                      return (
-                        <div 
-                          key={lesson.id} 
-                          onClick={() => {
-                            if (isLocked) {
-                              toast.error("Prerequisite Not Met: Complete the previous lesson to unlock this content.");
-                              return;
-                            }
-                            setActiveLesson(lesson);
-                          }}
-                          className={`bg-white dark:bg-slate-900 overflow-hidden shadow-sm rounded-[2rem] border transition-all flex flex-col h-full group cursor-pointer ${
-                            activeLesson?.id === lesson.id 
-                              ? "border-indigo-600 dark:border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/20" 
-                              : isLocked
-                                ? "opacity-60 grayscale border-gray-100 dark:border-slate-800"
-                                : "border-gray-100 dark:border-slate-800 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-indigo-900/10 hover:border-indigo-200 dark:hover:border-indigo-900/50"
-                          }`}
-                        >
-                          {/* Thumbnail */}
-                          <div className="relative h-56 w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
-                            {ytId ? (
-                              <img 
-                                src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
-                                alt={lesson.title} 
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                              />
-                            ) : isMp4 ? (
-                              <video 
-                                src={`${lesson.videoUrl}#t=0.1`} 
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                preload="metadata"
-                                muted
-                                playsInline
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
-                                <PlayCircle size={48} className="text-indigo-400/50 group-hover:text-indigo-400 transition-colors" />
-                              </div>
-                            )}
-                            
-                            {/* Play Overlay */}
-                            <div className={`absolute inset-0 backdrop-blur-[2px] flex items-center justify-center transition-all duration-500 ${
-                              activeLesson?.id === lesson.id 
-                                ? "bg-indigo-600/20 opacity-100" 
-                                : "bg-indigo-600/10 opacity-0 group-hover:opacity-100"
-                            }`}>
-                              <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-500 ${
-                                activeLesson?.id === lesson.id
-                                  ? "bg-indigo-600 text-white scale-110 ring-4 ring-white/30"
-                                  : "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 scale-75 group-hover:scale-100"
-                              }`}>
-                                {isLocked ? <Lock size={24} /> : activeLesson?.id === lesson.id ? <Video size={32} className="animate-pulse" /> : <PlayCircle size={32} />}
-                              </div>
-                              {activeLesson?.id === lesson.id && (
-                                <div className="absolute bottom-4 left-0 right-0 text-center">
-                                  <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg animate-bounce">
-                                    Now Playing
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            <div className="absolute top-5 right-5">
-                              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-indigo-600 dark:text-indigo-400 shadow-lg border border-indigo-50 dark:border-indigo-900/30 uppercase tracking-[0.2em]">
-                                Lesson {lesson.order}
-                              </span>
-                            </div>
-                            
-                            {lesson.completed && (
-                              <div className="absolute top-5 left-5">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg">
-                                    <CheckCircle2 size={16} />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="p-8 flex-1 flex flex-col">
-                            <div className="flex items-center gap-1 mb-4">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
-                              ))}
-                              <span className="text-[10px] font-black text-gray-400 ml-2 uppercase tracking-widest">Mastery Content</span>
-                            </div>
-
-                            <h3 className={`text-2xl font-black mb-6 transition-colors leading-tight ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}>
-                              {lesson.title}
-                            </h3>
-
-                            <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {lesson.completed ? (
-                                  <span className="flex items-center gap-2 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-                                    <CheckCircle2 size={14}/> Completed
-                                  </span>
-                                ) : isLocked ? (
-                                  <span className="flex items-center gap-2 text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">
-                                    <Lock size={14}/> Restricted
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center gap-2 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
-                                    <PlayCircle size={14}/> Start Learning
-                                  </span>
-                                )}
-                              </div>
-                              <ArrowRight size={18} className={`transition-all ${isLocked ? "text-gray-200" : "text-indigo-400 group-hover:translate-x-1"}`} />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {moduleLessons.map((lesson) => (
+                      <LessonCard key={lesson.id} lesson={lesson} />
+                    ))}
                   </div>
                 </div>
               );
             })
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredLessons.map((lesson) => {
-                const isLocked = !isAdmin && !lesson.unlocked;
-                const ytId = lesson.videoUrl ? getYoutubeId(lesson.videoUrl) : null;
-                const isMp4 = lesson.videoUrl?.match(/\.(mp4|webm|ogg|mov)$/i) || lesson.videoType === "UPLOAD";
-                
-                return (
-                  <div 
-                    key={lesson.id} 
-                    onClick={() => {
-                      if (isLocked) {
-                        toast.error("Prerequisite Not Met: Complete the previous lesson to unlock this content.");
-                        return;
-                      }
-                      setActiveLesson(lesson);
-                    }}
-                    className={`bg-white dark:bg-slate-900 overflow-hidden shadow-sm rounded-[2rem] border transition-all flex flex-col h-full group cursor-pointer ${
-                      activeLesson?.id === lesson.id 
-                        ? "border-indigo-600 dark:border-indigo-400 ring-4 ring-indigo-100 dark:ring-indigo-900/20" 
-                        : isLocked
-                          ? "opacity-60 grayscale border-gray-100 dark:border-slate-800"
-                          : "border-gray-100 dark:border-slate-800 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-indigo-900/10 hover:border-indigo-200 dark:hover:border-indigo-900/50"
-                    }`}
-                  >
-                    {/* Thumbnail */}
-                    <div className="relative h-56 w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
-                      {ytId ? (
-                        <img 
-                          src={`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`}
-                          alt={lesson.title} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                      ) : isMp4 ? (
-                        <video 
-                          src={`${lesson.videoUrl}#t=0.1`} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          preload="metadata"
-                          muted
-                          playsInline
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
-                           <PlayCircle size={48} className="text-indigo-400/50 group-hover:text-indigo-400 transition-colors" />
-                        </div>
-                      )}
-                      
-                      {/* Play Overlay */}
-                      <div className={`absolute inset-0 backdrop-blur-[2px] flex items-center justify-center transition-all duration-500 ${
-                        activeLesson?.id === lesson.id 
-                          ? "bg-indigo-600/20 opacity-100" 
-                          : "bg-indigo-600/10 opacity-0 group-hover:opacity-100"
-                      }`}>
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-500 ${
-                          activeLesson?.id === lesson.id
-                            ? "bg-indigo-600 text-white scale-110 ring-4 ring-white/30"
-                            : "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 scale-75 group-hover:scale-100"
-                        }`}>
-                          {isLocked ? <Lock size={24} /> : activeLesson?.id === lesson.id ? <Video size={32} className="animate-pulse" /> : <PlayCircle size={32} />}
-                        </div>
-                        {activeLesson?.id === lesson.id && (
-                          <div className="absolute bottom-4 left-0 right-0 text-center">
-                            <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg animate-bounce">
-                              Now Playing
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="absolute top-5 right-5">
-                        <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-indigo-600 dark:text-indigo-400 shadow-lg border border-indigo-50 dark:border-indigo-900/30 uppercase tracking-[0.2em]">
-                          Lesson {lesson.order}
-                        </span>
-                      </div>
-                      
-                      {lesson.completed && (
-                        <div className="absolute top-5 left-5">
-                           <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg">
-                              <CheckCircle2 size={16} />
-                           </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-8 flex-1 flex flex-col">
-                      <div className="flex items-center gap-1 mb-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
-                        ))}
-                        <span className="text-[10px] font-black text-gray-400 ml-2 uppercase tracking-widest">Mastery Content</span>
-                      </div>
-
-                      <h3 className={`text-2xl font-black mb-6 transition-colors leading-tight ${activeLesson?.id === lesson.id ? "text-indigo-600 dark:text-indigo-400" : "text-gray-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}>
-                        {lesson.title}
-                      </h3>
-
-                      <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                           {lesson.completed ? (
-                             <span className="flex items-center gap-2 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-                               <CheckCircle2 size={14}/> Completed
-                             </span>
-                           ) : isLocked ? (
-                             <span className="flex items-center gap-2 text-[10px] font-black text-amber-600 text-amber-500 uppercase tracking-widest">
-                               <Lock size={14}/> Restricted
-                             </span>
-                           ) : (
-                             <span className="flex items-center gap-2 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
-                               <PlayCircle size={14}/> Start Learning
-                             </span>
-                           )}
-                        </div>
-                        <ArrowRight size={18} className={`transition-all ${isLocked ? "text-gray-200" : "text-indigo-400 group-hover:translate-x-1"}`} />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {filteredLessons.map((lesson) => (
+                <LessonCard key={lesson.id} lesson={lesson} />
+              ))}
             </div>
           )}
         </div>
@@ -964,7 +879,7 @@ export default function LessonsPage() {
           <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">No Lectures Available</h3>
           <p className="text-gray-500 dark:text-slate-400 max-w-sm mx-auto font-medium text-lg leading-relaxed">Select a course to view its curriculum or wait for the administrator to publish new modules.</p>
         </div>
-      )}
+      ))}
 
 
       {isAdmin && showForm && (
@@ -1302,4 +1217,3 @@ export default function LessonsPage() {
     </div>
   );
 }
-
