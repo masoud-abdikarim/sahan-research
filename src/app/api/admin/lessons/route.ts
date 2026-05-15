@@ -11,14 +11,37 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, videoType, videoUrl, order, moduleId } = body;
+    const { title, videoType, videoUrl, moduleId } = body;
+
+    if (!moduleId) {
+      return NextResponse.json({ message: "Module ID is required" }, { status: 400 });
+    }
+
+    // Get the courseId for this module to ensure global course ordering
+    const module = await prisma.module.findUnique({
+      where: { id: Number(moduleId) },
+      select: { courseId: true }
+    });
+
+    if (!module) {
+      return NextResponse.json({ message: "Module not found" }, { status: 404 });
+    }
+
+    // Auto-generate global course-wide order: find the highest order in this course
+    const lastLesson = await prisma.lesson.findFirst({
+      where: { module: { courseId: module.courseId } },
+      orderBy: { order: "desc" },
+      select: { order: true },
+    });
+
+    const nextOrder = (lastLesson?.order ?? 0) + 1;
 
     const lesson = await prisma.lesson.create({
       data: {
         title,
         videoType,
         videoUrl,
-        order: Number(order),
+        order: nextOrder,
         moduleId: Number(moduleId),
       },
     });
