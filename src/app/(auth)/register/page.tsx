@@ -68,9 +68,8 @@ export default function RegisterPage() {
     try {
       const resultAction = await dispatch(registerUser(formData));
       if (registerUser.fulfilled.match(resultAction)) {
-        const { userId } = resultAction.payload as any;
-        toast.success("Account created! Check your email for the verification code.");
-        router.push(`/verify-otp?userId=${userId}`);
+        toast.success("Account created successfully!");
+        router.push("/dashboard");
       } else {
         const errorMsg = resultAction.payload as string;
         toast.error(errorMsg || "Registration failed");
@@ -191,13 +190,15 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* OTP info notice */}
+            {/* OTP info notice (HIDDEN for now) */}
+            {/* 
             <div className="flex items-start gap-2.5 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl p-3.5 border border-indigo-100 dark:border-indigo-900/50">
               <CheckCircle size={16} className="text-indigo-500 mt-0.5 shrink-0" />
               <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
                 A <strong>6-digit verification code</strong> will be sent to your email to confirm your account.
               </p>
             </div>
+            */}
 
             <div className="pt-2">
               <button

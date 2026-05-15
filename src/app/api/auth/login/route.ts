@@ -121,13 +121,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
-    // Block login if email not verified
+    /*
+    // Block login if email not verified (DISABLED for now)
     if (!user.emailVerified) {
       return NextResponse.json(
         { message: "Please verify your email before logging in.", emailNotVerified: true, userId: user.id },
         { status: 403 }
       );
     }
+    */
 
     // Reset lockout fields and IP limit upon successful login
     resetIpRateLimit(ip);

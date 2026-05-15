@@ -183,6 +183,8 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* Verification Required block (HIDDEN for now) */}
+            {/* 
             {unverifiedUser && !lockUntil && (
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 p-5 rounded-2xl space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex items-start gap-3">
@@ -216,6 +218,7 @@ export default function LoginPage() {
                 </button>
               </div>
             )}
+            */}
 
             <div>
               <button

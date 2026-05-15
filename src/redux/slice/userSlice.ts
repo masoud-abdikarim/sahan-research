@@ -138,7 +138,10 @@ const userSlice = createSlice({
     });
 
     builder.addCase(registerUser.pending, (state) => { state.loading = true; state.error = null; });
-    builder.addCase(registerUser.fulfilled, (state) => { state.loading = false; });
+    builder.addCase(registerUser.fulfilled, (state, action: PayloadAction<any>) => {
+      state.loading = false;
+      state.currentUser = action.payload.user;
+    });
     builder.addCase(registerUser.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;

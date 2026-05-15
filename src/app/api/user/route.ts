@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/prisma";
 import { sendOtpEmail } from "@/lib/mail";
+import { cookies } from "next/headers";
+import { encrypt } from "@/lib/auth";
 
 import { PASSWORD_REGEX, validatePassword } from "@/lib/validation";
 
@@ -51,12 +53,14 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate OTP
+    // Generate OTP (DISABLED but kept for future use)
+    /*
     const otp = generateOtp();
     const hashedOtp = await bcrypt.hash(otp, 10);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    */
 
-    // Create user — NOT verified yet
+    // Create user — Now verified immediately
     const user = await prisma.user.create({
       data: {
         name,
@@ -64,14 +68,17 @@ export async function POST(req: Request) {
         phone,
         password: hashedPassword,
         role: role || "USER",
-        emailVerified: false,
+        emailVerified: true, // Automatically verify
+        /*
         otpCode: hashedOtp,
         otpExpiresAt,
         otpAttempts: 0,
+        */
       },
     });
 
-    // Send OTP email
+    /*
+    // Send OTP email (DISABLED but kept for future use)
     try {
       await sendOtpEmail(user.email, user.name, otp);
     } catch (mailErr: any) {
@@ -83,13 +90,27 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
+    */
 
-    // Return userId so frontend can redirect to /verify-otp
+    // Create session
+    const sessionData = { id: user.id, role: user.role, email: user.email, name: user.name };
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const session = await encrypt(sessionData);
+
+    const cookieStore = await cookies();
+    cookieStore.set("session", session, {
+      expires,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    // Return success response — Now includes user data for auto-login
     return NextResponse.json(
       {
-        message: "Account created! Please check your email for the verification code.",
-        userId: user.id,
-        requiresVerification: true,
+        message: "Account created successfully!",
+        user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role },
+        requiresVerification: false,
       },
       { status: 201 }
     );
