@@ -17,6 +17,12 @@ export default function AxiosInterceptor({ children }: { children: React.ReactNo
       (response) => response,
       (error) => {
         const isManualLogout = typeof window !== "undefined" && localStorage.getItem("manual-logout");
+        
+        // Silently suppress all error toasts and catches while manually logging out
+        if (isManualLogout) {
+          return new Promise(() => {});
+        }
+
         const isAuthRequest = error.config?.url?.includes("/api/auth/login") || (error.config?.url?.includes("/api/user") && error.config?.method?.toLowerCase() === 'post');
 
         // If it's a 401 and we are already redirecting or it's a manual logout, 
