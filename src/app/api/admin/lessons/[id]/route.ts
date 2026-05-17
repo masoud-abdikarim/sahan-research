@@ -42,8 +42,9 @@ export async function PATCH(
       data: {
         title: body.title,
         order: order,
-        videoType: body.videoType,
-        videoUrl: body.videoUrl
+        videoType: body.videoType || null,
+        videoUrl: body.videoUrl || null,
+        audioUrl: body.audioUrl === null ? null : (body.audioUrl || undefined)
       }
     });
 

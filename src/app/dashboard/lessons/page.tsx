@@ -9,7 +9,7 @@ import { getCourses } from "@/redux/slice/courseSlice";
 import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
 import { markLessonComplete } from "@/redux/slice/progressSlice";
 import Loader from "@/components/Loader";
-import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, Lock, CheckCircle2, Edit, Trash2, X, Star, Layers, BarChart3, BookOpen, GraduationCap, ChevronRight, ArrowRight, Clock, Sparkles } from "lucide-react";
+import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, Lock, CheckCircle2, Edit, Trash2, X, Star, Layers, BarChart3, BookOpen, GraduationCap, ChevronRight, ArrowRight, Clock, Sparkles, Volume2, Headphones } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { UploadDropzone } from "@/lib/uploadthing";
@@ -82,6 +82,7 @@ export default function LessonsPage() {
   const [formData, setFormData] = useState({
     title: "",
     videoUrl: "",
+    audioUrl: "",
     order: "",
   });
 
@@ -96,9 +97,14 @@ export default function LessonsPage() {
   const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const [audioUploadPhase, setAudioUploadPhase] = useState<UploadPhase>("idle");
+  const [audioUploadProgress, setAudioUploadProgress] = useState(0);
+
   const resetUploadState = () => {
     setUploadPhase("idle");
     setUploadProgress(0);
+    setAudioUploadPhase("idle");
+    setAudioUploadProgress(0);
   };
 
   const refreshLessonsList = async () => {
@@ -213,7 +219,7 @@ export default function LessonsPage() {
   const openAddLessonModal = () => {
     setEditingLesson(null);
     resetUploadState();
-    setFormData({ title: "", videoUrl: "", order: "" });
+    setFormData({ title: "", videoUrl: "", audioUrl: "", order: "" });
     setVideoSource("URL");
     const cid = selectedCourseId !== "" ? selectedCourseId : (courses[0]?.id ?? "");
     setFormCourseId(cid);
@@ -229,15 +235,24 @@ export default function LessonsPage() {
     setFormModuleId(lesson.moduleId);
     setFormData({
       title: lesson.title,
-      videoUrl: lesson.videoUrl,
+      videoUrl: lesson.videoUrl || "",
+      audioUrl: lesson.audioUrl || "",
       order: lesson.order.toString(),
     });
-    setVideoSource(lesson.videoType);
+    setVideoSource(lesson.videoType || "URL");
     if (lesson.videoType === "UPLOAD" && lesson.videoUrl) {
       setUploadPhase("complete");
       setUploadProgress(100);
     } else {
-      resetUploadState();
+      setUploadPhase("idle");
+      setUploadProgress(0);
+    }
+    if (lesson.audioUrl) {
+      setAudioUploadPhase("complete");
+      setAudioUploadProgress(100);
+    } else {
+      setAudioUploadPhase("idle");
+      setAudioUploadProgress(0);
     }
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -250,7 +265,7 @@ export default function LessonsPage() {
     setFormModuleId("");
     setFormModules([]);
     resetUploadState();
-    setFormData({ title: "", videoUrl: "", order: "" });
+    setFormData({ title: "", videoUrl: "", audioUrl: "", order: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -267,30 +282,44 @@ export default function LessonsPage() {
       return;
     }
 
-    if (videoSource === "UPLOAD") {
-      if (uploadPhase === "uploading") {
-        toast.error("Wait for the upload to finish.");
-        return;
-      }
-      if (!formData.videoUrl.trim()) {
-        toast.error("A video file or URL is required.");
-        return;
-      }
-      if (!editingLesson && uploadPhase !== "complete") {
-        toast.error("Upload must reach 100% before creating a new lesson.");
-        return;
-      }
-    } else if (!isValidLessonVideoUrl(formData.videoUrl)) {
-      toast.error("Enter a valid YouTube, Vimeo, or HTTPS video URL.");
+    const hasVideo = formData.videoUrl.trim() !== "";
+    const hasAudio = formData.audioUrl.trim() !== "";
+
+    if (!hasVideo && !hasAudio) {
+      toast.error("At least one media type (Video or Audio) is required.");
       return;
+    }
+
+    if (hasVideo) {
+      if (videoSource === "UPLOAD") {
+        if (uploadPhase === "uploading") {
+          toast.error("Wait for the video upload to finish.");
+          return;
+        }
+        if (!editingLesson && uploadPhase !== "complete") {
+          toast.error("Video upload must reach 100% before creating a new lesson.");
+          return;
+        }
+      } else if (!isValidLessonVideoUrl(formData.videoUrl)) {
+        toast.error("Enter a valid YouTube, Vimeo, or HTTPS video URL.");
+        return;
+      }
+    }
+
+    if (hasAudio) {
+      if (audioUploadPhase === "uploading") {
+        toast.error("Wait for the audio upload to finish.");
+        return;
+      }
     }
 
     const payload: any = {
       title: formData.title.trim(),
       courseId: Number(formCourseId),
       moduleId: Number(formModuleId),
-      videoType: videoSource,
-      videoUrl: formData.videoUrl.trim(),
+      videoType: hasVideo ? videoSource : null,
+      videoUrl: hasVideo ? formData.videoUrl.trim() : null,
+      audioUrl: hasAudio ? formData.audioUrl.trim() : null,
     };
 
     if (editingLesson) {
@@ -360,112 +389,144 @@ export default function LessonsPage() {
     }
   };
 
-  const videoRequirementMet =
+  const videoRequirementMet = formData.videoUrl.trim() === "" || (
     videoSource === "URL"
       ? isValidLessonVideoUrl(formData.videoUrl)
       : uploadPhase === "complete" ||
-        (Boolean(editingLesson) && Boolean(formData.videoUrl.trim()));
+        (Boolean(editingLesson) && Boolean(formData.videoUrl.trim()))
+  );
+
+  const audioRequirementMet = formData.audioUrl.trim() === "" || (
+    audioUploadPhase === "complete" || (Boolean(editingLesson) && Boolean(formData.audioUrl.trim()))
+  );
+
+  const hasAtLeastOneMedia = Boolean(formData.videoUrl.trim()) || Boolean(formData.audioUrl.trim());
 
   const lessonFormSubmitReady =
     Boolean(formData.title.trim()) &&
     formCourseId !== "" &&
     formModuleId !== "" &&
     videoRequirementMet &&
-    !(videoSource === "UPLOAD" && uploadPhase === "uploading");
+    audioRequirementMet &&
+    hasAtLeastOneMedia &&
+    !(videoSource === "UPLOAD" && uploadPhase === "uploading") &&
+    audioUploadPhase !== "uploading";
 
   const renderPlayer = (lesson: any) => {
     const handleEnded = () => handleLessonComplete(lesson.id);
 
     // Watch progress threshold (95%)
     const handleTimeUpdate = (e: any) => {
-      const video = e.target;
-      const progress = (video.currentTime / video.duration) * 100;
+      const media = e.target;
+      const progress = (media.currentTime / media.duration) * 100;
       if (progress >= 95 && !lesson.completed && !isAdmin) {
         // We could auto-complete here, but onEnded is safer for "fully watched"
       }
     };
 
-    if (lesson.videoType === "URL") {
-      const ytId = getYoutubeId(lesson.videoUrl);
-      if (ytId) {
+    const renderVideoPlayer = () => {
+      if (!lesson.videoUrl) return null;
+      if (lesson.videoType === "URL") {
+        const ytId = getYoutubeId(lesson.videoUrl);
+        if (ytId) {
+          return (
+            <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative">
+              <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${ytId}?enablejsapi=1&rel=0&modestbranding=1`}
+                title={lesson.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          );
+        }
+        const vimeoId = getVimeoId(lesson.videoUrl);
+        if (vimeoId) {
+          return (
+            <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative">
+              <iframe
+                className="w-full h-full"
+                src={`https://player.vimeo.com/video/${vimeoId}`}
+                title={lesson.title}
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          );
+        }
         return (
-          <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative">
-            <iframe
-              className="w-full h-full"
-              src={`https://www.youtube.com/embed/${ytId}?enablejsapi=1&rel=0&modestbranding=1`}
-              title={lesson.title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-            {!isAdmin && !lesson.completed && (
-              <div className="absolute bottom-4 right-4 animate-pulse">
-                <button
-                  type="button"
-                  onClick={handleEnded}
-                  className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
-                >
-                  <CheckCircle2 size={16} /> I have watched fully
-                </button>
-              </div>
-            )}
+          <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black flex items-center justify-center">
+            <video 
+              controls 
+              className="w-full h-full" 
+              onEnded={!lesson.audioUrl ? handleEnded : undefined}
+              onTimeUpdate={handleTimeUpdate}
+              controlsList="nodownload"
+            >
+              <source src={lesson.videoUrl} type="video/mp4" />
+            </video>
+          </div>
+        );
+      } else {
+        return (
+          <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
+            <video 
+              controls 
+              controlsList="nodownload" 
+              className="w-full h-full" 
+              onEnded={!lesson.audioUrl ? handleEnded : undefined}
+              onTimeUpdate={handleTimeUpdate}
+            >
+              <source src={lesson.videoUrl} type="video/mp4" />
+            </video>
           </div>
         );
       }
-      const vimeoId = getVimeoId(lesson.videoUrl);
-      if (vimeoId) {
-        return (
-          <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative">
-            <iframe
-              className="w-full h-full"
-              src={`https://player.vimeo.com/video/${vimeoId}`}
-              title={lesson.title}
-              frameBorder="0"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
-            />
-            {!isAdmin && !lesson.completed && (
-              <div className="absolute bottom-4 right-4 animate-pulse">
-                <button
-                  type="button"
-                  onClick={handleEnded}
-                  className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
-                >
-                  <CheckCircle2 size={16} /> I have watched fully
-                </button>
-              </div>
-            )}
-          </div>
-        );
-      }
+    };
+
+    const renderAudioPlayer = () => {
+      if (!lesson.audioUrl) return null;
       return (
-        <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black flex items-center justify-center">
-          <video 
+        <div className="w-full p-4 bg-gray-900 rounded-2xl shadow-2xl mt-4 border border-gray-800">
+          <div className="flex items-center gap-3 mb-2 px-2 text-gray-300">
+            <Headphones size={18} className="text-indigo-400" />
+            <span className="text-xs font-black uppercase tracking-widest text-indigo-400">Lesson Audio</span>
+          </div>
+          <audio 
             controls 
-            className="w-full h-full" 
+            className="w-full h-12" 
             onEnded={handleEnded}
             onTimeUpdate={handleTimeUpdate}
             controlsList="nodownload"
           >
-            <source src={lesson.videoUrl} type="video/mp4" />
-          </video>
+            <source src={lesson.audioUrl} type="audio/mpeg" />
+          </audio>
         </div>
       );
-    } else {
-      return (
-        <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black">
-          <video 
-            controls 
-            controlsList="nodownload" 
-            className="w-full h-full" 
-            onEnded={handleEnded}
-            onTimeUpdate={handleTimeUpdate}
-          >
-            <source src={lesson.videoUrl} type="video/mp4" />
-          </video>
-        </div>
-      );
-    }
+    };
+
+    return (
+      <div className="w-full relative">
+        {renderVideoPlayer()}
+        {renderAudioPlayer()}
+        
+        {/* Completion Button */}
+        {!isAdmin && !lesson.completed && (
+          <div className={`mt-4 flex justify-end ${!lesson.videoUrl ? '' : 'absolute bottom-4 right-4 animate-pulse z-10'}`}>
+            <button
+              type="button"
+              onClick={handleEnded}
+              className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
+            >
+              <CheckCircle2 size={16} /> I have finished
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const LessonCard = ({ lesson }: { lesson: any }) => {
@@ -1015,7 +1076,7 @@ export default function LessonsPage() {
 
               <div className="space-y-4">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  Video source
+                  Lesson Video (Optional)
                 </label>
                 <div className="flex rounded-2xl border border-gray-100 dark:border-slate-800 p-1 bg-gray-50 dark:bg-slate-950">
                   <button
@@ -1134,6 +1195,97 @@ export default function LessonsPage() {
                     )}
                   </div>
                 )}
+              </div>
+              <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-800">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Lesson Audio (Optional)
+                </label>
+                <div className="space-y-4 rounded-2xl border border-dashed border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20 p-6">
+                  {formData.audioUrl ? (
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 size={16} />
+                          <span className="text-xs font-bold uppercase tracking-widest">Audio Ready</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(p => ({ ...p, audioUrl: "" }));
+                            setAudioUploadPhase("idle");
+                            setAudioUploadProgress(0);
+                          }}
+                          className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-600"
+                        >
+                          Remove Audio
+                        </button>
+                      </div>
+                      <audio controls className="w-full h-10">
+                        <source src={formData.audioUrl} type="audio/mpeg" />
+                      </audio>
+                    </div>
+                  ) : (
+                    <>
+                      <UploadDropzone
+                        endpoint="audioUploader"
+                        uploadProgressGranularity="fine"
+                        onUploadBegin={() => {
+                          setAudioUploadPhase("uploading");
+                          setAudioUploadProgress(0);
+                        }}
+                        onUploadProgress={(p) => setAudioUploadProgress(Math.round(p))}
+                        onClientUploadComplete={(res) => {
+                          const first = res?.[0] as { url?: string; ufsUrl?: string } | undefined;
+                          const url = first?.url ?? first?.ufsUrl ?? "";
+                          if (url) {
+                            setFormData((p) => ({ ...p, audioUrl: url }));
+                            setAudioUploadPhase("complete");
+                            setAudioUploadProgress(100);
+                            toast.success("Audio uploaded successfully");
+                          }
+                        }}
+                        onUploadError={(e) => {
+                          setAudioUploadPhase("error");
+                          toast.error(e.message || "Audio upload failed");
+                        }}
+                        appearance={{
+                          container: "border-0 bg-transparent items-center",
+                          uploadIcon: "text-indigo-600 dark:text-indigo-400",
+                          button:
+                            "bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-xl px-6 py-3 transition-colors",
+                        }}
+                        content={{
+                          label: ({ ready, isUploading, uploadProgress: prog }) =>
+                            !ready
+                              ? "Preparing uploader…"
+                              : isUploading
+                                ? `Uploading… ${Math.round(prog)}%`
+                                : "Drop an audio file here or click to browse",
+                        }}
+                      />
+                      <div className="space-y-2">
+                        <div className="h-3 w-full rounded-full bg-gray-200 dark:bg-slate-800 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              audioUploadPhase === "complete"
+                                ? "bg-emerald-500"
+                                : audioUploadPhase === "error"
+                                  ? "bg-red-500"
+                                  : "bg-indigo-600"
+                            }`}
+                            style={{ width: `${audioUploadProgress}%` }}
+                          />
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-slate-400">
+                          {audioUploadPhase === "idle" && "No upload in progress"}
+                          {audioUploadPhase === "uploading" && `Uploading… ${audioUploadProgress}%`}
+                          {audioUploadPhase === "complete" && "100% — Ready to save"}
+                          {audioUploadPhase === "error" && "Upload failed — try again"}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">

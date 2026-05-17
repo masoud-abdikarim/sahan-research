@@ -118,7 +118,7 @@ export async function GET(req: Request) {
           unlocked = true;
         }
 
-        const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "" };
+        const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "", audioUrl: "" };
 
         finalLessons.push({
           ...safeLesson,

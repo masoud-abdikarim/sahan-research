@@ -7,8 +7,9 @@ import toast from "react-hot-toast";
 export interface Lesson {
   id: number;
   title: string;
-  videoType: "UPLOAD" | "URL";
-  videoUrl: string;
+  videoType?: "UPLOAD" | "URL" | null;
+  videoUrl?: string | null;
+  audioUrl?: string | null;
   order: number;
   courseId: number;
   moduleId: number;

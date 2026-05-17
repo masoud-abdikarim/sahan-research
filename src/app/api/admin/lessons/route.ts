@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, videoType, videoUrl, moduleId } = body;
+    const { title, videoType, videoUrl, audioUrl, moduleId } = body;
 
     if (!moduleId) {
       return NextResponse.json({ message: "Module ID is required" }, { status: 400 });
@@ -39,8 +39,9 @@ export async function POST(req: NextRequest) {
     const lesson = await prisma.lesson.create({
       data: {
         title,
-        videoType,
-        videoUrl,
+        videoType: videoType || null,
+        videoUrl: videoUrl || null,
+        audioUrl: audioUrl || null,
         order: nextOrder,
         moduleId: Number(moduleId),
       },
@@ -61,15 +62,16 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { id, title, videoType, videoUrl, order, moduleId } = body;
+    const { id, title, videoType, videoUrl, audioUrl, order, moduleId } = body;
 
     const lesson = await prisma.lesson.update({
       where: { id: Number(id) },
       data: {
         title,
-        videoType,
-        videoUrl,
-        order: Number(order),
+        videoType: videoType || null,
+        videoUrl: videoUrl || null,
+        audioUrl: audioUrl === null ? null : (audioUrl || undefined),
+        order: order ? Number(order) : undefined,
         moduleId: moduleId ? Number(moduleId) : undefined,
       },
     });

@@ -113,8 +113,9 @@ model Module {
 model Lesson {
   id        Int       @id @default(autoincrement())
   title     String
-  videoType VideoType @default(URL)
-  videoUrl  String
+  videoType VideoType? @default(URL)
+  videoUrl  String?
+  audioUrl  String?
   order     Int
 
   moduleId Int
