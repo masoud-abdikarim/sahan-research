@@ -48,17 +48,20 @@ export default function ConfirmModal({
               {cancelText}
             </button>
             <button
-              onClick={() => {
-                onConfirm();
-                onCancel();
+              disabled={loading}
+              onClick={async () => {
+                await onConfirm();
+                if (!loading) {
+                  onCancel();
+                }
               }}
               className={`flex-1 px-6 py-3.5 rounded-2xl text-sm font-black text-white transition-all shadow-lg ${
                 isDestructive 
                   ? "bg-red-600 hover:bg-red-700 shadow-red-100/50 dark:shadow-red-950/50" 
                   : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100/50 dark:shadow-indigo-950/50"
-              }`}
+              } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {confirmText}
+              {loading ? "Processing..." : confirmText}
             </button>
           </div>
         </div>

@@ -3,6 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { enrollCourse, getUserEnrollments } from "@/redux/slice/enrollmentSlice";
+import ConfirmModal from "@/components/ConfirmModal";
+import toast from "react-hot-toast";
 import { 
   BookOpen, 
   Clock, 
@@ -61,9 +66,23 @@ interface Course {
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
+  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedModules, setExpandedModules] = useState<number[]>([]);
+  
+  const [confirmEnrollCourseId, setConfirmEnrollCourseId] = useState<number | null>(null);
+
+  const { currentUser } = useSelector((state: RootState) => state.user);
+  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
+
+  useEffect(() => {
+    if (currentUser) {
+      dispatch(getUserEnrollments());
+    }
+  }, [dispatch, currentUser]);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -89,6 +108,25 @@ export default function CourseDetailsPage() {
     );
   };
 
+  const handleEnrollClick = () => {
+    if (!currentUser) {
+      router.push("/login");
+      return;
+    }
+    if (currentUser.role === "ADMIN") {
+      toast.error("Admins do not need to request courses.");
+      return;
+    }
+    setConfirmEnrollCourseId(Number(id));
+  };
+
+  const confirmEnroll = async () => {
+    if (confirmEnrollCourseId !== null && currentUser) {
+      await dispatch(enrollCourse(confirmEnrollCourseId));
+      setConfirmEnrollCourseId(null);
+    }
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950"><Loader /></div>;
 
   if (!course) {
@@ -101,6 +139,8 @@ export default function CourseDetailsPage() {
   }
 
   const totalLessons = course.modules.reduce((acc, mod) => acc + mod.lessons.length, 0);
+
+  const existingEnrollment = currentUser ? enrollments.find(e => e.courseId === Number(id)) : null;
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-500 font-sans">
@@ -317,10 +357,17 @@ export default function CourseDetailsPage() {
                       </div>
                     </div>
 
-                    <Link href="/login" className="flex items-center justify-center gap-3 bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 transition-all text-xs uppercase tracking-widest group">
-                      Enroll In Program
-                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    {existingEnrollment ? (
+                      <div className="flex items-center justify-center gap-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black py-5 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs uppercase tracking-widest cursor-default">
+                        <CheckCircle2 size={18} className={existingEnrollment.status === "PENDING" ? "text-amber-500" : existingEnrollment.status === "REJECTED" ? "text-red-500" : "text-emerald-500"} />
+                        {existingEnrollment.status === "PENDING" ? "Pending Request" : existingEnrollment.status === "REJECTED" ? "Enrollment Rejected" : "Already Enrolled"}
+                      </div>
+                    ) : (
+                      <button onClick={handleEnrollClick} className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 transition-all text-xs uppercase tracking-widest group">
+                        {currentUser ? "Request Enrollment" : "Login To Enroll"}
+                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    )}
 
                     <div className="space-y-4 pt-8 border-t border-slate-50 dark:border-slate-800/50">
                        {[
@@ -354,6 +401,19 @@ export default function CourseDetailsPage() {
           </div>
         </div>
       </section>
+
+      <ConfirmModal
+        isOpen={confirmEnrollCourseId !== null}
+        title="Confirm Enrollment Request"
+        message="Are you sure you want to request enrollment for this course?"
+        confirmText="Confirm Request"
+        isDestructive={false}
+        loading={enrollLoading}
+        onConfirm={confirmEnroll}
+        onCancel={() => {
+          if (!enrollLoading) setConfirmEnrollCourseId(null);
+        }}
+      />
     </div>
   );
 }

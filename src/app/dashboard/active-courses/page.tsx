@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getUserEnrollments, enrollCourse } from "@/redux/slice/enrollmentSlice";
 import { getCourses } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
 import CourseCard from "@/components/CourseCard";
+import ConfirmModal from "@/components/ConfirmModal";
 import { CheckCircle, XCircle, Clock, Calendar, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Zap, Info } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -17,6 +18,8 @@ export default function ActiveCoursesPage() {
   const { currentUser } = useSelector((state: RootState) => state.user);
   const isAdmin = currentUser?.role === "ADMIN";
 
+  const [confirmEnrollCourseId, setConfirmEnrollCourseId] = useState<number | null>(null);
+
   useEffect(() => {
     dispatch(getCourses());
     if (currentUser) {
@@ -24,9 +27,18 @@ export default function ActiveCoursesPage() {
     }
   }, [dispatch, currentUser]);
 
-  const handleEnroll = (courseId: number) => {
+  const handleEnrollClick = (courseId: number) => {
     if (currentUser) {
-      dispatch(enrollCourse(courseId));
+      setConfirmEnrollCourseId(courseId);
+    } else {
+      toast.error("You must be logged in to enroll.");
+    }
+  };
+
+  const confirmEnroll = async () => {
+    if (confirmEnrollCourseId !== null && currentUser) {
+      await dispatch(enrollCourse(confirmEnrollCourseId));
+      setConfirmEnrollCourseId(null);
     }
   };
 
@@ -116,7 +128,7 @@ export default function ActiveCoursesPage() {
                   <div className="pt-8 border-t border-gray-50 dark:border-slate-800/50">
                     <p className="text-[10px] text-red-500 font-black uppercase tracking-widest mb-6 text-center">Enrollment Eligibility Not Met</p>
                     <button 
-                       onClick={() => handleEnroll(enrollment.courseId)}
+                       onClick={() => handleEnrollClick(enrollment.courseId)}
                        className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
                     >
                       Retry Enrollment <ArrowRight size={14} />
@@ -151,7 +163,7 @@ export default function ActiveCoursesPage() {
                 key={course.id} 
                 course={course} 
                 actionLabel={isAdmin ? undefined : "Request Enrollment"}
-                onAction={isAdmin ? undefined : () => handleEnroll(course.id)} 
+                onAction={isAdmin ? undefined : () => handleEnrollClick(course.id)} 
                 secondaryActionLabel="Explore Details"
                 onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
               />
@@ -167,6 +179,19 @@ export default function ActiveCoursesPage() {
           </div>
         )}
       </section>
+
+      <ConfirmModal
+        isOpen={confirmEnrollCourseId !== null}
+        title="Confirm Enrollment Request"
+        message="Are you sure you want to request enrollment for this course?"
+        confirmText="Confirm Request"
+        isDestructive={false}
+        loading={enrollLoading}
+        onConfirm={confirmEnroll}
+        onCancel={() => {
+          if (!enrollLoading) setConfirmEnrollCourseId(null);
+        }}
+      />
     </div>
   );
 }
