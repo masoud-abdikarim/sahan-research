@@ -62,6 +62,29 @@ export default function LessonsPage() {
   const [lastScrollPos, setLastScrollPos] = useState(0);
   const playerRef = useRef<HTMLDivElement>(null);
 
+  // Audio player state and ref
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const [playerMode, setPlayerMode] = useState<"video" | "audio">("video");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [audioVolume, setAudioVolume] = useState(0.8);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Reset audio state when active lesson or player mode changes
+  useEffect(() => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setPlaybackSpeed(1);
+    
+    if (audioElRef.current) {
+      audioElRef.current.pause();
+      audioElRef.current.playbackRate = 1;
+    }
+  }, [activeLesson, playerMode]);
+
   // Auto-scroll to the specific lesson card when it becomes active
   useEffect(() => {
     if (activeLesson) {
@@ -489,39 +512,288 @@ export default function LessonsPage() {
 
     const renderAudioPlayer = () => {
       if (!lesson.audioUrl) return null;
+      
+      const togglePlay = () => {
+        if (!audioElRef.current) return;
+        if (isPlaying) {
+          audioElRef.current.pause();
+          setIsPlaying(false);
+        } else {
+          audioElRef.current.play().then(() => {
+            setIsPlaying(true);
+          }).catch(err => {
+            console.error("Audio playback error:", err);
+          });
+        }
+      };
+
+      const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!audioElRef.current) return;
+        const val = parseFloat(e.target.value);
+        audioElRef.current.currentTime = val;
+        setCurrentTime(val);
+      };
+
+      const changeSpeed = () => {
+        if (!audioElRef.current) return;
+        const speeds = [1, 1.25, 1.5, 2];
+        const nextIdx = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
+        const nextSpeed = speeds[nextIdx];
+        audioElRef.current.playbackRate = nextSpeed;
+        setPlaybackSpeed(nextSpeed);
+      };
+
+      const skip = (seconds: number) => {
+        if (!audioElRef.current) return;
+        audioElRef.current.currentTime = Math.max(0, Math.min(audioElRef.current.duration || 0, audioElRef.current.currentTime + seconds));
+      };
+
+      const formatTime = (time: number) => {
+        if (isNaN(time)) return "00:00";
+        const mins = Math.floor(time / 60);
+        const secs = Math.floor(time % 60);
+        return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+      };
+
       return (
-        <div className="w-full p-4 bg-gray-900 rounded-2xl shadow-2xl mt-4 border border-gray-800">
-          <div className="flex items-center gap-3 mb-2 px-2 text-gray-300">
-            <Headphones size={18} className="text-indigo-400" />
-            <span className="text-xs font-black uppercase tracking-widest text-indigo-400">Lesson Audio</span>
-          </div>
-          <audio 
-            controls 
-            className="w-full h-12" 
-            onEnded={handleEnded}
-            onTimeUpdate={handleTimeUpdate}
+        <div className="w-full bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 relative overflow-hidden flex flex-col items-center">
+          {/* Audio Source tag */}
+          <audio
+            ref={audioElRef}
+            src={lesson.audioUrl}
+            preload="metadata"
+            onTimeUpdate={(e: any) => {
+              setCurrentTime(e.target.currentTime);
+              handleTimeUpdate(e);
+            }}
+            onLoadedMetadata={(e: any) => {
+              setDuration(e.target.duration);
+            }}
+            onEnded={() => {
+              setIsPlaying(false);
+              handleEnded();
+            }}
             controlsList="nodownload"
-          >
-            <source src={lesson.audioUrl} type="audio/mpeg" />
-          </audio>
+            className="hidden"
+          />
+
+          {/* Decorative ambient background glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+          {/* Top Metadata */}
+          <div className="w-full flex items-center justify-between gap-4 mb-8 z-10">
+            <div className="flex items-center gap-2">
+              <Headphones size={18} className="text-indigo-400 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-400">
+                Premium Audio Experience
+              </span>
+            </div>
+            <div className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+              <span className="text-[9px] font-black uppercase tracking-widest text-indigo-300">
+                Lesson {lesson.order}
+              </span>
+            </div>
+          </div>
+
+          {/* Album Art / Pulse Visualizer */}
+          <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-1 shadow-2xl relative flex items-center justify-center mb-8 z-10 group cursor-pointer" onClick={togglePlay}>
+            <div className={`absolute inset-0 rounded-full bg-indigo-500/30 blur-md transition-all duration-700 ${isPlaying ? "scale-110 opacity-100 animate-ping" : "scale-100 opacity-0"}`} />
+            <div className="w-full h-full bg-slate-950 rounded-full flex flex-col items-center justify-center relative overflow-hidden">
+              <Volume2 size={40} className={`text-indigo-400 transition-all duration-500 ${isPlaying ? "scale-110 rotate-3 text-indigo-300" : "scale-100"}`} />
+              
+              {/* Mini visualizer bars inside art */}
+              <div className="flex gap-1 items-end mt-4 h-6">
+                <span className={`w-0.5 bg-indigo-400/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_1.2s_infinite_alternate] h-4" : "h-1"}`} />
+                <span className={`w-0.5 bg-indigo-300/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_0.8s_infinite_alternate] h-6" : "h-1"}`} style={{ animationDelay: "0.2s" }} />
+                <span className={`w-0.5 bg-indigo-400/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_1.5s_infinite_alternate] h-3" : "h-1"}`} style={{ animationDelay: "0.4s" }} />
+                <span className={`w-0.5 bg-indigo-300/80 rounded-full transition-all duration-300 ${isPlaying ? "animate-[pulse_1s_infinite_alternate] h-5" : "h-1"}`} style={{ animationDelay: "0.1s" }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Lesson Title in Player */}
+          <div className="text-center max-w-lg mb-8 z-10">
+            <h4 className="text-xl font-black text-white leading-tight uppercase tracking-tight mb-2">
+              {lesson.title}
+            </h4>
+            <p className="text-xs text-slate-400 font-medium">
+              Listen and take notes to complete this lesson's coursework
+            </p>
+          </div>
+
+          {/* Timeline slider and times */}
+          <div className="w-full space-y-2 mb-8 z-10">
+            <div className="flex items-center justify-between text-[11px] font-black text-slate-400 tracking-wider">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+            
+            <div className="relative group/slider w-full">
+              <input
+                type="range"
+                min={0}
+                max={duration || 100}
+                value={currentTime}
+                onChange={handleTimeChange}
+                className="w-full h-1.5 bg-slate-800 rounded-full appearance-none cursor-pointer outline-none accent-indigo-500 group-hover/slider:accent-indigo-400 transition-all"
+                style={{
+                  background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(currentTime / (duration || 100)) * 100}%, #1e293b ${(currentTime / (duration || 100)) * 100}%, #1e293b 100%)`
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Controls Bar */}
+          <div className="flex items-center justify-between w-full gap-4 z-10">
+            {/* Playback speed */}
+            <button
+              type="button"
+              onClick={changeSpeed}
+              className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-indigo-400 text-xs font-black uppercase tracking-widest border border-slate-700 transition-colors min-w-[70px]"
+            >
+              {playbackSpeed.toFixed(2)}x
+            </button>
+
+            {/* Main Audio Controls */}
+            <div className="flex items-center gap-6">
+              {/* Skip back 10s */}
+              <button
+                type="button"
+                onClick={() => skip(-10)}
+                className="p-3 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                title="Rewind 10s"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
+                </svg>
+              </button>
+
+              {/* Play/Pause toggle */}
+              <button
+                type="button"
+                onClick={togglePlay}
+                className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white flex items-center justify-center shadow-xl hover:scale-105 transition-all"
+              >
+                {isPlaying ? (
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Skip forward 10s */}
+              <button
+                type="button"
+                onClick={() => skip(10)}
+                className="p-3 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                title="Forward 10s"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.934 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.334-4z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.934 12.8a1 1 0 000-1.6l-5.334-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.334-4z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Volume toggle/slider */}
+            <div className="flex items-center gap-2 min-w-[70px] justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!audioElRef.current) return;
+                  const newMuted = !isMuted;
+                  audioElRef.current.muted = newMuted;
+                  setIsMuted(newMuted);
+                }}
+                className="text-slate-400 hover:text-indigo-400 transition-colors"
+              >
+                {isMuted || audioVolume === 0 ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  </svg>
+                )}
+              </button>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={isMuted ? 0 : audioVolume}
+                onChange={(e) => {
+                  if (!audioElRef.current) return;
+                  const val = parseFloat(e.target.value);
+                  audioElRef.current.volume = val;
+                  setAudioVolume(val);
+                  if (val > 0 && isMuted) {
+                    audioElRef.current.muted = false;
+                    setIsMuted(false);
+                  }
+                }}
+                className="w-12 h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
+              />
+            </div>
+          </div>
         </div>
       );
     };
 
+    const hasVideo = !!lesson.videoUrl;
+    const hasAudio = !!lesson.audioUrl;
+
     return (
-      <div className="w-full relative">
-        {renderVideoPlayer()}
-        {renderAudioPlayer()}
+      <div className="w-full relative flex flex-col">
+        {/* Toggle Mode Bar if BOTH are present */}
+        {hasVideo && hasAudio && (
+          <div className="flex bg-slate-900/60 p-1.5 rounded-2xl w-full max-w-xs mx-auto my-4 border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setPlayerMode("video")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                playerMode === "video"
+                  ? "bg-indigo-600 shadow-lg text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Video size={14} /> Video
+            </button>
+            <button
+              type="button"
+              onClick={() => setPlayerMode("audio")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                playerMode === "audio"
+                  ? "bg-indigo-600 shadow-lg text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Headphones size={14} /> Audio
+            </button>
+          </div>
+        )}
+
+        {/* Render selected player */}
+        {playerMode === "video" && hasVideo && renderVideoPlayer()}
+        {(playerMode === "audio" || !hasVideo) && hasAudio && renderAudioPlayer()}
         
         {/* Completion Button */}
         {!isAdmin && !lesson.completed && (
-          <div className={`mt-4 flex justify-end ${!lesson.videoUrl ? '' : 'absolute bottom-4 right-4 animate-pulse z-10'}`}>
+          <div className="p-4 flex justify-end">
             <button
               type="button"
               onClick={handleEnded}
-              className="bg-green-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl hover:bg-green-500 transition-all flex items-center gap-2 border border-green-400/30"
+              className="bg-green-600/90 hover:bg-green-500 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all flex items-center gap-2 border border-green-400/30"
             >
-              <CheckCircle2 size={16} /> I have finished
+              <CheckCircle2 size={14} /> I have finished
             </button>
           </div>
         )}
@@ -561,6 +833,7 @@ export default function LessonsPage() {
           setIsOpening(lesson.id);
           setTimeout(() => {
             setActiveLesson(lesson);
+            setPlayerMode(lesson.videoUrl ? "video" : "audio");
             setIsOpening(null);
           }, 500);
         }}
@@ -586,6 +859,25 @@ export default function LessonsPage() {
                 muted
                 playsInline
               />
+            ) : lesson.audioUrl ? (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-900 p-6 relative">
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
+                <div className="w-16 h-16 rounded-full bg-indigo-500/10 backdrop-blur-md border border-indigo-500/20 flex items-center justify-center shadow-2xl mb-4 group-hover:scale-110 transition-transform duration-500">
+                  <Headphones size={32} className="text-indigo-400 animate-pulse" />
+                </div>
+                <span className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.25em] bg-indigo-500/10 backdrop-blur-sm px-4 py-1.5 rounded-full border border-indigo-500/10 shadow-inner">
+                  Audio Lecture
+                </span>
+                
+                {/* Visualizer bars */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 items-end h-8">
+                  <span className="w-1 bg-indigo-400/40 rounded-full h-3 group-hover:h-6 transition-all duration-500 delay-75" />
+                  <span className="w-1 bg-indigo-300/60 rounded-full h-5 group-hover:h-8 transition-all duration-500 delay-100" />
+                  <span className="w-1 bg-indigo-400/80 rounded-full h-4 group-hover:h-7 transition-all duration-500 delay-150" />
+                  <span className="w-1 bg-indigo-300/60 rounded-full h-6 group-hover:h-4 transition-all duration-500 delay-75" />
+                  <span className="w-1 bg-indigo-400/40 rounded-full h-3 group-hover:h-5 transition-all duration-500 delay-200" />
+                </div>
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
                 <PlayCircle
@@ -614,6 +906,8 @@ export default function LessonsPage() {
                   <Lock size={24} />
                 ) : isOpening === lesson.id ? (
                   <Loader />
+                ) : !lesson.videoUrl && lesson.audioUrl ? (
+                  <Headphones size={32} />
                 ) : (
                   <PlayCircle size={32} />
                 )}
@@ -670,7 +964,7 @@ export default function LessonsPage() {
           </h3>
 
           <div className="mt-auto pt-6 border-t border-gray-50 dark:border-slate-800/50 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               {lesson.completed ? (
                 <span className="flex items-center gap-2 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
                   <CheckCircle2 size={14} /> Completed
@@ -687,9 +981,29 @@ export default function LessonsPage() {
                     : "Start Learning"}
                 </span>
               )}
+
+              {/* Explicit "Listen to Audio" option for audio-enabled lessons */}
+              {lesson.audioUrl && !isLocked && activeLesson?.id !== lesson.id && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isOpening) return;
+                    setIsOpening(lesson.id);
+                    setTimeout(() => {
+                      setActiveLesson(lesson);
+                      setPlayerMode("audio");
+                      setIsOpening(null);
+                    }, 500);
+                  }}
+                  className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-indigo-100/50 dark:border-indigo-900/30"
+                >
+                  <Headphones size={12} className="animate-pulse" />
+                  Listen Lesson's Audio
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-auto">
               {activeLesson?.id === lesson.id && (
                 <button
                   onClick={(e) => {
