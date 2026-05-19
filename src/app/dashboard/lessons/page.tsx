@@ -801,7 +801,7 @@ export default function LessonsPage() {
     );
   };
 
-  const LessonCard = ({ lesson }: { lesson: any }) => {
+  const renderLessonCard = (lesson: any) => {
     const isLocked = !isAdmin && !lesson.unlocked;
     const ytId = lesson.videoUrl ? getYoutubeId(lesson.videoUrl) : null;
     const isMp4 =
@@ -810,6 +810,7 @@ export default function LessonsPage() {
 
     return (
       <div
+        key={lesson.id}
         id={`lesson-card-${lesson.id}`}
         className={`bg-white dark:bg-slate-900 overflow-hidden shadow-sm rounded-[2rem] border transition-all flex flex-col h-full group ${
           activeLesson?.id === lesson.id
@@ -1232,7 +1233,7 @@ export default function LessonsPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {moduleLessons.map((lesson) => (
-                      <LessonCard key={lesson.id} lesson={lesson} />
+                      renderLessonCard(lesson)
                     ))}
                   </div>
                 </div>
@@ -1241,7 +1242,7 @@ export default function LessonsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredLessons.map((lesson) => (
-                <LessonCard key={lesson.id} lesson={lesson} />
+                renderLessonCard(lesson)
               ))}
             </div>
           )}
