@@ -80,7 +80,7 @@ export default function StudentDashboard() {
           </h1>
           
           <p className="text-indigo-100/90 text-xl mb-10 leading-relaxed font-medium max-w-xl">
-            You are currently enrolled in <span className="text-white font-black">{stats.activeCourses} active research tracks</span>. Your academic progress is looking excellent this month.
+            You are currently enrolled in <span className="text-white font-black">{stats.activeCourses} active courses tracks</span>. Your academic progress is looking excellent this month.
           </p>
           
           <div className="flex flex-wrap gap-5">
@@ -91,12 +91,7 @@ export default function StudentDashboard() {
               Resume Learning
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link 
-              href="/dashboard/active-courses"
-              className="bg-indigo-500/50 backdrop-blur-md text-white border border-indigo-400/30 px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-500/70 transition-all"
-            >
-              Research Catalog
-            </Link>
+            
           </div>
         </div>
         
