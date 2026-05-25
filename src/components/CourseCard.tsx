@@ -7,6 +7,7 @@ interface CourseCardProps {
   actionLabel?: string;
   onSecondaryAction?: () => void;
   secondaryActionLabel?: string;
+  onCardClick?: () => void;
 }
 
 export default function CourseCard({ 
@@ -14,12 +15,16 @@ export default function CourseCard({
   onAction, 
   actionLabel,
   onSecondaryAction,
-  secondaryActionLabel 
+  secondaryActionLabel,
+  onCardClick
 }: CourseCardProps) {
   const isVideo = course.imageUrl?.match(/\.(mp4|webm|ogg|mov)$/i) || course.imageUrl?.includes("video");
 
   return (
-    <div className="bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-indigo-100/50 dark:hover:shadow-black/40 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 transition-all duration-500 flex flex-col h-full group relative">
+    <div 
+      onClick={onCardClick}
+      className={`bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-indigo-100/50 dark:hover:shadow-black/40 rounded-[2.5rem] border border-gray-100 dark:border-slate-800 transition-all duration-500 flex flex-col h-full group relative ${onCardClick ? 'cursor-pointer hover:-translate-y-1' : ''}`}
+    >
       {/* Course Media */}
       <div className="relative aspect-[16/10] w-full bg-gray-100 dark:bg-slate-800 overflow-hidden rounded-[2.5rem] p-3">
         <div className="w-full h-full rounded-[2rem] overflow-hidden relative">
@@ -113,7 +118,7 @@ export default function CourseCard({
         <div className="flex flex-col gap-3 mt-4">
           {onAction && actionLabel && (
             <button
-              onClick={onAction}
+              onClick={(e) => { e.stopPropagation(); onAction?.(); }}
               className="w-full bg-gray-900 dark:bg-white text-white dark:text-slate-900 hover:bg-black dark:hover:bg-slate-100 font-black py-4 px-6 rounded-2xl transition-all shadow-xl shadow-gray-200 dark:shadow-none text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 group/btn"
             >
               {actionLabel}
@@ -122,7 +127,7 @@ export default function CourseCard({
           )}
           {onSecondaryAction && secondaryActionLabel && (
             <button
-              onClick={onSecondaryAction}
+              onClick={(e) => { e.stopPropagation(); onSecondaryAction?.(); }}
               className="w-full bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-black py-3 px-6 rounded-2xl transition-all border border-gray-100 dark:border-slate-800 text-[10px] uppercase tracking-widest hover:border-indigo-100 dark:hover:border-indigo-900/30"
             >
               {secondaryActionLabel}

@@ -542,6 +542,7 @@ export default function LandingPage() {
                     onAction={() => window.location.href = currentUser ? '/dashboard/active-courses' : '/login'}
                     secondaryActionLabel="View Details"
                     onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+                    onCardClick={() => window.location.href = `/courses/${course.id}`}
                   />
                 </motion.div>
               ))}
