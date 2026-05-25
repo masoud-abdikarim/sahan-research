@@ -113,7 +113,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex items-center justify-between px-6 h-16 border-b border-gray-100 dark:border-slate-800 lg:hidden">
           <Link href="/" className="flex items-center gap-2">
             <img src="/logo.jpeg" alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
-            <span className="font-black text-gray-900 dark:text-white tracking-tighter">Sahan Research</span>
+            <span className="font-black text-gray-900 dark:text-white tracking-tighter">Sahan Studies</span>
           </Link>
           <button onClick={onClose} className="p-2 text-gray-500"><X size={20} /></button>
         </div>

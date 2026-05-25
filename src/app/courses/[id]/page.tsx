@@ -196,7 +196,7 @@ export default function CourseDetailsPage() {
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-indigo-300/50 uppercase tracking-widest mb-0.5">Instructor</p>
-                    <p className="font-black text-white text-sm uppercase tracking-wide">{course.instructor || "Sahan Research"}</p>
+                    <p className="font-black text-white text-sm uppercase tracking-wide">{course.instructor || "Sahan Studies"}</p>
                   </div>
                </div>
             </div>
