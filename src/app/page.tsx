@@ -415,13 +415,13 @@ export default function LandingPage() {
           >
 
             {/* Badge */}
-            <motion.div 
+            {/* <motion.div 
               variants={fadeInUp}
               className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full mb-8 uppercase tracking-[0.15em] shadow-sm"
             >
               <img src="/logo.jpeg" alt="Icon" className="w-4 h-4 rounded-md object-cover" />
               Academic Research Platform &amp; E-Learning
-            </motion.div>
+            </motion.div> */}
 
             <motion.h1 
               variants={fadeInUp}
