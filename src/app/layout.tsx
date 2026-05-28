@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sahan Research",
+  title: "Sahan Studies",
   description: "A modern academic research and learning management system.",
 };
 

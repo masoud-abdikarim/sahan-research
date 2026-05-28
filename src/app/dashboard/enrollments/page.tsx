@@ -96,6 +96,7 @@ export default function EnrollmentsPage() {
                     onAction={() => window.location.href = `/dashboard/lessons?courseId=${course.id}`} 
                     secondaryActionLabel="Curriculum Info"
                     onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+                    onCardClick={() => window.location.href = `/courses/${course.id}`}
                   />
                 </div>
               );

@@ -97,12 +97,12 @@ export default function RegisterPage() {
         <div className="flex justify-center">
           <img
             src="/logo.jpeg"
-            alt="Sahan Research Logo"
+            alt="Sahan Studies Logo"
             className="w-16 h-16 rounded-2xl object-cover shadow-xl dark:shadow-indigo-950/50"
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-          Join Sahan Research
+          Join Sahan Studies
         </h2>
         <p className="mt-2 text-center text-sm text-gray-500 dark:text-slate-400">
           Create your account to start your academic journey

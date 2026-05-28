@@ -133,6 +133,7 @@ export default function LandingPage() {
   const [activeSection, setActiveSection] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Access auth state from 
   const { currentUser } = useSelector((state: RootState) => state.user);
@@ -238,11 +239,36 @@ export default function LandingPage() {
                   <div className="absolute inset-0 bg-indigo-600/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="flex flex-col leading-none">
-                  <span className="text-[14px] font-black tracking-tight text-slate-900 dark:text-white uppercase">Sahan Research</span>
+                  <span className="text-[14px] font-black tracking-tight text-slate-900 dark:text-white uppercase">Sahan Studies</span>
                   <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.1em]">Studies Center</span>
                 </div>
               </Link>
             </motion.div>
+
+            {/* ── SEARCH BOX ── */}
+            <div className="hidden lg:flex flex-1 max-w-sm mx-10 relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  // Optionally scroll to courses section when searching
+                  if (e.target.value && activeSection !== "courses") {
+                    const el = document.getElementById("courses");
+                    if (el) {
+                      const offset = 72;
+                      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+                      window.scrollTo({ top, behavior: "smooth" });
+                    }
+                  }
+                }}
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm rounded-full pl-11 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-white dark:focus:bg-slate-950 transition-all shadow-sm"
+              />
+            </div>
 
             {/* ── NAVIGATION & AUTH ── */}
             <div className="flex items-center gap-8">
@@ -413,21 +439,11 @@ export default function LandingPage() {
             variants={staggerContainer}
             className="max-w-4xl mx-auto text-center"
           >
-
-            {/* Badge */}
-            <motion.div 
-              variants={fadeInUp}
-              className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full mb-8 uppercase tracking-[0.15em] shadow-sm"
-            >
-              <img src="/logo.jpeg" alt="Icon" className="w-4 h-4 rounded-md object-cover" />
-              Academic Research Platform &amp; E-Learning
-            </motion.div>
-
             <motion.h1 
               variants={fadeInUp}
               className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight text-slate-900 dark:text-white"
             >
-              Sahan Research{" "}
+              Sahan Studies{" "}
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
                 &
               </span>
@@ -454,7 +470,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="mt-8 text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed font-medium"
             >
-              Sahan Research is a structured academic platform offering expert research lectures, 
+              Sahan Studies is a structured academic platform offering expert research lectures, 
               organised courses, and progress tracking tools — built for students, lecturers, and researchers.
             </motion.p>
 
@@ -487,7 +503,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── COURSES SECTION ────────────────────────────────────────────────── */}
-      <section id="courses" className="py-32 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
+      <section id="courses" className="py-16 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="initial"
@@ -529,7 +545,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
             >
-              {courses.map((course) => (
+              {courses.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map((course) => (
                 <motion.div 
                   key={course.id} 
                   variants={fadeInUp}
@@ -542,10 +558,20 @@ export default function LandingPage() {
                     onAction={() => window.location.href = currentUser ? '/dashboard/active-courses' : '/login'}
                     secondaryActionLabel="View Details"
                     onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+                    onCardClick={() => window.location.href = `/courses/${course.id}`}
                   />
                 </motion.div>
               ))}
-              {courses.length === 0 && (
+              {courses.length > 0 && courses.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                <div className="col-span-full py-20 text-center">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                    <Search size={32} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No courses found</h3>
+                  <p className="text-slate-500">We couldn't find any courses matching "{searchQuery}".</p>
+                </div>
+              )}
+              {courses.length === 0 && !coursesLoading && (
                 <motion.div 
                   variants={fadeInUp}
                   className="col-span-full py-32 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800 transition-colors"
@@ -560,7 +586,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── ABOUT ───────────────────────────────────────────────────────────── */}
-      <section id="about" className="py-32 bg-slate-50 dark:bg-slate-950/50 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500 relative overflow-hidden">
+      <section id="about" className="py-16 bg-slate-50 dark:bg-slate-950/50 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             {/* Text */}
@@ -655,7 +681,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FEATURES ────────────────────────────────────────────────────────── */}
-      <section id="features" className="py-32 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
+      <section id="features" className="py-16 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="initial"
@@ -715,7 +741,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
-      <section id="how" className="py-32 bg-slate-50 dark:bg-slate-950/50 border-y border-slate-100 dark:border-slate-800 transition-colors duration-500">
+      <section id="how" className="py-16 bg-slate-50 dark:bg-slate-950/50 border-y border-slate-100 dark:border-slate-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="initial"
@@ -870,7 +896,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA BANNER ──────────────────────────────────────────────────────── */}
-      <section className="py-32 relative overflow-hidden transition-colors duration-500">
+      <section className="py-16 relative overflow-hidden transition-colors duration-500">
         <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-900 pointer-events-none" />
         <motion.div 
           animate={{ 
@@ -894,7 +920,7 @@ export default function LandingPage() {
             Ready to Begin Your <br /> Academic Journey?
           </motion.h2>
           <motion.p variants={fadeInUp} className="text-indigo-100 text-xl mb-12 max-w-2xl mx-auto opacity-90 font-medium leading-relaxed">
-            Join thousands of students and researchers who are advancing their knowledge on Sahan Research — the premier academic platform built for growth.
+            Join thousands of students and researchers who are advancing their knowledge on Sahan Studies — the premier academic platform built for growth.
           </motion.p>
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
@@ -918,104 +944,41 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
-      <footer className="relative bg-slate-900 pt-24 pb-12 overflow-hidden transition-colors duration-500">
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 to-slate-950 pointer-events-none" />
-        
+      <footer className="relative bg-slate-900 py-16 overflow-hidden transition-colors duration-500 border-t border-slate-800">
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-20">
-            {/* Brand & Mission */}
-            <motion.div variants={fadeInUp} className="space-y-8">
-              <div className="flex items-center gap-3">
-                <div className="bg-white p-1.5 rounded-xl">
-                  <img src="/logo.jpeg" alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
-                </div>
-                <span className="text-xl font-black text-white uppercase tracking-tight">Sahan <span className="text-indigo-400"></span></span>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            {/* Brand & Copyright */}
+            <motion.div variants={fadeInUp} className="flex flex-col items-center md:items-start gap-3 text-center md:text-left">
+              <div className="flex items-center gap-2">
+                <img src="/logo.jpeg" alt="Logo" className="w-6 h-6 rounded-md object-cover" />
+                <span className="text-sm font-black text-white uppercase tracking-tight">Sahan Studies</span>
               </div>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-xs font-medium">
-                Imagine your academic journey accelerating with structured research, expert lectures, and guided excellence.
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.15em]">
+                © {new Date().getFullYear()} Sahan Studies Center. All rights reserved.
               </p>
             </motion.div>
 
-            {/* Pages */}
-            <motion.div variants={fadeInUp}>
-              <h3 className="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8">Pages</h3>
-              <ul className="space-y-4">
-                {["Home", "Services", "Features", "Projects", "Demo"].map((item) => (
-                  <li key={item}>
-                    <a href={item === "Home" ? "#" : `#${item.toLowerCase()}`} onClick={(e) => item !== "Home" && handleNavClick(e, `#${item.toLowerCase()}`)} className="text-slate-400 hover:text-indigo-400 transition-colors text-[11px] font-black uppercase tracking-widest">{item}</a>
-                  </li>
-                ))}
-              </ul>
+            {/* Quick Links */}
+            <motion.div variants={fadeInUp} className="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <a href="#about" onClick={(e) => handleNavClick(e, '#about')} className="hover:text-indigo-400 transition-colors">About</a>
+              <a href="#courses" onClick={(e) => handleNavClick(e, '#courses')} className="hover:text-indigo-400 transition-colors">Courses</a>
+              <a href="#features" onClick={(e) => handleNavClick(e, '#features')} className="hover:text-indigo-400 transition-colors">Features</a>
+              <a href="#how" onClick={(e) => handleNavClick(e, '#how')} className="hover:text-indigo-400 transition-colors">Process</a>
+              <a href="mailto:SahanResearch252@gmail.com" className="hover:text-indigo-400 transition-colors">Contact</a>
             </motion.div>
 
-            {/* Services */}
-            <motion.div variants={fadeInUp}>
-              <h3 className="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8">Services</h3>
-              <ul className="space-y-4">
-                {["Web design", "Web Development", "Web Apps", "Desktop apps", "Mobile apps"].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-slate-400 hover:text-indigo-400 transition-colors text-[11px] font-black uppercase tracking-widest">{item}</a>
-                  </li>
-                ))}
-              </ul>
+            {/* Socials (Margin Right added to prevent overlap with floating WhatsApp button) */}
+            <motion.div variants={fadeInUp} className="flex items-center gap-3 lg:mr-80">
+              <a href="https://www.facebook.com/share/1AiVQKQPmS/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+              </a>
+              <a href="https://wa.me/252637736519" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-emerald-500 hover:text-white transition-all">
+                <Phone size={14} />
+              </a>
             </motion.div>
-
-            {/* Information */}
-            <motion.div variants={fadeInUp}>
-              <h3 className="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-8">Information</h3>
-              <ul className="space-y-4">
-                {["Developers", "Features", "About us"].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-slate-400 hover:text-indigo-400 transition-colors text-[11px] font-black uppercase tracking-widest">{item}</a>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+            
           </div>
-
-          {/* Bottom Section */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="pt-12 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-10"
-          >
-            {/* Socials */}
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Also we are available on:</span>
-              <div className="flex gap-4">
-                <a href="https://www.facebook.com/share/1AiVQKQPmS/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-lg">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-sky-500 hover:text-white transition-all shadow-lg">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-pink-600 hover:text-white transition-all shadow-lg">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                </a>
-                <a href="https://wa.me/252637736519" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-emerald-500 hover:text-white transition-all shadow-lg">
-                  <Phone size={18} />
-                </a>
-                <a href="mailto:SahanResearch252@gmail.com" className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-lg">
-                  <Mail size={18} />
-                </a>
-              </div>
-            </div>
-
-          </motion.div>
-
-          {/* Copyright Section - Centered */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="mt-12 text-center"
-          >
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
-              © Sahan Research and Studies Center 2026
-            </p>
-          </motion.div>
         </div>
       </footer>
     </div>

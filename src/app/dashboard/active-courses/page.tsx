@@ -46,6 +46,11 @@ export default function ActiveCoursesPage() {
   const rejectedEnrollments = enrollments.filter(e => e.status === "REJECTED");
   const unrolledCourses = courses.filter(c => !enrollments.some(e => e.courseId === c.id));
 
+  // Check if student has an active (approved + not completed) enrollment
+  const hasActiveEnrollment = !isAdmin && enrollments.some(
+    e => e.status === "APPROVED" && !e.isCompleted
+  );
+
   return (
     <div className="max-w-7xl mx-auto transition-colors duration-500 pb-32 font-sans">
       {/* ── HEADER ── */}
@@ -141,7 +146,8 @@ export default function ActiveCoursesPage() {
         </section>
       )}
 
-      {/* ── SECTION 2: AVAILABLE CATALOG ── */}
+      {/* ── SECTION 2: AVAILABLE CATALOG (hidden when student has active enrollment) ── */}
+      {!hasActiveEnrollment && (
       <section>
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
@@ -166,6 +172,7 @@ export default function ActiveCoursesPage() {
                 onAction={isAdmin ? undefined : () => handleEnrollClick(course.id)} 
                 secondaryActionLabel="Explore Details"
                 onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+                onCardClick={() => window.location.href = `/courses/${course.id}`}
               />
             ))}
           </div>
@@ -179,6 +186,7 @@ export default function ActiveCoursesPage() {
           </div>
         )}
       </section>
+      )}
 
       <ConfirmModal
         isOpen={confirmEnrollCourseId !== null}

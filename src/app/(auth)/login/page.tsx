@@ -130,7 +130,7 @@ export default function LoginPage() {
         <div className="flex justify-center">
           <img 
             src="/logo.jpeg" 
-            alt="Sahan Research Logo" 
+            alt="Sahan Studies Logo" 
             className="w-16 h-16 rounded-2xl object-cover shadow-xl dark:shadow-indigo-950/50" 
           />
         </div>
@@ -233,7 +233,7 @@ export default function LoginPage() {
 
           <div className="mt-8 text-center pt-8 border-t border-gray-50 dark:border-slate-800">
             <p className="text-sm text-gray-500 dark:text-slate-400">
-              New to Sahan Research?{" "}
+              New to Sahan Studies?{" "}
               <Link href="/register" className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors">
                 Create an account
               </Link>

@@ -84,7 +84,7 @@ function VerifyOtpContent() {
       const result = await dispatch(verifyOtp({ userId, otp: code }));
       if (verifyOtp.fulfilled.match(result)) {
         setSuccess(true);
-        toast.success("Email verified! Welcome to Sahan Research 🎉");
+        toast.success("Email verified! Welcome to Sahan Studies 🎉");
         setTimeout(() => router.push("/dashboard"), 2000);
       } else {
         const msg = result.payload as string;
@@ -241,7 +241,7 @@ function VerifyOtpContent() {
           {/* Security note */}
           <div className="mt-8 pt-6 border-t border-gray-50 dark:border-slate-800 text-center">
             <p className="text-xs text-gray-400 dark:text-slate-500 leading-relaxed">
-              🔒 Never share this code with anyone. Sahan Research will never ask for it.
+              🔒 Never share this code with anyone. Sahan Studies will never ask for it.
             </p>
           </div>
         </div>

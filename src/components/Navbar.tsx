@@ -32,7 +32,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
         <Link href="/" className="flex items-center gap-2 group">
           <img 
             src="/logo.jpeg" 
-            alt="Sahan Research Logo" 
+            alt="Sahan Studies Logo" 
             className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-indigo-100 dark:shadow-indigo-950/50 group-hover:scale-105 transition-transform" 
           />
           <span className="text-lg font-black text-gray-900 dark:text-white tracking-tighter">
