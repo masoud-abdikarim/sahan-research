@@ -70,7 +70,7 @@ export default function LoginPage() {
       if (loginUser.fulfilled.match(resultAction)) {
         toast.success("Logged in successfully!");
         const user = resultAction.payload;
-        if (user.role === "ADMIN") {
+        if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
           router.push("/dashboard/admin");
         } else {
           router.push("/dashboard");

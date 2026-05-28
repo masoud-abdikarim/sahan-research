@@ -95,11 +95,13 @@ export default function SettingsPage() {
             <p className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-8">{currentUser.email}</p>
             
             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-colors ${
-              currentUser.role === "ADMIN" 
+              currentUser.role === "SUPERADMIN"
+                ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-900/30"
+                : currentUser.role === "ADMIN" 
                 ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-100 dark:border-red-900/30" 
                 : "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-100 dark:border-green-900/30"
             }`}>
-              {currentUser.role === "ADMIN" ? <Shield size={12} /> : <User size={12} />}
+              {currentUser.role === "SUPERADMIN" || currentUser.role === "ADMIN" ? <Shield size={12} /> : <User size={12} />}
               {currentUser.role}
             </div>
           </div>

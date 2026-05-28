@@ -113,7 +113,7 @@ export default function CourseDetailsPage() {
       router.push("/login");
       return;
     }
-    if (currentUser.role === "ADMIN") {
+    if ((currentUser.role === "ADMIN" || currentUser.role === "SUPERADMIN")) {
       toast.error("Admins do not need to request courses.");
       return;
     }

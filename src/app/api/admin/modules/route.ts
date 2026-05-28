@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

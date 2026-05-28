@@ -44,7 +44,7 @@ export default function LessonsPage() {
   const { courses } = useSelector((state: RootState) => state.course);
   const { enrollments } = useSelector((state: RootState) => state.enrollment);
   const { currentUser } = useSelector((state: RootState) => state.user);
-  const isAdmin = currentUser?.role === "ADMIN";
+  const isAdmin = (currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN");
 
   const [selectedCourseId, setSelectedCourseId] = useState<number | "">("");
   const [selectedModuleId, setSelectedModuleId] = useState<number | "">("");

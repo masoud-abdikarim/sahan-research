@@ -34,7 +34,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { currentUser } = useSelector((state: RootState) => state.user);
-  const isAdmin = currentUser?.role === "ADMIN";
+  const isAdmin = currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN";
+  const isSuperAdmin = currentUser?.role === "SUPERADMIN";
 
   // Auto-close sidebar on navigation for mobile
   useEffect(() => {
@@ -67,7 +68,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     }, 1000);
   };
 
-  const adminNav = [
+  // Sections restricted to SUPERADMIN only
+  // NOTE: "Manage Admins" is temporarily allowed for ADMIN to bootstrap the first SUPERADMIN.
+  // Once a SUPERADMIN exists, add "Manage Admins" back to this list.
+  const superAdminOnlyNames = [
+    "Manage Courses",
+    "Manage Lessons",
+    "Exams Management",
+    "Certificates",
+  ];
+
+  const fullAdminNav = [
     { name: "Admin Home", href: "/dashboard/admin", icon: Shield },
     { name: "Manage Courses", href: "/dashboard/courses", icon: BookOpen },
     { name: "Manage Lessons", href: "/dashboard/lessons", icon: Video },
@@ -76,8 +87,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Approval Queue", href: "/dashboard/admin/enrollments", icon: UserCheck },
     { name: "Completion History", href: "/dashboard/admin/completion-history", icon: TrendingUp },
     { name: "Manage Students", href: "/dashboard/admin/students", icon: Users },
+    { name: "Manage Admins", href: "/dashboard/admin/users", icon: Shield },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
+
+  // Filter out SUPERADMIN-only items for regular ADMINs
+  const adminNav = isSuperAdmin
+    ? fullAdminNav
+    : fullAdminNav.filter((item) => !superAdminOnlyNames.includes(item.name));
 
   const studentNav = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },

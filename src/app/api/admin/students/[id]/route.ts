@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
@@ -145,7 +145,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
@@ -274,7 +274,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const session = await getSession();
 
     // 1. Strict Admin Authorization
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Unauthorized: Admin access required" }, { status: 403 });
     }
 
@@ -41,6 +41,11 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "User not found with that email or phone" }, { status: 404 });
       }
 
+      // Restrict regular ADMIN from finding admins/superadmins
+      if ((user.role === "ADMIN" || user.role === "SUPERADMIN") && session.role !== "SUPERADMIN") {
+        return NextResponse.json({ message: "Forbidden: Only SUPERADMIN can search admin accounts" }, { status: 403 });
+      }
+
       return NextResponse.json({ user });
     }
 
@@ -66,6 +71,11 @@ export async function POST(req: Request) {
 
       if (!user) {
         return NextResponse.json({ message: "User no longer exists" }, { status: 404 });
+      }
+
+      // Only SUPERADMIN can reset password for admins/superadmins
+      if ((user.role === "ADMIN" || user.role === "SUPERADMIN") && session.role !== "SUPERADMIN") {
+        return NextResponse.json({ message: "Forbidden: Only SUPERADMIN can reset admin passwords" }, { status: 403 });
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);

@@ -14,7 +14,7 @@ export default function CoursesPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { courses, loading } = useSelector((state: RootState) => state.course);
   const { currentUser } = useSelector((state: RootState) => state.user);
-  const isAdmin = currentUser?.role === "ADMIN";
+  const isAdmin = (currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN");
 
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);

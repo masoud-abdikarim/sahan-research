@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
@@ -61,7 +61,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

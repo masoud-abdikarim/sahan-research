@@ -87,7 +87,7 @@ export async function GET(req: Request) {
     // If not admin, they can only see their own certificates
     let targetUserId: number | null = userId ? parseInt(userId) : null;
     
-    if (session.role !== "ADMIN") {
+    if ((session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       targetUserId = Number(session.id);
     }
 
@@ -195,7 +195,7 @@ export async function GET(req: Request) {
 export async function PATCH(req: NextRequest) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

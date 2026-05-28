@@ -15,7 +15,7 @@ export default function EnrollmentsPage() {
   const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
   const { courses, loading: coursesLoading } = useSelector((state: RootState) => state.course);
   const { currentUser } = useSelector((state: RootState) => state.user);
-  const isAdmin = currentUser?.role === "ADMIN";
+  const isAdmin = (currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN");
 
   useEffect(() => {
     dispatch(getCourses());

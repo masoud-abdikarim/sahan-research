@@ -5,7 +5,7 @@ import { getSession } from "@/lib/auth";
 export async function POST(req: Request) {
   try {
     const session = await getSession();
-    if (!session || session.role !== "ADMIN") {
+    if (!session || session.role !== "SUPERADMIN") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

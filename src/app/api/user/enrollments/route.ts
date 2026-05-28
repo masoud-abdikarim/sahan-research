@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     // 🔒 Security: Block ADMIN from enrolling
-    if (session.role === "ADMIN") {
+    if (session.role === "ADMIN" || session.role === "SUPERADMIN") {
       return NextResponse.json({ 
         message: "Admin accounts cannot enroll in courses. Enrollment is reserved for students only." 
       }, { status: 403 });

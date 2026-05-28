@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     const isMatch = await bcrypt.compare(password, user.password);
     
     if (!isMatch) {
-      const isAdmin = user.role === 'ADMIN';
+      const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
 
       // Use atomic increment to prevent race conditions
       const updatedUser = await prisma.user.update({

@@ -136,7 +136,7 @@ export async function GET(req: Request) {
       if (isNaN(cid)) return NextResponse.json({ message: "Invalid Course ID" }, { status: 400 });
       
       let enrollment = null;
-      if (session.role !== "ADMIN") {
+      if ((session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
         enrollment = await prisma.enrollment.findUnique({
           where: { userId_courseId: { userId: Number(session.id), courseId: cid } }
         });
@@ -145,7 +145,7 @@ export async function GET(req: Request) {
         }
       }
 
-      await processCourseLessons(cid, enrollment, session.role === "ADMIN");
+      await processCourseLessons(cid, enrollment, (session.role === "ADMIN" || session.role === "SUPERADMIN"));
 
     } else {
       // ── ALL ENROLLED LESSONS VIEW ──

@@ -7,7 +7,7 @@ export const ourFileRouter = {
   courseImageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
       const session = await getSession();
-      if (!session || session.role !== "ADMIN") {
+      if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
         throw new Error("Unauthorized");
       }
       return { userId: session.id };
@@ -20,7 +20,7 @@ export const ourFileRouter = {
     .middleware(async ({ req }) => {
       const session = await getSession();
       
-      if (!session || session.role !== "ADMIN") {
+      if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
         throw new Error("Unauthorized");
       }
 
@@ -35,7 +35,7 @@ export const ourFileRouter = {
   audioUploader: f({ audio: { maxFileSize: "256MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
       const session = await getSession();
-      if (!session || session.role !== "ADMIN") {
+      if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
         throw new Error("Unauthorized");
       }
       return { userId: session.id };
@@ -49,7 +49,7 @@ export const ourFileRouter = {
   certificateUploader: f({ pdf: { maxFileSize: "8MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
       const session = await getSession();
-      if (!session || session.role !== "ADMIN") {
+      if (!session || (session.role !== "ADMIN" && session.role !== "SUPERADMIN")) {
         throw new Error("Unauthorized");
       }
       return { userId: session.id };

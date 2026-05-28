@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { isAdmin } from "@/lib/permissions";
 
 const secretKey = process.env.JWT_SECRET || "super-secret-key-please-change-in-production";
 const key = new TextEncoder().encode(secretKey);
@@ -32,17 +33,15 @@ export async function proxy(request: NextRequest) {
       const { payload }: any = await jwtVerify(session, key, { algorithms: ["HS256"] });
       
       // Admin check for admin-only routes
-      if (isAdminRoute && payload.role !== "ADMIN") {
+      if (isAdminRoute && !isAdmin(payload.role)) {
         if (path.startsWith("/api/")) {
           return NextResponse.json({ message: "Forbidden: Admin only" }, { status: 403 });
         }
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
-      // Student-only check (Optional: prevent Admins from student dashboard to enforce clean separation)
-      // The user requested: "The default /dashboard route must NOT show admin or super admin content"
-      // If Admin tries to visit /dashboard, redirect them to /dashboard/admin
-      if (path === "/dashboard" && payload.role === "ADMIN") {
+      // If Admin or Superadmin tries to visit /dashboard, redirect them to /dashboard/admin
+      if (path === "/dashboard" && isAdmin(payload.role)) {
          return NextResponse.redirect(new URL("/dashboard/admin", request.url));
       }
       
