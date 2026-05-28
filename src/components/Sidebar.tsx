@@ -69,13 +69,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   // Sections restricted to SUPERADMIN only
-  // NOTE: "Manage Admins" is temporarily allowed for ADMIN to bootstrap the first SUPERADMIN.
-  // Once a SUPERADMIN exists, add "Manage Admins" back to this list.
   const superAdminOnlyNames = [
     "Manage Courses",
     "Manage Lessons",
     "Exams Management",
     "Certificates",
+    "Manage Admins",
   ];
 
   const fullAdminNav = [

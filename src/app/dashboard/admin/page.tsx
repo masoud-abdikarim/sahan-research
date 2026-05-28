@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Loader from "@/components/Loader";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { Users, BookOpen, Clock, DollarSign, TrendingUp, CheckCircle2, XCircle, BookOpenCheck, Award, Percent } from "lucide-react";
 
 export default function AdminOverview() {
+  const { currentUser } = useSelector((state: RootState) => state.user);
+  const isSuperAdmin = currentUser?.role === "SUPERADMIN";
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +48,14 @@ export default function AdminOverview() {
     averageMarks: 0
   };
 
-  const mainCards = [
+  const allMainCards = [
     { label: "Total Students", value: displayStats.totalUsers, icon: Users, color: "bg-blue-500" },
     { label: "Active Courses", value: displayStats.totalCourses, icon: BookOpen, color: "bg-indigo-500" },
     { label: "Pending Approvals", value: displayStats.pendingEnrollments, icon: Clock, color: "bg-amber-500" },
-    { label: "Total Revenue", value: `$${(displayStats.totalRevenue || 0).toFixed(2)}`, icon: DollarSign, color: "bg-emerald-500" },
+    { label: "Total Revenue", value: `$${(displayStats.totalRevenue || 0).toFixed(2)}`, icon: DollarSign, color: "bg-emerald-500", superAdminOnly: true },
   ];
+
+  const mainCards = allMainCards.filter((card) => !card.superAdminOnly || isSuperAdmin);
 
   const advancedCards = [
     { label: "Passed Courses", value: displayStats.studentsPassed, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-100 dark:bg-emerald-500/20" },
@@ -127,12 +133,16 @@ export default function AdminOverview() {
               <a href="/dashboard/admin/students" className="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center border border-emerald-500 text-emerald-300">
                 Manage Students
               </a>
-              <a href="/dashboard/courses" className="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center border border-white/10">
-                Manage Courses
-              </a>
-              <a href="/dashboard/admin/exams" className="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center border border-white/10">
-                Manage Exams
-              </a>
+              {isSuperAdmin && (
+                <a href="/dashboard/courses" className="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center border border-white/10">
+                  Manage Courses
+                </a>
+              )}
+              {isSuperAdmin && (
+                <a href="/dashboard/admin/exams" className="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center border border-white/10">
+                  Manage Exams
+                </a>
+              )}
             </div>
           </div>
           <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
