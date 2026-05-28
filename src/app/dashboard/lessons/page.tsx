@@ -824,9 +824,16 @@ export default function LessonsPage() {
         onClick={() => {
           if (activeLesson?.id === lesson.id) return;
           if (isLocked) {
-            toast.error(
-              "Prerequisite Not Met: Complete the previous lesson to unlock this content."
-            );
+            if (lesson.dailyLocked) {
+              const unlockDate = lesson.nextUnlockTime ? new Date(lesson.nextUnlockTime).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'tomorrow';
+              toast.error(
+                `Daily Limit Reached: You have 0 credits. Next lesson unlocks ${unlockDate}.`
+              );
+            } else {
+              toast.error(
+                "Prerequisite Not Met: Complete the previous lesson to unlock this content."
+              );
+            }
             return;
           }
           if (isOpening) return;
@@ -972,7 +979,7 @@ export default function LessonsPage() {
                 </span>
               ) : isLocked ? (
                 <span className="flex items-center gap-2 text-[10px] font-black text-amber-500 uppercase tracking-widest">
-                  <Lock size={14} /> Restricted
+                  <Lock size={14} /> {lesson.dailyLocked ? "Daily Limit" : "Restricted"}
                 </span>
               ) : (
                 <span className="flex items-center gap-2 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
@@ -1122,8 +1129,14 @@ export default function LessonsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-6">
-                 <div className="px-8 py-5 bg-gray-50 dark:bg-slate-950 rounded-[2rem] border border-gray-100 dark:border-slate-800 text-center min-w-[140px] shadow-sm">
+              <div className="flex gap-4 lg:gap-6 flex-wrap">
+                 <div className="px-6 py-5 bg-gray-50 dark:bg-slate-950 rounded-[2rem] border border-gray-100 dark:border-slate-800 text-center min-w-[120px] shadow-sm flex-1">
+                    <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Daily Credits</p>
+                    <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 flex justify-center items-center gap-2">
+                      <Sparkles size={18} /> {lessons[0]?.availableCredits ?? 0}
+                    </p>
+                 </div>
+                 <div className="px-6 py-5 bg-gray-50 dark:bg-slate-950 rounded-[2rem] border border-gray-100 dark:border-slate-800 text-center min-w-[120px] shadow-sm flex-1">
                     <p className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Modules</p>
                     <p className="text-2xl font-black text-gray-900 dark:text-white">
                       {(() => {

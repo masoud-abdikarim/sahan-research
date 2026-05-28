@@ -76,6 +76,18 @@ export async function GET(req: Request) {
       const completedOrders = courseLessons.filter(l => l.progress?.[0]?.completed).map(l => l.order);
       const maxCompletedOrder = completedOrders.length > 0 ? Math.max(...completedOrders) : -1;
 
+      // ── DAILY LESSON LIMIT LOGIC ──
+      const msInDay = 1000 * 60 * 60 * 24;
+      const daysSinceEnrollment = enrollment?.createdAt 
+        ? Math.floor((Date.now() - new Date(enrollment.createdAt).getTime()) / msInDay) 
+        : 0;
+      const totalCredits = daysSinceEnrollment + 1;
+      const usedCredits = completedOrders.length;
+      const availableCredits = Math.max(0, totalCredits - usedCredits);
+      const nextUnlockTime = enrollment?.createdAt 
+        ? new Date(new Date(enrollment.createdAt).getTime() + totalCredits * msInDay) 
+        : null;
+
       courseLessons.forEach((lesson) => {
         const isCompleted = lesson.progress?.[0]?.completed || false;
         
@@ -118,6 +130,15 @@ export async function GET(req: Request) {
           unlocked = true;
         }
 
+        // ── APPLY DAILY LIMIT ──
+        let dailyLocked = false;
+        if (unlocked && !isCompleted && !isAdmin) {
+          if (availableCredits <= 0) {
+            unlocked = false;
+            dailyLocked = true;
+          }
+        }
+
         const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "", audioUrl: "" };
 
         finalLessons.push({
@@ -125,7 +146,10 @@ export async function GET(req: Request) {
           courseId: lesson.module?.courseId, // THE FIX FOR FRONTEND ENROLLMENT ERROR!
           unlocked,
           completed: isCompleted,
-          ignored: wasInsertedLater
+          ignored: wasInsertedLater,
+          dailyLocked,
+          availableCredits,
+          nextUnlockTime
         });
       });
     }

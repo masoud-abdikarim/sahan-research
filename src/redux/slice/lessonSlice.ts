@@ -15,6 +15,9 @@ export interface Lesson {
   moduleId: number;
   unlocked?: boolean;
   completed?: boolean;
+  dailyLocked?: boolean;
+  availableCredits?: number;
+  nextUnlockTime?: string | Date;
 }
 
 interface LessonState {
