@@ -102,6 +102,9 @@ export default function ManageAdminsPage() {
   // Filters & Search
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
+      // Exclude students from manage admins page
+      if (u.role === "USER") return false;
+
       const matchesSearch = 
         u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -408,7 +411,6 @@ export default function ManageAdminsPage() {
             <option value="ALL">All Roles</option>
             <option value="SUPERADMIN">Superadmins</option>
             <option value="ADMIN">Administrators</option>
-            <option value="USER">Students (USER)</option>
           </select>
         </div>
       </div>
@@ -574,7 +576,6 @@ export default function ManageAdminsPage() {
                   onChange={(e) => setCreateForm({ ...createForm, role: e.target.value as any })}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 focus:ring-2 focus:ring-purple-500 text-sm font-bold text-gray-800 dark:text-slate-200 outline-none"
                 >
-                  <option value="USER">Student (USER)</option>
                   <option value="ADMIN">Administrator (ADMIN)</option>
                   <option value="SUPERADMIN">Superadmin (SUPERADMIN)</option>
                 </select>
@@ -673,7 +674,6 @@ export default function ManageAdminsPage() {
                   disabled={editingUser.id === currentUser?.id}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 focus:ring-2 focus:ring-purple-500 text-sm font-bold text-gray-800 dark:text-slate-200 outline-none disabled:opacity-50"
                 >
-                  <option value="USER">Student (USER)</option>
                   <option value="ADMIN">Administrator (ADMIN)</option>
                   <option value="SUPERADMIN">Superadmin (SUPERADMIN)</option>
                 </select>
