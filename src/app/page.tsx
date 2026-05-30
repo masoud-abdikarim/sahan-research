@@ -443,7 +443,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight text-slate-900 dark:text-white"
             >
-              Sahan Studies{" "}
+              Sahan Research{" "}
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
                 &
               </span>
