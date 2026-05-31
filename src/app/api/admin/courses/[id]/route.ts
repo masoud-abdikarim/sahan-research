@@ -68,7 +68,9 @@ export async function PATCH(
         prerequisites: body.prerequisites,
         lastUpdated: new Date(),
         category: body.category,
-        imageUrl: body.imageUrl
+        imageUrl: body.imageUrl,
+        previewVideoType: body.previewVideoType || null,
+        previewVideoUrl: body.previewVideoUrl || null,
       }
     });
 

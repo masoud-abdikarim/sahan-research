@@ -82,6 +82,8 @@ model Course {
   durationMonths Int // in months only
   category       String   @default("Uncategorized")
   imageUrl       String?
+  previewVideoType VideoType? @default(URL)
+  previewVideoUrl  String?
   level          String   @default("All Levels")
   totalHours     Int?     @default(0)
   whoIsFor       String[] @default([])

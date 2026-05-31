@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getCourses, createCourse, updateCourse, deleteCourse, Course } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
-import { Plus, Edit, Trash2, X, Check, Upload, Link as LinkIcon, Image as ImageIcon, Search, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, X, Check, Upload, Link as LinkIcon, Image as ImageIcon, Search, Filter, Video, FileVideo } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/components/ConfirmModal";
 import { UploadButton } from "@/lib/uploadthing";
@@ -19,6 +19,8 @@ export default function CoursesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [imageInputMode, setImageInputMode] = useState<"upload" | "url">("upload");
+  const [videoInputMode, setVideoInputMode] = useState<"upload" | "url">("upload");
+  const [previewVideoUploadProgress, setPreviewVideoUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -30,6 +32,8 @@ export default function CoursesPage() {
     prerequisites: [] as string[],
     category: "",
     imageUrl: "",
+    previewVideoType: "URL" as "UPLOAD" | "URL",
+    previewVideoUrl: "",
   });
 
   const [outcomeInput, setOutcomeInput] = useState("");
@@ -71,11 +75,18 @@ export default function CoursesPage() {
       prerequisites: course.prerequisites || [],
       category: course.category,
       imageUrl: course.imageUrl || "",
+      previewVideoType: course.previewVideoType || "URL",
+      previewVideoUrl: course.previewVideoUrl || "",
     });
     if (course.imageUrl) {
       setImageInputMode(course.imageUrl.startsWith("http") ? "url" : "upload");
     } else {
       setImageInputMode("upload");
+    }
+    if (course.previewVideoUrl) {
+      setVideoInputMode(course.previewVideoType === "UPLOAD" ? "upload" : "url");
+    } else {
+      setVideoInputMode("upload");
     }
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -84,16 +95,22 @@ export default function CoursesPage() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingCourse(null);
-    setFormData({ name: "", description: "", outcomes: [], instructor: "", price: "", durationMonths: "", whoIsFor: [], prerequisites: [], category: "", imageUrl: "" });
+    setFormData({ name: "", description: "", outcomes: [], instructor: "", price: "", durationMonths: "", whoIsFor: [], prerequisites: [], category: "", imageUrl: "", previewVideoType: "URL", previewVideoUrl: "" });
     setOutcomeInput("");
     setWhoIsForInput("");
     setPrerequisiteInput("");
+    setPreviewVideoUploadProgress(0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.description || !formData.price || !formData.durationMonths || !formData.category) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    if (videoInputMode === "upload" && previewVideoUploadProgress > 0 && previewVideoUploadProgress < 100) {
+      toast.error("Please wait for the video upload to complete.");
       return;
     }
 
@@ -107,7 +124,9 @@ export default function CoursesPage() {
       whoIsFor: formData.whoIsFor,
       prerequisites: formData.prerequisites,
       category: formData.category,
-      imageUrl: formData.imageUrl
+      imageUrl: formData.imageUrl,
+      previewVideoType: formData.previewVideoUrl ? formData.previewVideoType : null,
+      previewVideoUrl: formData.previewVideoUrl ? formData.previewVideoUrl.trim() : null,
     };
 
     if (editingCourse) {
@@ -156,6 +175,8 @@ export default function CoursesPage() {
               prerequisites: [],
               category: "",
               imageUrl: "",
+              previewVideoType: "URL",
+              previewVideoUrl: "",
             });
             setShowForm(true);
           }}
@@ -319,6 +340,65 @@ export default function CoursesPage() {
                       <img src={formData.imageUrl} className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon className="text-gray-200 dark:text-slate-800" size={48} />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Optional Course Preview Video */}
+              <div className="space-y-4 pt-8 border-t border-gray-100 dark:border-slate-800">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Course Preview Video (Optional)</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="flex gap-2 p-1 bg-gray-100 dark:bg-slate-950 rounded-xl w-fit border border-gray-200 dark:border-slate-800">
+                      <button type="button" onClick={() => setVideoInputMode("upload")} className={`px-4 py-2 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${videoInputMode === "upload" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm" : "text-gray-500"}`}>Upload</button>
+                      <button type="button" onClick={() => setVideoInputMode("url")} className={`px-4 py-2 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest ${videoInputMode === "url" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm" : "text-gray-500"}`}>Link</button>
+                    </div>
+                    {videoInputMode === "upload" ? (
+                      <div className="border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-[2rem] p-12 text-center bg-gray-50/30">
+                        {previewVideoUploadProgress > 0 && previewVideoUploadProgress < 100 ? (
+                          <div className="space-y-2">
+                            <div className="text-xs font-black text-indigo-600 uppercase tracking-widest">Uploading Video... {previewVideoUploadProgress}%</div>
+                            <div className="w-full bg-gray-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                              <div className="bg-indigo-600 h-full transition-all" style={{ width: `${previewVideoUploadProgress}%` }} />
+                            </div>
+                          </div>
+                        ) : (
+                          <UploadButton
+                            endpoint="videoUploader"
+                            onUploadBegin={() => { setPreviewVideoUploadProgress(1); }}
+                            onUploadProgress={(progress) => { setPreviewVideoUploadProgress(progress); }}
+                            onClientUploadComplete={(res) => { if (res?.[0]) setFormData({ ...formData, previewVideoUrl: res[0].url, previewVideoType: "UPLOAD" }); setPreviewVideoUploadProgress(100); toast.success("Video uploaded!"); }}
+                            onUploadError={(error: Error) => { setPreviewVideoUploadProgress(0); toast.error(`Upload failed: ${error.message}`); }}
+                            appearance={{ button: "bg-indigo-600 px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all" }}
+                          />
+                        )}
+                        {formData.previewVideoUrl && formData.previewVideoType === "UPLOAD" && (
+                          <div className="mt-4 flex items-center justify-center gap-2">
+                            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Uploaded Successfully!</span>
+                            <button type="button" onClick={() => { setFormData({ ...formData, previewVideoUrl: "", previewVideoType: "URL" }); setPreviewVideoUploadProgress(0); }} className="text-red-500 hover:text-red-700"><Trash2 size={14} /></button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <input type="text" placeholder="https://youtube.com/... or https://vimeo.com/... or direct link" value={formData.previewVideoUrl} onChange={e => setFormData({...formData, previewVideoUrl: e.target.value, previewVideoType: "URL"})} className="w-full px-6 py-4 border border-gray-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 outline-none text-sm font-bold text-gray-800 dark:text-slate-200" />
+                        <p className="text-[10px] font-bold text-gray-400">Supports YouTube, Vimeo, or direct video file links.</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="aspect-video md:aspect-square rounded-[2rem] overflow-hidden border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center relative group p-2">
+                    {formData.previewVideoUrl ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                        <FileVideo className="text-indigo-600 dark:text-indigo-400" size={48} />
+                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 text-center line-clamp-2 max-w-[150px] break-all">{formData.previewVideoUrl}</span>
+                        <button type="button" onClick={() => setFormData({ ...formData, previewVideoUrl: "", previewVideoType: "URL" })} className="text-xs font-black text-red-500 uppercase tracking-widest hover:underline">Remove Video</button>
+                      </div>
+                    ) : (
+                      <div className="text-center space-y-2 text-gray-400 dark:text-slate-600">
+                        <Video size={48} className="mx-auto" />
+                        <span className="text-[10px] font-black uppercase tracking-widest block">No Video Added</span>
+                      </div>
                     )}
                   </div>
                 </div>

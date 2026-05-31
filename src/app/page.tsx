@@ -439,42 +439,37 @@ export default function LandingPage() {
             variants={staggerContainer}
             className="max-w-4xl mx-auto text-center"
           >
-            <motion.h1 
+            <motion.h1
               variants={fadeInUp}
               className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight text-slate-900 dark:text-white"
             >
-              Sahan Research{" "}
-              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
-                &
-              </span>
-              {" "}
-              <span className="relative inline-block">
-                Studies Center
-                <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 300 8" fill="none">
-                  <motion.path 
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, delay: 0.5 }}
-                    d="M1 5.5 Q75 1 150 5.5 Q225 10 299 5.5" stroke="url(#u)" strokeWidth="3" strokeLinecap="round" fill="none" 
-                  />
-                  <defs>
-                    <linearGradient id="u" x1="0" y1="0" x2="1" y2="0">
-                      <stop stopColor="#6366f1" /><stop offset="1" stopColor="#7c3aed" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </span>
+              Ready to Begin Your <br /> Academic Journey?
             </motion.h1>
-
-            <motion.p 
+            <motion.p
               variants={fadeInUp}
               className="mt-8 text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed font-medium"
             >
-              Sahan Studies is a structured academic platform offering expert research lectures, 
-              organised courses, and progress tracking tools — built for students, lecturers, and researchers.
+              Join thousands of students and researchers who are advancing their knowledge on Sahan Studies — the premier academic platform built for growth.
             </motion.p>
-
-            {/* Buttons and Trust badges removed as per request */}
+            
+            {/* CTA Buttons */}
+            <motion.div
+              variants={fadeInUp}
+              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Link
+                href="/register"
+                className="px-10 py-4 rounded-full text-sm font-black uppercase tracking-widest bg-indigo-600 text-white hover:bg-indigo-700 transition-all duration-300 shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50"
+              >
+                Create Free Account
+              </Link>
+              <Link
+                href="/login"
+                className="px-10 py-4 rounded-full text-sm font-black uppercase tracking-widest bg-slate-700 dark:bg-slate-800 text-white hover:bg-slate-800 dark:hover:bg-slate-700 transition-all duration-300 border border-slate-600 dark:border-slate-700"
+              >
+                Sign In Instead
+              </Link>
+            </motion.div>
           </motion.div>
 
           {/* Stats row */}

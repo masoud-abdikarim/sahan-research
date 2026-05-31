@@ -30,6 +30,8 @@ export async function GET(
         lastUpdated: true,
         category: true,
         imageUrl: true,
+        previewVideoType: true,
+        previewVideoUrl: true,
         modules: {
           include: {
             lessons: { 

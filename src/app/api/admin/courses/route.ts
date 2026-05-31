@@ -42,6 +42,8 @@ export async function POST(req: Request) {
         prerequisites: Array.isArray(data.prerequisites) ? data.prerequisites : [],
         category: data.category || "Uncategorized",
         imageUrl: data.imageUrl || null,
+        previewVideoType: data.previewVideoType || null,
+        previewVideoUrl: data.previewVideoUrl || null,
         userId: Number(session.id),
       }
     });

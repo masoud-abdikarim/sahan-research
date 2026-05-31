@@ -14,6 +14,8 @@ export interface Course {
   durationMonths: number;
   category: string;
   imageUrl?: string;
+  previewVideoType?: "UPLOAD" | "URL" | null;
+  previewVideoUrl?: string | null;
   whoIsFor: string[];
   prerequisites: string[];
   createdAt: string;
