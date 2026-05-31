@@ -226,13 +226,13 @@ export default function CourseDetailsPage() {
                           );
                         }
                         return (
-                          <video controls controlsList="nodownload" className="w-full h-full" poster={course.imageUrl || undefined}>
+                          <video controls controlsList="nodownload" className="w-full h-full">
                             <source src={course.previewVideoUrl} type="video/mp4" />
                           </video>
                         );
                       })()
                     ) : (
-                      <video controls controlsList="nodownload" className="w-full h-full" poster={course.imageUrl || undefined}>
+                      <video controls controlsList="nodownload" className="w-full h-full">
                         <source src={course.previewVideoUrl} type="video/mp4" />
                       </video>
                     )}

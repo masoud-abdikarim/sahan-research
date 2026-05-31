@@ -583,13 +583,15 @@ export default function LandingPage() {
       {/* ── ABOUT ───────────────────────────────────────────────────────────── */}
       <section id="about" className="py-16 bg-slate-50 dark:bg-slate-950/50 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            {/* Text */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+            
+            {/* Text Column */}
             <motion.div
               initial="initial"
               whileInView="whileInView"
               variants={staggerContainer}
               viewport={{ once: true }}
+              className="lg:col-span-4"
             >
               <motion.div 
                 variants={fadeInUp}
@@ -600,55 +602,57 @@ export default function LandingPage() {
               </motion.div>
               <motion.h2 
                 variants={fadeInUp}
-                className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white leading-[1.1] mb-8 tracking-tight"
+                className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white leading-[1.1] mb-6 tracking-tight"
               >
                 Democratising Academic Courses for Everyone
               </motion.h2>
               <motion.p 
                 variants={fadeInUp}
-                className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-6 font-medium"
+                className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed font-medium"
               >
                 Sahan was founded to bridge the gap between research institutions and learners. 
                 We believe that high-quality academic knowledge should be structured, accessible, and impactful 
                 — regardless of where you are in the world.
               </motion.p>
-              <motion.p 
-                variants={fadeInUp}
-                className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-10 font-medium"
-              >
-                Our platform brings together expert lecturers and motivated students in a guided, 
-                progress-tracked environment designed to foster genuine academic growth.
-              </motion.p>
-              <motion.div 
-                variants={staggerContainer}
-                className="space-y-4"
-              >
-                {[
-                  "Peer-reviewed course materials",
-                  "Institution-grade learning structure",
-                  "Real-time progress insights",
-                  "Dedicated academic support",
-                ].map(p => (
-                  <motion.div 
-                    key={p} 
-                    variants={fadeInUp}
-                    className="flex items-center gap-4 group"
-                  >
-                    <div className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                      <CheckCircle2 size={14} className="text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <span className="text-slate-600 dark:text-slate-300 font-bold text-sm uppercase tracking-wide">{p}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
             </motion.div>
-            {/* Decorative card grid */}
+
+            {/* Bullet Points Column */}
             <motion.div 
               initial="initial"
               whileInView="whileInView"
               variants={staggerContainer}
               viewport={{ once: true }}
-              className="grid grid-cols-2 gap-6"
+              className="lg:col-span-4 flex flex-col gap-4"
+            >
+                {[
+                  { title: "Peer-reviewed course materials", icon: BookOpen },
+                  { title: "Institution-grade learning structure", icon: GraduationCap },
+                  { title: "Real-time progress insights", icon: TrendingUp },
+                  { title: "Dedicated academic support", icon: Users },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.div 
+                      key={item.title} 
+                      variants={fadeInUp}
+                      className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Icon size={20} className="text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <span className="text-slate-800 dark:text-slate-200 font-bold text-sm leading-snug">{item.title}</span>
+                    </motion.div>
+                  )
+                })}
+            </motion.div>
+
+            {/* Decorative card grid Column */}
+            <motion.div 
+              initial="initial"
+              whileInView="whileInView"
+              variants={staggerContainer}
+              viewport={{ once: true }}
+              className="lg:col-span-4 grid grid-cols-2 gap-4 lg:ml-4"
             >
               {[
                 { icon: BookOpen, label: "Structured Curriculum", val: "48 Courses", bg: "bg-indigo-600", txt: "text-white" },
@@ -662,15 +666,16 @@ export default function LandingPage() {
                     key={c.label} 
                     variants={fadeInScale}
                     whileHover={{ y: -5, scale: 1.02 }}
-                    className={`${c.bg} rounded-[2rem] p-8 shadow-xl shadow-indigo-100/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800 transition-all`}
+                    className={`${c.bg} rounded-3xl p-5 shadow-lg shadow-indigo-100/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800 transition-all`}
                   >
-                    <Icon size={32} className={`mb-4 ${c.bg.includes("indigo") || c.bg.includes("violet") ? "text-white/80" : "text-indigo-600 dark:text-indigo-400"}`} />
-                    <p className={`text-2xl font-black ${c.txt} tracking-tight`}>{c.val}</p>
-                    <p className={`text-[10px] font-black mt-1 uppercase tracking-widest ${c.bg.includes("600") ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>{c.label}</p>
+                    <Icon size={24} className={`mb-3 ${c.bg.includes("indigo") || c.bg.includes("violet") ? "text-white/80" : "text-indigo-600 dark:text-indigo-400"}`} />
+                    <p className={`text-xl font-black ${c.txt} tracking-tight`}>{c.val}</p>
+                    <p className={`text-[9px] font-black mt-1 uppercase tracking-widest ${c.bg.includes("600") ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>{c.label}</p>
                   </motion.div>
                 );
               })}
             </motion.div>
+            
           </div>
         </div>
       </section>
