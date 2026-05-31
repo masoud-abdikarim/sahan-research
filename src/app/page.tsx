@@ -890,53 +890,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA BANNER ──────────────────────────────────────────────────────── */}
-      <section className="py-16 relative overflow-hidden transition-colors duration-500">
-        <div className="absolute inset-0 bg-indigo-600 dark:bg-indigo-900 pointer-events-none" />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.1, 0.2, 0.1]
-          }}
-          transition={{ duration: 10, repeat: Infinity }}
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white dark:bg-indigo-400 rounded-full blur-[120px]" />
-        </motion.div>
-
-        <motion.div 
-          initial="initial"
-          whileInView="whileInView"
-          variants={staggerContainer}
-          viewport={{ once: true }}
-          className="relative max-w-4xl mx-auto px-6 text-center"
-        >
-          <motion.h2 variants={fadeInUp} className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-8 tracking-tight">
-            Ready to Begin Your <br /> Academic Journey?
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-indigo-100 text-xl mb-12 max-w-2xl mx-auto opacity-90 font-medium leading-relaxed">
-            Join thousands of students and researchers who are advancing their knowledge on Sahan Studies — the premier academic platform built for growth.
-          </motion.p>
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-              <Link
-                href="/register"
-                className="w-full sm:w-auto bg-white text-indigo-600 hover:bg-indigo-50 font-black px-12 py-5 rounded-[2rem] shadow-2xl transition-all text-sm uppercase tracking-widest block text-center"
-              >
-                Create Free Account
-              </Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-              <Link
-                href="/login"
-                className="w-full sm:w-auto bg-indigo-700/50 dark:bg-black/20 text-white hover:bg-indigo-700/80 dark:hover:bg-black/40 font-black px-12 py-5 rounded-[2rem] border border-white/20 transition-all text-sm uppercase tracking-widest backdrop-blur-sm block text-center"
-              >
-                Sign In Instead
-              </Link>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-      </section>
+   
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
       <footer className="relative bg-slate-900 py-16 overflow-hidden transition-colors duration-500 border-t border-slate-800">
