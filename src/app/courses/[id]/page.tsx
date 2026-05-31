@@ -284,7 +284,6 @@ export default function CourseDetailsPage() {
               <div className="p-6">
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-3xl font-black text-slate-900 tracking-tighter">${course.price}</span>
-                  {course.price > 0 && <span className="text-sm font-bold text-slate-400 line-through">${course.price * 2}</span>}
                 </div>
                 
                 <h2 className="text-[22px] font-bold text-slate-900 leading-tight mb-3">
