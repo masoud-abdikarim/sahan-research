@@ -399,11 +399,6 @@ export default function CourseDetailsPage() {
                       </div>
                     ))}
                  </div>
-                 {course.outcomes.length > 4 && (
-                    <button className="mt-6 text-[#00825a] font-bold text-[15px] flex items-center gap-1 hover:underline underline-offset-4">
-                       View All Learning Outcomes <ChevronDown size={16} />
-                    </button>
-                 )}
               </div>
             )}
 
