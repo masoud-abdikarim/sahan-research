@@ -282,13 +282,9 @@ export default function CourseDetailsPage() {
 
               {/* Card Body */}
               <div className="p-6">
-                <div className="inline-flex items-center gap-1 bg-[#f1f0f9] text-[#6b58ba] text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-3">
-                  <div className="flex gap-0.5">
-                     <div className="w-1 h-3 bg-[#6b58ba]"></div>
-                     <div className="w-1 h-2 bg-[#6b58ba]/40 mt-1"></div>
-                     <div className="w-1 h-1.5 bg-[#6b58ba]/40 mt-1.5"></div>
-                  </div>
-                  {course.level || "BEGINNER LEVEL"}
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-3xl font-black text-slate-900 tracking-tighter">${course.price}</span>
+                  {course.price > 0 && <span className="text-sm font-bold text-slate-400 line-through">${course.price * 2}</span>}
                 </div>
                 
                 <h2 className="text-[22px] font-bold text-slate-900 leading-tight mb-3">
@@ -316,7 +312,7 @@ export default function CourseDetailsPage() {
                     <div className="w-6 h-6 rounded-full bg-[#f1f0f9] flex items-center justify-center text-[#6b58ba]">
                        <Clock size={14} />
                     </div>
-                    {course.durationMonths * 4}-{course.durationMonths * 4 + 4} Avg. Hours
+                    {course.durationMonths} Months Duration
                   </div>
                   <div className="flex items-center gap-3 text-sm font-medium text-slate-700">
                     <div className="w-6 h-6 rounded-full bg-[#e6f4f6] flex items-center justify-center text-[#009fb2]">
@@ -341,10 +337,6 @@ export default function CourseDetailsPage() {
             <div className="flex flex-wrap items-center text-[13px] text-slate-500 gap-2 mb-3 font-medium">
               <Link href="/" className="hover:text-[#00825a]">Home</Link>
               <span>›</span>
-              <span className="hover:text-[#00825a] cursor-pointer">Category</span>
-              <span>›</span>
-              <span className="hover:text-[#00825a] cursor-pointer">{course.category}</span>
-              <span>›</span>
               <span className="text-[#00825a]">{course.name}</span>
             </div>
 
@@ -367,11 +359,10 @@ export default function CourseDetailsPage() {
                      <div className="absolute -top-1 -left-1 w-6 h-6 bg-yellow-400 rotate-45"></div>
                   </div>
                   <div>
-                     <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Course Publisher</p>
-                     <p className="text-[15px] font-bold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:decoration-[#00825a] cursor-pointer">
+                     <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Instructor</p>
+                     <p className="text-[15px] font-bold text-slate-800 cursor-pointer">
                        {course.instructor || "Sahan Studies"}
                      </p>
-                     <p className="text-[13px] text-slate-500 mt-0.5">E-learning educational specialist</p>
                   </div>
                </div>
                
