@@ -224,7 +224,6 @@ export default function CourseDetailsPage() {
                     )}
                     {/* Tags overlay (like Alison) */}
                     <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
-                       <span className="bg-white text-xs font-bold px-2 py-1 shadow-sm text-slate-700">FREE COURSE</span>
                        <span className="bg-[#b4d429] text-[10px] font-bold px-2 py-0.5 shadow-sm text-slate-900 uppercase">{course.category}</span>
                     </div>
                   </>
