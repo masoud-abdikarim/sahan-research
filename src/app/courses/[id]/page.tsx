@@ -181,7 +181,7 @@ export default function CourseDetailsPage() {
             <Award size={18} /> Certify Now
           </>
         ) : (
-          "Start Learning"
+          "Enroll Now"
         )}
       </button>
     );
@@ -299,18 +299,15 @@ export default function CourseDetailsPage() {
                 <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
                   <div className="flex items-center gap-1.5 font-medium text-slate-700">
                     <GraduationCap size={16} className="text-[#00825a]" />
-                    <span><strong className="text-slate-900 font-bold">10,211</strong> Learners enrolled</span>
+                    <span><strong className="text-slate-900 font-bold">100+</strong> Learners enrolled</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mb-5">
                    <div className="flex items-center gap-1">
-                      <ThumbsUp size={14} /> 10,211
+                      <ThumbsUp size={14} /> 103
                    </div>
-                   <div className="flex items-center gap-1">
-                      <ThumbsDown size={14} /> 2,496
-                   </div>
-                   <span className="text-slate-400">Not Interested</span>
+                   <span className="text-slate-400">Interested</span>
                 </div>
 
                 <hr className="border-slate-200 mb-5" />
