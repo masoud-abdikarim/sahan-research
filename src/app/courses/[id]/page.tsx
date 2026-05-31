@@ -20,9 +20,7 @@ import {
   Check,
   ThumbsUp,
   ThumbsDown,
-  Award,
-  X,
-  Play
+  Award
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -80,7 +78,6 @@ export default function CourseDetailsPage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedModules, setExpandedModules] = useState<number[]>([]);
-  const [playPreviewVideo, setPlayPreviewVideo] = useState(false);
   
   const [confirmEnrollCourseId, setConfirmEnrollCourseId] = useState<number | null>(null);
 
@@ -198,8 +195,54 @@ export default function CourseDetailsPage() {
               
               {/* Video/Image Area */}
               <div className="relative aspect-video bg-slate-100 group">
-                {!playPreviewVideo ? (
-                  <>
+                {course.previewVideoUrl ? (
+                  <div className="w-full h-full relative bg-black">
+                    {course.previewVideoType === "URL" ? (
+                      (() => {
+                        const ytId = getYoutubeId(course.previewVideoUrl);
+                        if (ytId) {
+                          return (
+                            <iframe
+                              className="w-full h-full"
+                              src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`}
+                              title="Course Promo Video"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          );
+                        }
+                        const vimeoId = getVimeoId(course.previewVideoUrl);
+                        if (vimeoId) {
+                          return (
+                            <iframe
+                              className="w-full h-full"
+                              src={`https://player.vimeo.com/video/${vimeoId}`}
+                              title="Course Promo Video"
+                              frameBorder="0"
+                              allow="autoplay; fullscreen; picture-in-picture"
+                              allowFullScreen
+                            />
+                          );
+                        }
+                        return (
+                          <video controls controlsList="nodownload" className="w-full h-full" poster={course.imageUrl || undefined}>
+                            <source src={course.previewVideoUrl} type="video/mp4" />
+                          </video>
+                        );
+                      })()
+                    ) : (
+                      <video controls controlsList="nodownload" className="w-full h-full" poster={course.imageUrl || undefined}>
+                        <source src={course.previewVideoUrl} type="video/mp4" />
+                      </video>
+                    )}
+                    {/* Tags overlay */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-1 items-end pointer-events-none">
+                       <span className="bg-[#b4d429] text-[10px] font-bold px-2 py-0.5 shadow-sm text-slate-900 uppercase pointer-events-auto">{course.category}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-full relative group">
                     {course.imageUrl ? (
                       <img 
                         src={course.imageUrl} 
@@ -211,72 +254,11 @@ export default function CourseDetailsPage() {
                         No Preview Available
                       </div>
                     )}
-                    {/* Play Button Overlay */}
-                    {course.previewVideoUrl && (
-                      <div 
-                        className="absolute inset-0 bg-black/30 flex items-center justify-center cursor-pointer hover:bg-black/40 transition-colors"
-                        onClick={() => setPlayPreviewVideo(true)}
-                      >
-                        <div className="w-16 h-16 rounded-full border-4 border-white/80 flex items-center justify-center bg-transparent backdrop-blur-sm group-hover:scale-110 transition-transform">
-                          <Play size={28} className="text-white fill-white ml-1" />
-                        </div>
-                      </div>
-                    )}
-                    {/* Tags overlay (like Alison) */}
+                    {/* Tags overlay */}
                     <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
                        <span className="bg-[#b4d429] text-[10px] font-bold px-2 py-0.5 shadow-sm text-slate-900 uppercase">{course.category}</span>
                     </div>
-                  </>
-                ) : (
-                  course.previewVideoUrl && (
-                    <div className="w-full h-full relative bg-black">
-                      {course.previewVideoType === "URL" ? (
-                        (() => {
-                          const ytId = getYoutubeId(course.previewVideoUrl);
-                          if (ytId) {
-                            return (
-                              <iframe
-                                className="w-full h-full"
-                                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1`}
-                                title="Course Promo Video"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                              />
-                            );
-                          }
-                          const vimeoId = getVimeoId(course.previewVideoUrl);
-                          if (vimeoId) {
-                            return (
-                              <iframe
-                                className="w-full h-full"
-                                src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1`}
-                                title="Course Promo Video"
-                                frameBorder="0"
-                                allow="autoplay; fullscreen; picture-in-picture"
-                                allowFullScreen
-                              />
-                            );
-                          }
-                          return (
-                            <video autoPlay controls controlsList="nodownload" className="w-full h-full">
-                              <source src={course.previewVideoUrl} type="video/mp4" />
-                            </video>
-                          );
-                        })()
-                      ) : (
-                        <video autoPlay controls controlsList="nodownload" className="w-full h-full">
-                          <source src={course.previewVideoUrl} type="video/mp4" />
-                        </video>
-                      )}
-                      <button
-                        onClick={() => setPlayPreviewVideo(false)}
-                        className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/80 rounded-full text-white transition-colors"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  )
+                  </div>
                 )}
               </div>
 
