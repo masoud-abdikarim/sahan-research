@@ -285,8 +285,8 @@ export default function LandingPage() {
               {/* Desktop Nav */}
               <nav className="hidden md:flex items-center gap-7">
                 {[
-                  ["About", "#about", "about"],
                   ["Courses", "#courses", "courses"],
+                  ["About", "#about", "about"],
                   ["Features", "#features", "features"],
                   ["How It Works", "#how", "how"],
                   ["Testimonials", "#testimonials", "testimonials"],
@@ -343,8 +343,8 @@ export default function LandingPage() {
             >
               <div className="px-6 py-8 flex flex-col gap-5">
                 {[
-                  ["About", "#about"],
                   ["Courses", "#courses"],
+                  ["About", "#about"],
                   ["Features", "#features"],
                   ["How It Works", "#how"],
                   ["Testimonials", "#testimonials"]
@@ -917,8 +917,8 @@ export default function LandingPage() {
 
             {/* Quick Links */}
             <motion.div variants={fadeInUp} className="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              <a href="#about" onClick={(e) => handleNavClick(e, '#about')} className="hover:text-indigo-400 transition-colors">About</a>
               <a href="#courses" onClick={(e) => handleNavClick(e, '#courses')} className="hover:text-indigo-400 transition-colors">Courses</a>
+              <a href="#about" onClick={(e) => handleNavClick(e, '#about')} className="hover:text-indigo-400 transition-colors">About</a>
               <a href="#features" onClick={(e) => handleNavClick(e, '#features')} className="hover:text-indigo-400 transition-colors">Features</a>
               <a href="#how" onClick={(e) => handleNavClick(e, '#how')} className="hover:text-indigo-400 transition-colors">Process</a>
               <a href="mailto:SahanResearch252@gmail.com" className="hover:text-indigo-400 transition-colors">Contact</a>
