@@ -44,7 +44,7 @@ type StudentData = {
 };
 
 export default function ManageStudentsPage() {
-  const { user } = useSelector((state: RootState) => state.user);
+  const { currentUser } = useSelector((state: RootState) => state.user);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [allCourses, setAllCourses] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -333,7 +333,7 @@ export default function ManageStudentsPage() {
                         Details <ChevronRight size={14} className="ml-0.5" />
                       </Link>
 
-                      {user?.role === "SUPERADMIN" && (
+                      {currentUser?.role === "SUPERADMIN" && (
                         <>
                           <button 
                             onClick={() => handleOpenEdit(s)}
