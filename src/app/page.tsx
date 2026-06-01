@@ -899,8 +899,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-   0
-
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
       <footer className="relative bg-slate-900 py-16 overflow-hidden transition-colors duration-500 border-t border-slate-800">
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
