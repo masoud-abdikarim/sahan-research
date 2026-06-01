@@ -160,11 +160,7 @@ export default function LandingPage() {
   const filteredCourses = useMemo(() => {
     if (!searchQuery) return courses;
     return courses.filter((c) => c.name?.toLowerCase().includes(searchQuery.toLowerCase()));
-}, [searchQuery, courses]);
-  }, [searchQuery, courses]);
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    
+}, [searchQuery, courses]);    
     // Intersection Observer for active section highlighting
     const sections = ["about", "courses", "features", "how", "testimonials"];
     const observers: IntersectionObserver[] = [];
