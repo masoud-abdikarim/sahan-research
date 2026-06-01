@@ -250,7 +250,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex flex-col leading-none">
                   <span className="text-[14px] font-black tracking-tight text-slate-900 dark:text-white uppercase">Sahan Research</span>
-                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.1em]">Studies Center</span>
+                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.1em]">& Studies Center</span>
                 </div>
               </Link>
             </motion.div>
