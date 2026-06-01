@@ -540,32 +540,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
             >
-              {courses.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map((course) => (
-                <motion.div 
-                  key={course.id} 
-                  variants={fadeInUp}
-                  whileHover={{ y: -10 }}
-                  className="group transition-all duration-500"
-                >
-                  <CourseCard 
-                    course={course} 
-                    actionLabel={currentUser ? "Enroll Now" : "Quick Enroll"}
-                    onAction={() => window.location.href = currentUser ? '/dashboard/active-courses' : '/login'}
-                    secondaryActionLabel="View Details"
-                    onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
-                    onCardClick={() => window.location.href = `/courses/${course.id}`}
-                  />
-                </motion.div>
-              ))}
-              {courses.length > 0 && courses.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                <div className="col-span-full py-20 text-center">
-                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                    <Search size={32} />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No courses found</h3>
-                  <p className="text-slate-500">We couldn't find any courses matching "{searchQuery}".</p>
-                </div>
-              )}
+
               {courses.length === 0 && !coursesLoading && (
                 <motion.div 
                   variants={fadeInUp}
