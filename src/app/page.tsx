@@ -7,7 +7,7 @@ import {
   Microscope, Library, BarChart3, Globe2, Mail, Phone, MapPin,
   Clock, DollarSign, Zap, UserPlus, Search, LineChart, Menu, PlaySquare, MonitorPlay
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { Course } from "@/redux/slice/courseSlice";
 import CourseCard from "@/components/CourseCard";
@@ -157,7 +157,11 @@ export default function LandingPage() {
     fetchCourses();
   }, []);
 
-  useEffect(() => {
+  const filteredCourses = useMemo(() => {
+    if (!searchQuery) return courses;
+    return courses.filter((c) => c.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+}, [searchQuery, courses]);
+  }, [searchQuery, courses]);
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     
@@ -528,7 +532,48 @@ export default function LandingPage() {
             </motion.p>
           </motion.div>
 
-          {coursesLoading ? (
+                    {coursesLoading ? (
+            <div className="py-20 flex justify-center">
+              <Loader />
+            </div>
+          ) : (
+            <motion.div
+              initial="initial"
+              whileInView="whileInView"
+              variants={staggerContainer}
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
+            >
+              {filteredCourses.length === 0 && courses.length > 0 ? (
+                <div className="col-span-full py-20 text-center">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                    <Search size={32} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No courses found</h3>
+                  <p className="text-slate-500">We couldn't find any courses matching "{searchQuery}".</p>
+                </div>
+              ) : (
+                filteredCourses.map((course) => (
+                  <motion.div
+                    key={course.id}
+                    variants={fadeInUp}
+                    whileHover={{ y: -10 }}
+                    className="group transition-all duration-500"
+                  >
+                    <CourseCard
+                      course={course}
+                      actionLabel={currentUser ? "Enroll Now" : "Quick Enroll"}
+                      onAction={() => window.location.href = currentUser ? '/dashboard/active-courses' : '/login'}
+                      secondaryActionLabel="View Details"
+                      onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
+                      onCardClick={() => window.location.href = `/courses/${course.id}`}
+                    />
+                  </motion.div>
+                ))
+              )}
+            </motion.div>
+          )}
+
             <div className="py-20 flex justify-center">
               <Loader />
             </div>
