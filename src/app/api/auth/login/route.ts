@@ -5,31 +5,24 @@ import { encrypt } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { checkIpRateLimit, resetIpRateLimit } from "@/lib/rate-limit";
 
-const BASE_LOCK_DURATIONS = [
-  1 * 60 * 1000,      // Level 1: 1m
-  4 * 60 * 1000,      // Level 2: 4m
-  10 * 60 * 1000,     // Level 3: 10m
-  20 * 60 * 1000,     // Level 4: 20m
-  40 * 60 * 1000,     // Level 5: 40m
-  60 * 60 * 1000,     // Level 6: 1h
-  2 * 60 * 60 * 1000, // Level 7: 2h
-  4 * 60 * 60 * 1000, // Level 8: 4h
-  8 * 60 * 60 * 1000, // Level 9: 8h
-  24 * 60 * 60 * 1000 // Level 10: 24h
-];
+const BASE_LOCK_MS = 30 * 1000; // 30 seconds
 
-function getLockDuration(level: number, isAdmin: boolean) {
-  let adjustedLevel = isAdmin ? level + 2 : level;
-  if (adjustedLevel >= BASE_LOCK_DURATIONS.length) adjustedLevel = BASE_LOCK_DURATIONS.length - 1;
-  return BASE_LOCK_DURATIONS[adjustedLevel];
+/**
+ * Returns lock duration in milliseconds.
+ * Each subsequent lock increases by 30 seconds.
+ * lockCount represents how many times the user has been locked before.
+ */
+function formatDuration(ms: number) {
+  const totalSeconds = Math.ceil(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const parts = [];
+  if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+  if (seconds > 0) parts.push(`${seconds} second${seconds !== 1 ? 's' : ''}`);
+  return parts.join(' ');
 }
-
-function getMaxAttempts(level: number, isAdmin: boolean) {
-  if (isAdmin) {
-    return level === 0 ? 2 : 0;
-  } else {
-    return level === 0 ? 4 : level === 1 ? 2 : 0;
-  }
+function getLockDuration(lockCount: number) {
+  return (lockCount + 1) * BASE_LOCK_MS;
 }
 
 export async function POST(req: Request) {
@@ -63,61 +56,54 @@ export async function POST(req: Request) {
 
     if (user.loginLockUntil && new Date() < user.loginLockUntil) {
       const waitMs = user.loginLockUntil.getTime() - Date.now();
-      const minutes = Math.ceil(waitMs / 60000);
-      return NextResponse.json({ 
-        message: `Too many failed attempts. Try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`,
+      const seconds = Math.ceil(waitMs / 1000);
+      const durationStr = formatDuration(waitMs);
+      return NextResponse.json({
+        message: `Too many failed login attempts. Please wait ${durationStr} before trying again.`,
         locked: true,
-        lockUntil: user.loginLockUntil.toISOString()
+        lockUntil: user.loginLockUntil.toISOString(),
       }, { status: 403 });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     
     if (!isMatch) {
-      const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
-
-      // Use atomic increment to prevent race conditions
+      // Increment failed attempts and record timestamp
       const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           failedLoginAttempts: { increment: 1 },
-          lastFailedLogin: new Date()
-        }
+          lastFailedLogin: new Date(),
+        },
       });
 
-      let failedAttempts = updatedUser.failedLoginAttempts;
-      let lockLevel = updatedUser.lockLevel;
-      let loginLockUntil = updatedUser.loginLockUntil;
-      let isLockedNow = false;
+      const failedAttempts = updatedUser.failedLoginAttempts;
+      const lockCount = user.lockLevel ?? 0; // reuse lockLevel as lock count
 
-      const maxAttempts = getMaxAttempts(lockLevel, isAdmin);
-
-      if (failedAttempts > maxAttempts) {
-        const durationMs = getLockDuration(lockLevel, isAdmin);
-        loginLockUntil = new Date(Date.now() + durationMs);
-        lockLevel += 1;
-        
+      // Allow up to 3 attempts before locking
+      if (failedAttempts > 3) {
+        const lockDurationMs = getLockDuration(lockCount);
+        const lockUntil = new Date(Date.now() + lockDurationMs);
         await prisma.user.update({
           where: { id: user.id },
           data: {
-            failedLoginAttempts: 0, // Reset for the next level
-            lockLevel: lockLevel,
-            loginLockUntil: loginLockUntil
-          }
+            failedLoginAttempts: 0,
+            lockLevel: lockCount + 1,
+            loginLockUntil: lockUntil,
+          },
         });
-        isLockedNow = true;
+        const durationStr = formatDuration(lockDurationMs);
+        return NextResponse.json(
+          {
+            message: `Too many failed login attempts. Please wait ${durationStr} before trying again.`,
+            locked: true,
+            lockUntil: lockUntil.toISOString(),
+          },
+          { status: 403 }
+        );
       }
 
-      if (isLockedNow) {
-        const waitMs = loginLockUntil!.getTime() - Date.now();
-        const minutes = Math.ceil(waitMs / 60000);
-        return NextResponse.json({ 
-          message: `Too many failed attempts. Account locked for ${minutes} minute${minutes > 1 ? 's' : ''}.`,
-          locked: true,
-          lockUntil: loginLockUntil!.toISOString()
-        }, { status: 403 });
-      }
-
+      // Not locked yet, return generic invalid credentials
       return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
