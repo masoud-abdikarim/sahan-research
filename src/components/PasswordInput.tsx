@@ -57,7 +57,7 @@ export function PasswordInput({
           onChange={onChange}
           disabled={disabled}
           className={`appearance-none block w-full pl-10 pr-12 py-3 border rounded-xl bg-gray-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 transition-all outline-none font-medium text-gray-700 dark:text-slate-200 ${
-            value && error 
+            value && error && showRequirements
               ? "border-red-200 dark:border-red-900 focus:ring-red-100 dark:focus:ring-red-900/20 focus:border-red-500" 
               : "border-gray-100 dark:border-slate-800 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 focus:border-indigo-500"
           } ${disabled ? "opacity-50" : ""} ${className}`}
@@ -100,11 +100,7 @@ export function PasswordInput({
         </div>
       )}
 
-      {value && error && (
-        <p className="text-[10px] font-black text-red-500 dark:text-red-400 uppercase tracking-widest px-1">
-          {error}
-        </p>
-      )}
+
     </div>
   );
 }
