@@ -144,57 +144,67 @@ export default function LandingPage() {
   }, [pathname]);
 
   useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchCourses = async () => {
       try {
         const res = await axios.get("/api/courses");
-        setCourses(res.data.courses);
-      } catch (error) {
+        // Clone the array to avoid accidental mutation of the original data
+        setCourses(Array.isArray(res.data.courses) ? [...res.data.courses] : []);
+        } catch (error) {
         console.error("Failed to fetch courses:", error);
-      } finally {
+        } finally {
         setCoursesLoading(false);
-      }
+        }
     };
     fetchCourses();
   }, []);
 
   const filteredCourses = useMemo(() => {
     if (!searchQuery) return courses;
-    return courses.filter((c) => c.name?.toLowerCase().includes(searchQuery.toLowerCase()));
-}, [searchQuery, courses]);    
+    // Ensure we work on a shallow copy to keep original array untouched
+    const source = Array.isArray(courses) ? [...courses] : [];
+    return source.filter((c) => c.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [searchQuery, courses]);
     // Intersection Observer for active section highlighting
     const sections = ["about", "courses", "features", "how", "testimonials"];
-    const observers: IntersectionObserver[] = [];
 
-    const observerOptions = {
-      root: null,
-      rootMargin: "-20% 0px -70% 0px", // Trigger when section is in the upper part of the viewport
-      threshold: 0
-    };
+    useEffect(() => {
+      const observerOptions = {
+        root: null,
+        rootMargin: "-20% 0px -70% 0px", // Trigger when section is in the upper part of the viewport
+        threshold: 0
+      };
 
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
+      const observerCallback = (entries: IntersectionObserverEntry[]) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      };
+
+      const observer = new IntersectionObserver(observerCallback, observerOptions);
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
       });
-    };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    sections.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    // Enable smooth scrolling for all anchor links
-    if (!shouldReduceMotion) {
-      document.documentElement.style.scrollBehavior = "smooth";
-    }
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      observer.disconnect();
-      document.documentElement.style.scrollBehavior = "";
-    };
-  }, [shouldReduceMotion]);
+      // Enable smooth scrolling for all anchor links
+      if (!shouldReduceMotion) {
+        document.documentElement.style.scrollBehavior = "smooth";
+      }
+      return () => {
+        observer.disconnect();
+        document.documentElement.style.scrollBehavior = "";
+      };
+    }, [shouldReduceMotion]);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.startsWith("#")) {
@@ -570,29 +580,7 @@ export default function LandingPage() {
             </motion.div>
           )}
 
-            <div className="py-20 flex justify-center">
-              <Loader />
-            </div>
-          ) : (
-            <motion.div 
-              initial="initial"
-              whileInView="whileInView"
-              variants={staggerContainer}
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
-            >
 
-              {courses.length === 0 && !coursesLoading && (
-                <motion.div 
-                  variants={fadeInUp}
-                  className="col-span-full py-32 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800 transition-colors"
-                >
-                  <BookOpen className="mx-auto text-slate-300 dark:text-slate-700 mb-6" size={64} />
-                  <p className="text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-xs">No courses are currently available.</p>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
         </div>
       </section>
 
