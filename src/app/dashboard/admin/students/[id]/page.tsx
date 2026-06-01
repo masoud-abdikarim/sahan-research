@@ -11,8 +11,11 @@ import {
   ShieldAlert
 } from "lucide-react";
 import { PasswordInput } from "@/components/PasswordInput";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 export default function StudentProfilePage() {
+  const { user } = useSelector((state: RootState) => state.user);
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -275,51 +278,53 @@ export default function StudentProfilePage() {
                   </div>
 
                   {/* Admin Account Actions */}
-                  <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/30 rounded-3xl p-6">
-                    <h3 className="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <ShieldAlert size={16} /> Admin Actions
-                    </h3>
-                    
-                    {!showResetModal ? (
-                      <button 
-                        onClick={() => setShowResetModal(true)}
-                        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 transition-all shadow-sm"
-                      >
-                        <Lock size={14} /> Force Reset Password
-                      </button>
-                    ) : (
-                      <form onSubmit={handleAdminResetPassword} className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">New Student Password</label>
-                          <PasswordInput
-                            value={adminNewPassword}
-                            onChange={(e) => setAdminNewPassword(e.target.value)}
-                            placeholder="Enter new password"
-                            showRequirements={true}
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="submit"
-                            disabled={isAdminResetting}
-                            className="flex-1 py-3 px-4 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 dark:shadow-none disabled:opacity-50"
-                          >
-                            {isAdminResetting ? "Resetting..." : "Confirm Reset"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowResetModal(false);
-                              setAdminNewPassword("");
-                            }}
-                            className="px-4 py-3 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 text-xs font-black uppercase tracking-widest rounded-xl"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
+                  {user?.role === "SUPERADMIN" && (
+                    <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/30 rounded-3xl p-6">
+                      <h3 className="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <ShieldAlert size={16} /> Admin Actions
+                      </h3>
+                      
+                      {!showResetModal ? (
+                        <button 
+                          onClick={() => setShowResetModal(true)}
+                          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 transition-all shadow-sm"
+                        >
+                          <Lock size={14} /> Force Reset Password
+                        </button>
+                      ) : (
+                        <form onSubmit={handleAdminResetPassword} className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest">New Student Password</label>
+                            <PasswordInput
+                              value={adminNewPassword}
+                              onChange={(e) => setAdminNewPassword(e.target.value)}
+                              placeholder="Enter new password"
+                              showRequirements={true}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              disabled={isAdminResetting}
+                              className="flex-1 py-3 px-4 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 dark:shadow-none disabled:opacity-50"
+                            >
+                              {isAdminResetting ? "Resetting..." : "Confirm Reset"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowResetModal(false);
+                                setAdminNewPassword("");
+                              }}
+                              className="px-4 py-3 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 text-xs font-black uppercase tracking-widest rounded-xl"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -20,6 +20,8 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 type StudentData = {
   id: number;
@@ -42,6 +44,7 @@ type StudentData = {
 };
 
 export default function ManageStudentsPage() {
+  const { user } = useSelector((state: RootState) => state.user);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [allCourses, setAllCourses] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -330,19 +333,23 @@ export default function ManageStudentsPage() {
                         Details <ChevronRight size={14} className="ml-0.5" />
                       </Link>
 
-                      <button 
-                        onClick={() => handleOpenEdit(s)}
-                        className="inline-flex items-center justify-center bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 h-8 px-3 rounded-lg text-xs font-bold hover:bg-amber-600 hover:text-white dark:hover:bg-amber-500 transition-all"
-                      >
-                        <Edit size={14} className="mr-1" /> Edit
-                      </button>
+                      {user?.role === "SUPERADMIN" && (
+                        <>
+                          <button 
+                            onClick={() => handleOpenEdit(s)}
+                            className="inline-flex items-center justify-center bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 h-8 px-3 rounded-lg text-xs font-bold hover:bg-amber-600 hover:text-white dark:hover:bg-amber-500 transition-all"
+                          >
+                            <Edit size={14} className="mr-1" /> Edit
+                          </button>
 
-                      <button 
-                        onClick={() => handleOpenDelete(s)}
-                        className="inline-flex items-center justify-center bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 h-8 px-3 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white dark:hover:bg-red-500 transition-all"
-                      >
-                        <Trash2 size={14} className="mr-1" /> Delete
-                      </button>
+                          <button 
+                            onClick={() => handleOpenDelete(s)}
+                            className="inline-flex items-center justify-center bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 h-8 px-3 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white dark:hover:bg-red-500 transition-all"
+                          >
+                            <Trash2 size={14} className="mr-1" /> Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
