@@ -374,7 +374,7 @@ export default function LandingPage() {
 
 
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-32 pb-24 lg:pt-44 lg:pb-32 transition-colors duration-500">
+      <section className="relative overflow-hidden pt-32 pb-12 lg:pt-44 lg:pb-16 transition-colors duration-500">
         {/* Background blobs */}
         <motion.div
           animate={
@@ -488,7 +488,7 @@ export default function LandingPage() {
             initial="initial"
             whileInView="whileInView"
             viewport={{ once: true }}
-            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-100 dark:bg-slate-800 rounded-3xl overflow-hidden shadow-2xl shadow-indigo-100/50 dark:shadow-black/50 border border-slate-100 dark:border-slate-800"
+            className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-100 dark:bg-slate-800 rounded-3xl overflow-hidden shadow-2xl shadow-indigo-100/50 dark:shadow-black/50 border border-slate-100 dark:border-slate-800"
           >
             {[
               { label: "Enrolled Students", end: 1240, suffix: "+" },
@@ -508,14 +508,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── COURSES SECTION ────────────────────────────────────────────────── */}
-      <section id="courses" className="py-16 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
+      <section id="courses" className="py-12 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="initial"
             whileInView="whileInView"
             variants={staggerContainer}
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-12"
           >
             <motion.div 
               variants={fadeInUp}
@@ -591,7 +591,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── ABOUT ───────────────────────────────────────────────────────────── */}
-      <section id="about" className="py-16 bg-slate-50 dark:bg-slate-950/50 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500 relative overflow-hidden">
+      <section id="about" className="py-12 bg-slate-50 dark:bg-slate-950/50 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
             
@@ -691,14 +691,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── FEATURES ────────────────────────────────────────────────────────── */}
-      <section id="features" className="py-16 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
+      <section id="features" className="py-12 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="initial"
             whileInView="whileInView"
             variants={staggerContainer}
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-12"
           >
             <motion.div 
               variants={fadeInUp}
@@ -751,14 +751,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
-      <section id="how" className="py-16 bg-slate-50 dark:bg-slate-950/50 border-y border-slate-100 dark:border-slate-800 transition-colors duration-500">
+      <section id="how" className="py-12 bg-slate-50 dark:bg-slate-950/50 border-y border-slate-100 dark:border-slate-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="initial"
             whileInView="whileInView"
             variants={staggerContainer}
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-12"
           >
             <motion.div 
               variants={fadeInUp}
@@ -824,7 +824,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-20 text-center"
+            className="mt-12 text-center"
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
               <Link
@@ -839,14 +839,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
-      <section id="testimonials" className="py-32 bg-white dark:bg-slate-950 transition-colors duration-500">
+      <section id="testimonials" className="py-12 bg-white dark:bg-slate-950 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div 
             initial="initial"
             whileInView="whileInView"
             variants={staggerContainer}
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-12"
           >
             <motion.div 
               variants={fadeInUp}
@@ -906,7 +906,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
-      <footer className="relative bg-slate-900 py-16 overflow-hidden transition-colors duration-500 border-t border-slate-800">
+      <footer className="relative bg-slate-900 py-10 overflow-hidden transition-colors duration-500 border-t border-slate-800">
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             
@@ -914,10 +914,10 @@ export default function LandingPage() {
             <motion.div variants={fadeInUp} className="flex flex-col items-center md:items-start gap-3 text-center md:text-left">
               <div className="flex items-center gap-2">
                 <img src="/logo.jpeg" alt="Logo" className="w-6 h-6 rounded-md object-cover" />
-                <span className="text-sm font-black text-white uppercase tracking-tight">Sahan Studies</span>
+                <span className="text-sm font-black text-white uppercase tracking-tight">Sahan Research and Studies Center</span>
               </div>
               <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.15em]">
-                © {new Date().getFullYear()} Sahan Studies Center. All rights reserved.
+                © {new Date().getFullYear()} Sahan Research and Studies Center. All rights reserved.
               </p>
             </motion.div>
 
