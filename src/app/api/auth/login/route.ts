@@ -80,8 +80,10 @@ export async function POST(req: Request) {
       const failedAttempts = updatedUser.failedLoginAttempts;
       const lockCount = user.lockLevel ?? 0; // reuse lockLevel as lock count
 
-      // Allow up to 3 attempts before locking
-      if (failedAttempts > 3) {
+      // 3 attempts initially, then 1 attempt for subsequent locks
+      const allowedAttempts = lockCount === 0 ? 3 : 1;
+
+      if (failedAttempts >= allowedAttempts) {
         const lockDurationMs = getLockDuration(lockCount);
         const lockUntil = new Date(Date.now() + lockDurationMs);
         await prisma.user.update({
