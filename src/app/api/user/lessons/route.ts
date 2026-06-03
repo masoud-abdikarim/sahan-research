@@ -81,7 +81,7 @@ export async function GET(req: Request) {
       const daysSinceEnrollment = enrollment?.createdAt 
         ? Math.floor((Date.now() - new Date(enrollment.createdAt).getTime()) / msInDay) 
         : 0;
-      const totalCredits = daysSinceEnrollment + 1;
+      const totalCredits = (daysSinceEnrollment + 1) * 2;
       const usedCredits = completedOrders.length;
       const availableCredits = Math.max(0, totalCredits - usedCredits);
       const nextUnlockTime = enrollment?.createdAt 
