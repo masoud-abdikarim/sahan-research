@@ -32,6 +32,20 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId, url: file.url };
     }),
 
+  systemVideoUploader: f({ video: { maxFileSize: "2GB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const session = await getSession();
+      if (!session || session.role !== "SUPERADMIN") {
+        throw new Error("Unauthorized");
+      }
+      return { userId: session.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("System Video upload complete for userId:", metadata.userId);
+      console.log("System Video File URL:", file.url);
+      return { uploadedBy: metadata.userId, url: file.url };
+    }),
+
   audioUploader: f({ audio: { maxFileSize: "256MB", maxFileCount: 1 } })
     .middleware(async ({ req }) => {
       const session = await getSession();

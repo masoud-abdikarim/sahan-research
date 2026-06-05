@@ -134,6 +134,7 @@ export default function LandingPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [systemVideo, setSystemVideo] = useState<{ videoType: "UPLOAD" | "URL"; videoUrl: string } | null>(null);
   
   // Access auth state from 
   const { currentUser } = useSelector((state: RootState) => state.user);
@@ -163,7 +164,16 @@ export default function LandingPage() {
         setCoursesLoading(false);
         }
     };
+    const fetchSystemVideo = async () => {
+      try {
+        const res = await axios.get("/api/public/landing-video");
+        if (res.data) setSystemVideo(res.data);
+      } catch (error) {
+        console.error("Failed to fetch system video:", error);
+      }
+    };
     fetchCourses();
+    fetchSystemVideo();
   }, []);
 
   const filteredCourses = useMemo(() => {
@@ -506,6 +516,60 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ── SYSTEM INTRODUCTION VIDEO ──────────────────────────────────────── */}
+      {systemVideo && (
+        <section id="intro-video" className="py-16 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500">
+          <div className="max-w-5xl mx-auto px-6 lg:px-8">
+            <motion.div 
+              initial="initial"
+              whileInView="whileInView"
+              variants={staggerContainer}
+              viewport={{ once: true }}
+              className="text-center mb-10"
+            >
+              <motion.div 
+                variants={fadeInUp}
+                className="inline-flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-[10px] font-black px-4 py-2 rounded-full mb-6 uppercase tracking-widest shadow-sm"
+              >
+                <PlaySquare size={12} />
+                Platform Overview
+              </motion.div>
+              <motion.h2 
+                variants={fadeInUp}
+                className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tight"
+              >
+                How to Use the Sahan Research System
+              </motion.h2>
+              <motion.p 
+                variants={fadeInUp}
+                className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto font-medium"
+              >
+                Watch this complete overview of the platform and its features to get started on your academic journey.
+              </motion.p>
+            </motion.div>
+
+            <motion.div variants={fadeInUp} className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-black border-4 border-white dark:border-slate-800">
+              {systemVideo.videoType === "URL" && systemVideo.videoUrl.includes("youtube.com") ? (
+                <iframe
+                  src={systemVideo.videoUrl.replace("watch?v=", "embed/")}
+                  title="System Introduction Video"
+                  className="w-full h-full"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={systemVideo.videoUrl}
+                  controls
+                  controlsList="nodownload"
+                  preload="metadata"
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* ── COURSES SECTION ────────────────────────────────────────────────── */}
       <section id="courses" className="py-12 bg-white dark:bg-slate-950 border-t border-slate-50 dark:border-slate-800 transition-colors duration-500">

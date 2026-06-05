@@ -248,3 +248,11 @@ model Certificate {
 
   @@unique([userId, courseId])
 }
+
+model SystemVideo {
+  id        Int       @id @default(autoincrement())
+  videoType VideoType @default(URL)
+  videoUrl  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}

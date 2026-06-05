@@ -75,6 +75,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     "Exams Management",
     "Certificates",
     "Manage Admins",
+    "Landing Page Video",
   ];
 
   const fullAdminNav = [
@@ -87,6 +88,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Completion History", href: "/dashboard/admin/completion-history", icon: TrendingUp },
     { name: "Manage Students", href: "/dashboard/admin/students", icon: Users },
     { name: "Manage Admins", href: "/dashboard/admin/users", icon: Shield },
+    { name: "Landing Page Video", href: "/dashboard/admin/landing-video", icon: Video },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
