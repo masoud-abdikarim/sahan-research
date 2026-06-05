@@ -539,7 +539,7 @@ export default function LandingPage() {
                 variants={fadeInUp}
                 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tight"
               >
-                How to Use the Sahan Research System
+                How to Use the Sahan Academic System
               </motion.h2>
               <motion.p 
                 variants={fadeInUp}
