@@ -835,7 +835,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight"
             >
-              Your Journey to Research Mastery
+              Your Journey to Academic Mastery
             </motion.h2>
             <motion.p 
               variants={fadeInUp}
