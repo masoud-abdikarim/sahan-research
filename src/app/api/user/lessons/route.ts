@@ -139,7 +139,7 @@ export async function GET(req: Request) {
           }
         }
 
-        const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "", audioUrl: "" };
+        const safeLesson = unlocked ? lesson : { ...lesson, videoUrl: "", audioUrls: [] };
 
         finalLessons.push({
           ...safeLesson,

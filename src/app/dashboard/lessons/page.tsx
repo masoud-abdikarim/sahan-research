@@ -38,6 +38,170 @@ function isValidLessonVideoUrl(raw: string): boolean {
   return false;
 }
 
+function AudioPlayerItem({
+  url,
+  order,
+  title,
+  onTimeUpdate,
+  onEnded,
+}: {
+  url: string;
+  order: number;
+  title: string;
+  onTimeUpdate: (e: any) => void;
+  onEnded: () => void;
+}) {
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [audioVolume, setAudioVolume] = useState(0.8);
+  const [isMuted, setIsMuted] = useState(false);
+
+  const togglePlay = () => {
+    if (!audioElRef.current) return;
+    if (isPlaying) {
+      audioElRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioElRef.current.play().then(() => setIsPlaying(true)).catch(err => console.error("Audio playback error:", err));
+    }
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioElRef.current) return;
+    const val = parseFloat(e.target.value);
+    audioElRef.current.currentTime = val;
+    setCurrentTime(val);
+  };
+
+  const changeSpeed = () => {
+    if (!audioElRef.current) return;
+    const speeds = [1, 1.25, 1.5, 2];
+    const nextIdx = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
+    const nextSpeed = speeds[nextIdx];
+    audioElRef.current.playbackRate = nextSpeed;
+    setPlaybackSpeed(nextSpeed);
+  };
+
+  const skip = (seconds: number) => {
+    if (!audioElRef.current) return;
+    audioElRef.current.currentTime = Math.max(0, Math.min(audioElRef.current.duration || 0, audioElRef.current.currentTime + seconds));
+  };
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "00:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="w-full bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 relative overflow-hidden flex flex-col items-center mb-6 last:mb-0 rounded-2xl">
+      <audio
+        ref={audioElRef}
+        src={url}
+        preload="metadata"
+        onTimeUpdate={(e: any) => {
+          setCurrentTime(e.target.currentTime);
+          onTimeUpdate(e);
+        }}
+        onLoadedMetadata={(e: any) => setDuration(e.target.duration)}
+        onEnded={() => {
+          setIsPlaying(false);
+          onEnded();
+        }}
+        controlsList="nodownload"
+        className="hidden"
+      />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="w-full flex items-center justify-between gap-4 mb-8 z-10">
+        <div className="flex items-center gap-2">
+          <Headphones size={18} className="text-indigo-400 animate-pulse" />
+          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-400">
+            Premium Audio Experience
+          </span>
+        </div>
+        <div className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+          <span className="text-[9px] font-black uppercase tracking-widest text-indigo-300">
+            Track {order}
+          </span>
+        </div>
+      </div>
+      <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-1 shadow-2xl relative flex items-center justify-center mb-8 z-10 group cursor-pointer" onClick={togglePlay}>
+        <div className={`absolute inset-0 rounded-full bg-indigo-500/30 blur-md transition-all duration-700 ${isPlaying ? "scale-110 opacity-100 animate-ping" : "scale-100 opacity-0"}`} />
+        <div className="w-full h-full bg-slate-950 rounded-full flex flex-col items-center justify-center relative overflow-hidden">
+          <Volume2 size={40} className={`text-indigo-400 transition-all duration-500 ${isPlaying ? "scale-110 rotate-3 text-indigo-300" : "scale-100"}`} />
+          <div className="flex gap-1 items-end mt-4 h-6">
+            <span className={`w-0.5 bg-indigo-400/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_1.2s_infinite_alternate] h-4" : "h-1"}`} />
+            <span className={`w-0.5 bg-indigo-300/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_0.8s_infinite_alternate] h-6" : "h-1"}`} style={{ animationDelay: "0.2s" }} />
+            <span className={`w-0.5 bg-indigo-400/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_1.5s_infinite_alternate] h-3" : "h-1"}`} style={{ animationDelay: "0.4s" }} />
+            <span className={`w-0.5 bg-indigo-300/80 rounded-full transition-all duration-300 ${isPlaying ? "animate-[pulse_1s_infinite_alternate] h-5" : "h-1"}`} style={{ animationDelay: "0.1s" }} />
+          </div>
+        </div>
+      </div>
+      <div className="text-center max-w-lg mb-8 z-10">
+        <h4 className="text-xl font-black text-white leading-tight uppercase tracking-tight mb-2">
+          {title}
+        </h4>
+        <p className="text-xs text-slate-400 font-medium">Listen and take notes to complete this coursework</p>
+      </div>
+      <div className="w-full space-y-2 mb-8 z-10">
+        <div className="flex items-center justify-between text-[11px] font-black text-slate-400 tracking-wider">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
+        <div className="relative group/slider w-full">
+          <input
+            type="range"
+            min={0}
+            max={duration || 100}
+            value={currentTime}
+            onChange={handleTimeChange}
+            className="w-full h-1.5 bg-slate-800 rounded-full appearance-none cursor-pointer outline-none accent-indigo-500 group-hover/slider:accent-indigo-400 transition-all"
+            style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(currentTime / (duration || 100)) * 100}%, #1e293b ${(currentTime / (duration || 100)) * 100}%, #1e293b 100%)` }}
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-between w-full gap-4 z-10">
+        <button type="button" onClick={changeSpeed} className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-indigo-400 text-xs font-black uppercase tracking-widest border border-slate-700 transition-colors min-w-[70px]">{playbackSpeed.toFixed(2)}x</button>
+        <div className="flex items-center gap-6">
+          <button type="button" onClick={() => skip(-10)} className="p-3 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors" title="Rewind 10s">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
+            </svg>
+          </button>
+          <button type="button" onClick={togglePlay} className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white flex items-center justify-center shadow-xl hover:scale-105 transition-all">
+            {isPlaying ? (
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+            ) : (
+              <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+            )}
+          </button>
+          <button type="button" onClick={() => skip(10)} className="p-3 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors" title="Forward 10s">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.934 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.334-4z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.934 12.8a1 1 0 000-1.6l-5.334-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.334-4z" />
+            </svg>
+          </button>
+        </div>
+        <div className="flex items-center gap-2 min-w-[70px] justify-end">
+          <button type="button" onClick={() => { if (!audioElRef.current) return; const newMuted = !isMuted; audioElRef.current.muted = newMuted; setIsMuted(newMuted); }} className="text-slate-400 hover:text-indigo-400 transition-colors">
+            {isMuted || audioVolume === 0 ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+            )}
+          </button>
+          <input type="range" min={0} max={1} step={0.05} value={isMuted ? 0 : audioVolume} onChange={(e) => { if (!audioElRef.current) return; const val = parseFloat(e.target.value); audioElRef.current.volume = val; setAudioVolume(val); if (val > 0 && isMuted) { audioElRef.current.muted = false; setIsMuted(false); } }} className="w-12 h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LessonsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { lessons, loading: lessonsLoading } = useSelector((state: RootState) => state.lesson);
@@ -105,7 +269,7 @@ export default function LessonsPage() {
   const [formData, setFormData] = useState({
     title: "",
     videoUrl: "",
-    audioUrl: "",
+    audioUrls: [] as string[],
     order: "",
   });
 
@@ -242,7 +406,7 @@ export default function LessonsPage() {
   const openAddLessonModal = () => {
     setEditingLesson(null);
     resetUploadState();
-    setFormData({ title: "", videoUrl: "", audioUrl: "", order: "" });
+    setFormData({ title: "", videoUrl: "", audioUrls: [], order: "" });
     setVideoSource("URL");
     const cid = selectedCourseId !== "" ? selectedCourseId : (courses[0]?.id ?? "");
     setFormCourseId(cid);
@@ -259,7 +423,7 @@ export default function LessonsPage() {
     setFormData({
       title: lesson.title,
       videoUrl: lesson.videoUrl || "",
-      audioUrl: lesson.audioUrl || "",
+      audioUrls: lesson.audioUrls || [],
       order: lesson.order.toString(),
     });
     setVideoSource(lesson.videoType || "URL");
@@ -270,7 +434,7 @@ export default function LessonsPage() {
       setUploadPhase("idle");
       setUploadProgress(0);
     }
-    if (lesson.audioUrl) {
+    if (lesson.audioUrls && lesson.audioUrls.length > 0) {
       setAudioUploadPhase("complete");
       setAudioUploadProgress(100);
     } else {
@@ -288,7 +452,7 @@ export default function LessonsPage() {
     setFormModuleId("");
     setFormModules([]);
     resetUploadState();
-    setFormData({ title: "", videoUrl: "", audioUrl: "", order: "" });
+    setFormData({ title: "", videoUrl: "", audioUrls: [], order: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -306,7 +470,7 @@ export default function LessonsPage() {
     }
 
     const hasVideo = formData.videoUrl.trim() !== "";
-    const hasAudio = formData.audioUrl.trim() !== "";
+    const hasAudio = formData.audioUrls.length > 0;
 
     if (!hasVideo && !hasAudio) {
       toast.error("At least one media type (Video or Audio) is required.");
@@ -342,7 +506,7 @@ export default function LessonsPage() {
       moduleId: Number(formModuleId),
       videoType: hasVideo ? videoSource : null,
       videoUrl: hasVideo ? formData.videoUrl.trim() : null,
-      audioUrl: hasAudio ? formData.audioUrl.trim() : null,
+      audioUrls: hasAudio ? formData.audioUrls : [],
     };
 
     if (editingLesson) {
@@ -419,11 +583,11 @@ export default function LessonsPage() {
         (Boolean(editingLesson) && Boolean(formData.videoUrl.trim()))
   );
 
-  const audioRequirementMet = formData.audioUrl.trim() === "" || (
-    audioUploadPhase === "complete" || (Boolean(editingLesson) && Boolean(formData.audioUrl.trim()))
+  const audioRequirementMet = formData.audioUrls.length === 0 || (
+    audioUploadPhase === "complete" || (Boolean(editingLesson) && formData.audioUrls.length > 0)
   );
 
-  const hasAtLeastOneMedia = Boolean(formData.videoUrl.trim()) || Boolean(formData.audioUrl.trim());
+  const hasAtLeastOneMedia = Boolean(formData.videoUrl.trim()) || formData.audioUrls.length > 0;
 
   const lessonFormSubmitReady =
     Boolean(formData.title.trim()) &&
@@ -510,246 +674,26 @@ export default function LessonsPage() {
       }
     };
 
-    const renderAudioPlayer = () => {
-      if (!lesson.audioUrl) return null;
-      
-      const togglePlay = () => {
-        if (!audioElRef.current) return;
-        if (isPlaying) {
-          audioElRef.current.pause();
-          setIsPlaying(false);
-        } else {
-          audioElRef.current.play().then(() => {
-            setIsPlaying(true);
-          }).catch(err => {
-            console.error("Audio playback error:", err);
-          });
-        }
-      };
-
-      const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!audioElRef.current) return;
-        const val = parseFloat(e.target.value);
-        audioElRef.current.currentTime = val;
-        setCurrentTime(val);
-      };
-
-      const changeSpeed = () => {
-        if (!audioElRef.current) return;
-        const speeds = [1, 1.25, 1.5, 2];
-        const nextIdx = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
-        const nextSpeed = speeds[nextIdx];
-        audioElRef.current.playbackRate = nextSpeed;
-        setPlaybackSpeed(nextSpeed);
-      };
-
-      const skip = (seconds: number) => {
-        if (!audioElRef.current) return;
-        audioElRef.current.currentTime = Math.max(0, Math.min(audioElRef.current.duration || 0, audioElRef.current.currentTime + seconds));
-      };
-
-      const formatTime = (time: number) => {
-        if (isNaN(time)) return "00:00";
-        const mins = Math.floor(time / 60);
-        const secs = Math.floor(time % 60);
-        return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-      };
-
+    const renderAudioPlayers = () => {
+      if (!lesson.audioUrls || lesson.audioUrls.length === 0) return null;
       return (
-        <div className="w-full bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 relative overflow-hidden flex flex-col items-center">
-          {/* Audio Source tag */}
-          <audio
-            ref={audioElRef}
-            src={lesson.audioUrl}
-            preload="metadata"
-            onTimeUpdate={(e: any) => {
-              setCurrentTime(e.target.currentTime);
-              handleTimeUpdate(e);
-            }}
-            onLoadedMetadata={(e: any) => {
-              setDuration(e.target.duration);
-            }}
-            onEnded={() => {
-              setIsPlaying(false);
-              handleEnded();
-            }}
-            controlsList="nodownload"
-            className="hidden"
-          />
-
-          {/* Decorative ambient background glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
-
-          {/* Top Metadata */}
-          <div className="w-full flex items-center justify-between gap-4 mb-8 z-10">
-            <div className="flex items-center gap-2">
-              <Headphones size={18} className="text-indigo-400 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-400">
-                Premium Audio Experience
-              </span>
-            </div>
-            <div className="px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-              <span className="text-[9px] font-black uppercase tracking-widest text-indigo-300">
-                Lesson {lesson.order}
-              </span>
-            </div>
-          </div>
-
-          {/* Album Art / Pulse Visualizer */}
-          <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-1 shadow-2xl relative flex items-center justify-center mb-8 z-10 group cursor-pointer" onClick={togglePlay}>
-            <div className={`absolute inset-0 rounded-full bg-indigo-500/30 blur-md transition-all duration-700 ${isPlaying ? "scale-110 opacity-100 animate-ping" : "scale-100 opacity-0"}`} />
-            <div className="w-full h-full bg-slate-950 rounded-full flex flex-col items-center justify-center relative overflow-hidden">
-              <Volume2 size={40} className={`text-indigo-400 transition-all duration-500 ${isPlaying ? "scale-110 rotate-3 text-indigo-300" : "scale-100"}`} />
-              
-              {/* Mini visualizer bars inside art */}
-              <div className="flex gap-1 items-end mt-4 h-6">
-                <span className={`w-0.5 bg-indigo-400/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_1.2s_infinite_alternate] h-4" : "h-1"}`} />
-                <span className={`w-0.5 bg-indigo-300/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_0.8s_infinite_alternate] h-6" : "h-1"}`} style={{ animationDelay: "0.2s" }} />
-                <span className={`w-0.5 bg-indigo-400/80 rounded-full transition-all duration-350 ${isPlaying ? "animate-[pulse_1.5s_infinite_alternate] h-3" : "h-1"}`} style={{ animationDelay: "0.4s" }} />
-                <span className={`w-0.5 bg-indigo-300/80 rounded-full transition-all duration-300 ${isPlaying ? "animate-[pulse_1s_infinite_alternate] h-5" : "h-1"}`} style={{ animationDelay: "0.1s" }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Lesson Title in Player */}
-          <div className="text-center max-w-lg mb-8 z-10">
-            <h4 className="text-xl font-black text-white leading-tight uppercase tracking-tight mb-2">
-              {lesson.title}
-            </h4>
-            <p className="text-xs text-slate-400 font-medium">
-              Listen and take notes to complete this lesson's coursework
-            </p>
-          </div>
-
-          {/* Timeline slider and times */}
-          <div className="w-full space-y-2 mb-8 z-10">
-            <div className="flex items-center justify-between text-[11px] font-black text-slate-400 tracking-wider">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
-            
-            <div className="relative group/slider w-full">
-              <input
-                type="range"
-                min={0}
-                max={duration || 100}
-                value={currentTime}
-                onChange={handleTimeChange}
-                className="w-full h-1.5 bg-slate-800 rounded-full appearance-none cursor-pointer outline-none accent-indigo-500 group-hover/slider:accent-indigo-400 transition-all"
-                style={{
-                  background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(currentTime / (duration || 100)) * 100}%, #1e293b ${(currentTime / (duration || 100)) * 100}%, #1e293b 100%)`
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Controls Bar */}
-          <div className="flex items-center justify-between w-full gap-4 z-10">
-            {/* Playback speed */}
-            <button
-              type="button"
-              onClick={changeSpeed}
-              className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-indigo-400 text-xs font-black uppercase tracking-widest border border-slate-700 transition-colors min-w-[70px]"
-            >
-              {playbackSpeed.toFixed(2)}x
-            </button>
-
-            {/* Main Audio Controls */}
-            <div className="flex items-center gap-6">
-              {/* Skip back 10s */}
-              <button
-                type="button"
-                onClick={() => skip(-10)}
-                className="p-3 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                title="Rewind 10s"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
-                </svg>
-              </button>
-
-              {/* Play/Pause toggle */}
-              <button
-                type="button"
-                onClick={togglePlay}
-                className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white flex items-center justify-center shadow-xl hover:scale-105 transition-all"
-              >
-                {isPlaying ? (
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
-                ) : (
-                  <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                )}
-              </button>
-
-              {/* Skip forward 10s */}
-              <button
-                type="button"
-                onClick={() => skip(10)}
-                className="p-3 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                title="Forward 10s"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.934 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.334-4z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.934 12.8a1 1 0 000-1.6l-5.334-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.334-4z" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Volume toggle/slider */}
-            <div className="flex items-center gap-2 min-w-[70px] justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!audioElRef.current) return;
-                  const newMuted = !isMuted;
-                  audioElRef.current.muted = newMuted;
-                  setIsMuted(newMuted);
-                }}
-                className="text-slate-400 hover:text-indigo-400 transition-colors"
-              >
-                {isMuted || audioVolume === 0 ? (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  </svg>
-                )}
-              </button>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={isMuted ? 0 : audioVolume}
-                onChange={(e) => {
-                  if (!audioElRef.current) return;
-                  const val = parseFloat(e.target.value);
-                  audioElRef.current.volume = val;
-                  setAudioVolume(val);
-                  if (val > 0 && isMuted) {
-                    audioElRef.current.muted = false;
-                    setIsMuted(false);
-                  }
-                }}
-                className="w-12 h-1 bg-slate-800 rounded-full appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
-              />
-            </div>
-          </div>
+        <div className="flex flex-col gap-4">
+          {lesson.audioUrls.map((audioUrl: string, idx: number) => (
+            <AudioPlayerItem 
+              key={idx}
+              url={audioUrl}
+              order={idx + 1}
+              title={`${lesson.title} - Audio ${idx + 1}`}
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={handleEnded}
+            />
+          ))}
         </div>
       );
     };
 
     const hasVideo = !!lesson.videoUrl;
-    const hasAudio = !!lesson.audioUrl;
+    const hasAudio = lesson.audioUrls && lesson.audioUrls.length > 0;
 
     return (
       <div className="w-full relative flex flex-col">
@@ -783,7 +727,7 @@ export default function LessonsPage() {
 
         {/* Render selected player */}
         {playerMode === "video" && hasVideo && renderVideoPlayer()}
-        {(playerMode === "audio" || !hasVideo) && hasAudio && renderAudioPlayer()}
+        {(playerMode === "audio" || !hasVideo) && hasAudio && renderAudioPlayers()}
         
         {/* Completion Button */}
         {!isAdmin && !lesson.completed && (
@@ -867,7 +811,7 @@ export default function LessonsPage() {
                 muted
                 playsInline
               />
-            ) : lesson.audioUrl ? (
+            ) : (lesson.audioUrls && lesson.audioUrls.length > 0) ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-900 p-6 relative">
                 <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent pointer-events-none" />
                 <div className="w-16 h-16 rounded-full bg-indigo-500/10 backdrop-blur-md border border-indigo-500/20 flex items-center justify-center shadow-2xl mb-4 group-hover:scale-110 transition-transform duration-500">
@@ -991,7 +935,7 @@ export default function LessonsPage() {
               )}
 
               {/* Explicit "Listen to Audio" option for audio-enabled lessons */}
-              {lesson.audioUrl && !isLocked && activeLesson?.id !== lesson.id && (
+              {lesson.audioUrls && lesson.audioUrls.length > 0 && !isLocked && activeLesson?.id !== lesson.id && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1529,90 +1473,94 @@ export default function LessonsPage() {
                   Lesson Audio (Optional)
                 </label>
                 <div className="space-y-4 rounded-2xl border border-dashed border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20 p-6">
-                  {formData.audioUrl ? (
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                          <CheckCircle2 size={16} />
-                          <span className="text-xs font-bold uppercase tracking-widest">Audio Ready</span>
+                  {formData.audioUrls.length > 0 && (
+                    <div className="flex flex-col gap-4 mb-6">
+                      {formData.audioUrls.map((url, idx) => (
+                        <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800">
+                          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 shrink-0">
+                            <CheckCircle2 size={16} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Audio {idx + 1}</span>
+                          </div>
+                          <audio controls className="w-full sm:w-1/2 h-10">
+                            <source src={url} type="audio/mpeg" />
+                          </audio>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(p => ({
+                                ...p,
+                                audioUrls: p.audioUrls.filter((_, i) => i !== idx)
+                              }));
+                            }}
+                            className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors shrink-0 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 rounded-lg"
+                          >
+                            Remove
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormData(p => ({ ...p, audioUrl: "" }));
-                            setAudioUploadPhase("idle");
-                            setAudioUploadProgress(0);
-                          }}
-                          className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-600"
-                        >
-                          Remove Audio
-                        </button>
-                      </div>
-                      <audio controls className="w-full h-10">
-                        <source src={formData.audioUrl} type="audio/mpeg" />
-                      </audio>
+                      ))}
                     </div>
-                  ) : (
-                    <>
-                      <UploadDropzone
-                        endpoint="audioUploader"
-                        uploadProgressGranularity="fine"
-                        onUploadBegin={() => {
-                          setAudioUploadPhase("uploading");
-                          setAudioUploadProgress(0);
-                        }}
-                        onUploadProgress={(p) => setAudioUploadProgress(Math.round(p))}
-                        onClientUploadComplete={(res) => {
-                          const first = res?.[0] as { url?: string; ufsUrl?: string } | undefined;
-                          const url = first?.url ?? first?.ufsUrl ?? "";
-                          if (url) {
-                            setFormData((p) => ({ ...p, audioUrl: url }));
-                            setAudioUploadPhase("complete");
-                            setAudioUploadProgress(100);
-                            toast.success("Audio uploaded successfully");
-                          }
-                        }}
-                        onUploadError={(e) => {
-                          setAudioUploadPhase("error");
-                          toast.error(e.message || "Audio upload failed");
-                        }}
-                        appearance={{
-                          container: "border-0 bg-transparent items-center",
-                          uploadIcon: "text-indigo-600 dark:text-indigo-400",
-                          button:
-                            "bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-xl px-6 py-3 transition-colors",
-                        }}
-                        content={{
-                          label: ({ ready, isUploading, uploadProgress: prog }) =>
-                            !ready
-                              ? "Preparing uploader…"
-                              : isUploading
-                                ? `Uploading… ${Math.round(prog)}%`
-                                : "Drop an audio file here or click to browse",
-                        }}
-                      />
-                      <div className="space-y-2">
-                        <div className="h-3 w-full rounded-full bg-gray-200 dark:bg-slate-800 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-300 ${
-                              audioUploadPhase === "complete"
-                                ? "bg-emerald-500"
-                                : audioUploadPhase === "error"
-                                  ? "bg-red-500"
-                                  : "bg-indigo-600"
-                            }`}
-                            style={{ width: `${audioUploadProgress}%` }}
-                          />
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-slate-400">
-                          {audioUploadPhase === "idle" && "No upload in progress"}
-                          {audioUploadPhase === "uploading" && `Uploading… ${audioUploadProgress}%`}
-                          {audioUploadPhase === "complete" && "100% — Ready to save"}
-                          {audioUploadPhase === "error" && "Upload failed — try again"}
-                        </p>
-                      </div>
-                    </>
                   )}
+
+                  <div className="pt-2">
+                    <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-4 text-center">Add Audio File</p>
+                    <UploadDropzone
+                      endpoint="audioUploader"
+                      uploadProgressGranularity="fine"
+                      onUploadBegin={() => {
+                        setAudioUploadPhase("uploading");
+                        setAudioUploadProgress(0);
+                      }}
+                      onUploadProgress={(p) => setAudioUploadProgress(Math.round(p))}
+                      onClientUploadComplete={(res) => {
+                        const first = res?.[0] as { url?: string; ufsUrl?: string } | undefined;
+                        const url = first?.url ?? first?.ufsUrl ?? "";
+                        if (url) {
+                          setFormData((p) => ({ ...p, audioUrls: [...p.audioUrls, url] }));
+                          setAudioUploadPhase("idle");
+                          setAudioUploadProgress(0);
+                          toast.success("Audio uploaded successfully");
+                        }
+                      }}
+                      onUploadError={(e) => {
+                        setAudioUploadPhase("error");
+                        toast.error(e.message || "Audio upload failed");
+                      }}
+                      appearance={{
+                        container: "border-0 bg-transparent items-center",
+                        uploadIcon: "text-indigo-600 dark:text-indigo-400",
+                        button:
+                          "bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-xl px-6 py-3 transition-colors",
+                      }}
+                      content={{
+                        label: ({ ready, isUploading, uploadProgress: prog }) =>
+                          !ready
+                            ? "Preparing uploader…"
+                            : isUploading
+                              ? `Uploading… ${Math.round(prog)}%`
+                              : "Drop an audio file here or click to browse",
+                      }}
+                    />
+                    <div className="space-y-2 mt-4">
+                      <div className="h-3 w-full rounded-full bg-gray-200 dark:bg-slate-800 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            audioUploadPhase === "complete"
+                              ? "bg-emerald-500"
+                              : audioUploadPhase === "error"
+                                ? "bg-red-500"
+                                : "bg-indigo-600"
+                          }`}
+                          style={{ width: `${audioUploadProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-slate-400 text-center">
+                        {audioUploadPhase === "idle" && "No upload in progress"}
+                        {audioUploadPhase === "uploading" && `Uploading… ${audioUploadProgress}%`}
+                        {audioUploadPhase === "complete" && "100% — Ready to save"}
+                        {audioUploadPhase === "error" && "Upload failed — try again"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 

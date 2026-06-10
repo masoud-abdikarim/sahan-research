@@ -9,7 +9,7 @@ export interface Lesson {
   title: string;
   videoType?: "UPLOAD" | "URL" | null;
   videoUrl?: string | null;
-  audioUrl?: string | null;
+  audioUrls?: string[];
   order: number;
   courseId: number;
   moduleId: number;

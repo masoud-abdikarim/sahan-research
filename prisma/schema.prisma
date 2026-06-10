@@ -118,7 +118,7 @@ model Lesson {
   title     String
   videoType VideoType? @default(URL)
   videoUrl  String?
-  audioUrl  String?
+  audioUrls String[] @default([])
   order     Int
 
   moduleId Int
