@@ -729,18 +729,6 @@ export default function LessonsPage() {
         {playerMode === "video" && hasVideo && renderVideoPlayer()}
         {(playerMode === "audio" || !hasVideo) && hasAudio && renderAudioPlayers()}
         
-        {/* Completion Button */}
-        {!isAdmin && !lesson.completed && (
-          <div className="p-4 flex justify-end">
-            <button
-              type="button"
-              onClick={handleEnded}
-              className="bg-green-600/90 hover:bg-green-500 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all flex items-center gap-2 border border-green-400/30"
-            >
-              <CheckCircle2 size={14} /> I have finished
-            </button>
-          </div>
-        )}
       </div>
     );
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { enrollCourse } from "@/redux/slice/enrollmentSlice";
@@ -11,6 +12,7 @@ import Link from "next/link";
 import { CheckCircle, XCircle, Clock, Calendar, GraduationCap, ArrowRight, BookOpen } from "lucide-react";
 
 export default function EnrollmentsPage() {
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { enrollments, loading: enrollLoading, initialized: enrollInitialized } = useSelector((state: RootState) => state.enrollment);
   const { courses, loading: coursesLoading } = useSelector((state: RootState) => state.course);
@@ -88,12 +90,9 @@ export default function EnrollmentsPage() {
               return (
                 <div key={enrollment.id} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                   <CourseCard 
-                    course={course} 
-                    actionLabel="Resume Research"
-                    onAction={() => window.location.href = `/dashboard/lessons?courseId=${course.id}`} 
-                    secondaryActionLabel="Curriculum Info"
-                    onSecondaryAction={() => window.location.href = `/courses/${course.id}`}
-                    onCardClick={() => window.location.href = `/courses/${course.id}`}
+                    course={course}
+                    variant="learning"
+                    onCardClick={() => router.push(`/dashboard/lessons?courseId=${course.id}`)}
                   />
                 </div>
               );
