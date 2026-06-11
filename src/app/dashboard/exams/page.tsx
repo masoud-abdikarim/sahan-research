@@ -5,13 +5,11 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { Lock, FileQuestion, Award } from "lucide-react";
-
-type CourseItem = { id: number; name: string };
+import { Lock, FileQuestion, Award, BookOpen } from "lucide-react";
+import Loader from "@/components/Loader";
 
 export default function ExamsPage() {
-  const { enrollments } = useSelector((state: RootState) => state.enrollment);
-  const [courseId, setCourseId] = useState<number | "">("");
+  const { enrollments, initialized: enrollInitialized } = useSelector((state: RootState) => state.enrollment);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [activeExam, setActiveExam] = useState<any>(null);
@@ -21,13 +19,14 @@ export default function ExamsPage() {
   const [requestingCert, setRequestingCert] = useState(false);
   const [certificateStatus, setCertificateStatus] = useState<string | null>(null);
 
-  const courses: CourseItem[] = useMemo(
-    () =>
-      enrollments
-        .filter((e) => e.status === "APPROVED" && e.course)
-        .map((e) => ({ id: e.courseId, name: e.course?.name || "Unknown Course" })),
-    [enrollments]
-  );
+  const activeEnrollment = useMemo(() => {
+    const inProgress = enrollments.filter((e) => e.status === "APPROVED" && !e.isCompleted);
+    if (inProgress.length > 0) return inProgress[0];
+    return enrollments.find((e) => e.status === "APPROVED") ?? null;
+  }, [enrollments]);
+
+  const courseId = activeEnrollment?.courseId ?? null;
+  const courseName = activeEnrollment?.course?.name ?? null;
 
   useEffect(() => {
     if (!courseId) return;
@@ -115,23 +114,28 @@ export default function ExamsPage() {
         <p className="text-gray-500 dark:text-slate-400">Complete module exams, unlock the final exam, and become certificate eligible.</p>
       </div>
 
-      <div className="mb-6">
-        <select
-          value={courseId}
-          onChange={(e) => setCourseId(e.target.value ? Number(e.target.value) : "")}
-          className="w-full md:w-96 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-        >
-          <option value="">Select enrolled course</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {!enrollInitialized ? (
+        <div className="flex justify-center py-20"><Loader /></div>
+      ) : !courseId ? (
+        <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-gray-200 dark:border-slate-800">
+          <BookOpen className="mx-auto text-gray-300 dark:text-slate-600 mb-4" size={48} />
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2">No Active Course</h2>
+          <p className="text-gray-500 dark:text-slate-400 font-medium max-w-sm mx-auto">
+            Exams will appear here once your enrollment is approved and you begin a course.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-6 inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30">
+            <BookOpen size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+            <div>
+              <p className="text-[10px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">Your Course</p>
+              <p className="font-black text-gray-900 dark:text-white">{courseName}</p>
+            </div>
+          </div>
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading exams...</p>
+        <div className="flex justify-center py-12"><Loader /></div>
       ) : data ? (
         <div className="space-y-8">
           <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -240,6 +244,8 @@ export default function ExamsPage() {
           </div>
         </div>
       ) : null}
+        </>
+      )}
 
       {activeExam && examDetail && (
         <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4">
