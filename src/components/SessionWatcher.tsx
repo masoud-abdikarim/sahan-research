@@ -22,7 +22,7 @@ export default function SessionWatcher() {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "logout-event") {
         dispatch(logout());
-        window.location.href = "/login";
+        window.location.href = "/";
       }
     };
 

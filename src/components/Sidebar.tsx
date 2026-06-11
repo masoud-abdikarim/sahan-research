@@ -62,7 +62,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     dispatch(logout());
     
     // 3. Redirect first for instant UI response
-    router.push("/login");
+    router.push("/");
     
     // 4. Perform background cleanup
     await dispatch(logoutUser());
