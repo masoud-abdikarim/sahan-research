@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUserEnrollments, enrollCourse } from "@/redux/slice/enrollmentSlice";
+import { enrollCourse } from "@/redux/slice/enrollmentSlice";
 import { getCourses } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
 import CourseCard from "@/components/CourseCard";
@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 
 export default function ActiveCoursesPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
+  const { enrollments, loading: enrollLoading, initialized: enrollInitialized } = useSelector((state: RootState) => state.enrollment);
   const { courses, loading: coursesLoading } = useSelector((state: RootState) => state.course);
   const { currentUser } = useSelector((state: RootState) => state.user);
   const isAdmin = (currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN");
@@ -22,10 +22,7 @@ export default function ActiveCoursesPage() {
 
   useEffect(() => {
     dispatch(getCourses());
-    if (currentUser) {
-      dispatch(getUserEnrollments());
-    }
-  }, [dispatch, currentUser]);
+  }, [dispatch]);
 
   const handleEnrollClick = (courseId: number) => {
     if (currentUser) {

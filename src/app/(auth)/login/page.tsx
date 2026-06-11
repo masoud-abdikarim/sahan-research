@@ -73,7 +73,7 @@ export default function LoginPage() {
         if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
           router.push("/dashboard/admin");
         } else {
-          router.push("/dashboard");
+          router.push("/dashboard/enrollments");
         }
       } else {
         const errorPayload = resultAction.payload as any;

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getDashboardStats } from "@/redux/slice/dashboardSlice";
 import { getCourses } from "@/redux/slice/courseSlice";
-import { enrollCourse, getUserEnrollments } from "@/redux/slice/enrollmentSlice";
+import { enrollCourse } from "@/redux/slice/enrollmentSlice";
 import CourseCard from "@/components/CourseCard";
 import ConfirmModal from "@/components/ConfirmModal";
 import toast from "react-hot-toast";
@@ -27,7 +27,7 @@ export default function StudentDashboard() {
   const { stats, loading: statsLoading } = useSelector((state: RootState) => state.dashboard);
   const { currentUser } = useSelector((state: RootState) => state.user);
   const { courses, loading: coursesLoading } = useSelector((state: RootState) => state.course);
-  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
+  const { enrollments, loading: enrollLoading, initialized: enrollInitialized } = useSelector((state: RootState) => state.enrollment);
   
   const [confirmEnrollCourseId, setConfirmEnrollCourseId] = useState<number | null>(null);
 
@@ -57,9 +57,11 @@ export default function StudentDashboard() {
     }
   };
 
-  const isLoading = statsLoading || coursesLoading || enrollLoading;
+  const isInitialLoad =
+    (!enrollInitialized && enrollLoading) ||
+    (coursesLoading && courses.length === 0);
 
-  if (isLoading && enrollments.length === 0 && courses.length === 0) {
+  if (isInitialLoad) {
     return (
       <div className="h-[60vh] flex items-center justify-center">
         <Loader />

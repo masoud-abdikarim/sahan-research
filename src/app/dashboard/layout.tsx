@@ -19,19 +19,19 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { currentUser, loading } = useSelector((state: RootState) => state.user);
-  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
+  const { enrollments, initialized: enrollInitialized } = useSelector((state: RootState) => state.enrollment);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
       dispatch(fetchSession());
-    } else if (currentUser.role === "USER") {
+    } else if (currentUser.role === "USER" && !enrollInitialized) {
       dispatch(getUserEnrollments());
     }
-  }, [dispatch, currentUser]);
+  }, [dispatch, currentUser?.id, currentUser?.role, enrollInitialized]);
 
   useEffect(() => {
-    if (currentUser?.role === "USER" && !enrollLoading && enrollments) {
+    if (currentUser?.role === "USER" && enrollInitialized) {
       const hasApproved = enrollments.some(e => e.status === "APPROVED");
       const protectedRoutes = [
         "/dashboard/exams", 
@@ -45,16 +45,20 @@ export default function DashboardLayout({
       const isTryingToAccessProtected = protectedRoutes.some(route => pathname.startsWith(route));
       
       if (!hasApproved && isTryingToAccessProtected) {
-        router.push("/dashboard");
+        router.replace("/dashboard");
+        return;
+      }
+
+      if (hasApproved && pathname === "/dashboard") {
+        router.replace("/dashboard/enrollments");
       }
     }
-  }, [currentUser, enrollments, enrollLoading, pathname, router]);
+  }, [currentUser?.role, enrollments, enrollInitialized, pathname, router]);
 
   const isAdmin = currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN";
 
-  // 🔒 For admins: never block on enrollment loading (they use a separate slice fetch)
-  // 🔒 For students: block until enrollments are loaded so sidebar/routes are correct
-  const shouldBlockOnEnroll = !isAdmin && enrollLoading;
+  // Block students only until the first enrollment fetch completes (not on background refetches)
+  const shouldBlockOnEnroll = !isAdmin && currentUser?.role === "USER" && !enrollInitialized;
 
   if ((loading && !currentUser) || shouldBlockOnEnroll) {
     return <div className="h-screen w-full flex items-center justify-center"><Loader /></div>;

@@ -3,15 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { Lock, FileQuestion, Award } from "lucide-react";
-import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
 
 type CourseItem = { id: number; name: string };
 
 export default function ExamsPage() {
-  const dispatch = useDispatch<AppDispatch>();
   const { enrollments } = useSelector((state: RootState) => state.enrollment);
   const [courseId, setCourseId] = useState<number | "">("");
   const [data, setData] = useState<any>(null);
@@ -30,10 +28,6 @@ export default function ExamsPage() {
         .map((e) => ({ id: e.courseId, name: e.course?.name || "Unknown Course" })),
     [enrollments]
   );
-
-  useEffect(() => {
-    dispatch(getUserEnrollments());
-  }, [dispatch]);
 
   useEffect(() => {
     if (!courseId) return;

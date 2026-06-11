@@ -12,10 +12,8 @@ import axios from "axios";
 
 export default function ProgressPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
+  const { enrollments, loading: enrollLoading, initialized: enrollInitialized } = useSelector((state: RootState) => state.enrollment);
   const { nextLesson, currentStats, loading: progressLoading } = useSelector((state: RootState) => state.progress);
-  const { currentUser } = useSelector((state: RootState) => state.user);
-  
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<number | "">("");
   const [examSummary, setExamSummary] = useState<null | {
     moduleEarned: number;
@@ -31,11 +29,6 @@ export default function ProgressPage() {
   // Only show approved enrollments
   const approvedEnrollments = enrollments.filter(e => e.status === "APPROVED");
 
-  useEffect(() => {
-    if (currentUser) {
-      dispatch(getUserEnrollments());
-    }
-  }, [dispatch, currentUser]);
 
   useEffect(() => {
     if (selectedEnrollmentId !== "") {
@@ -98,7 +91,7 @@ export default function ProgressPage() {
           </h2>
           
           <div className="space-y-4">
-            {enrollLoading ? (
+            {!enrollInitialized && enrollLoading ? (
               <Loader />
             ) : approvedEnrollments.length > 0 ? (
               approvedEnrollments.map((e) => (

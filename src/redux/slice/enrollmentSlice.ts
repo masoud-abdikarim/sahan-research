@@ -3,6 +3,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { logout } from "./userSlice";
 
 // ✅ TYPES
 export interface Enrollment {
@@ -33,12 +34,15 @@ interface EnrollmentState {
   enrollments: Enrollment[];
   loading: boolean;
   error: string | null;
+  /** True after the first getUserEnrollments call settles (success or failure). */
+  initialized: boolean;
 }
 
 const initialState: EnrollmentState = {
   enrollments: [],
   loading: false,
   error: null,
+  initialized: false,
 };
 
 // ✅ ENROLL COURSE
@@ -126,18 +130,29 @@ const enrollmentSlice = createSlice({
       state.error = action.payload as string;
     });
 
-    // GET USER ENROLLMENTS
+    // GET USER ENROLLMENTS — only show global loading on the initial fetch
     builder.addCase(getUserEnrollments.pending, (state) => {
-      state.loading = true;
+      if (!state.initialized) {
+        state.loading = true;
+      }
       state.error = null;
     });
     builder.addCase(getUserEnrollments.fulfilled, (state, action: PayloadAction<Enrollment[]>) => {
       state.loading = false;
+      state.initialized = true;
       state.enrollments = action.payload;
     });
     builder.addCase(getUserEnrollments.rejected, (state, action) => {
       state.loading = false;
+      state.initialized = true;
       state.error = action.payload as string;
+    });
+
+    builder.addCase(logout, (state) => {
+      state.enrollments = [];
+      state.loading = false;
+      state.error = null;
+      state.initialized = false;
     });
 
     builder.addCase(getAllEnrollments.pending, (state) => { state.loading = true; state.error = null; });

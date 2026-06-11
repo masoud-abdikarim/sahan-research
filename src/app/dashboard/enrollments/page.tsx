@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { getUserEnrollments, enrollCourse, approveEnrollment } from "@/redux/slice/enrollmentSlice";
+import { enrollCourse } from "@/redux/slice/enrollmentSlice";
 import { getCourses } from "@/redux/slice/courseSlice";
 import Loader from "@/components/Loader";
 import CourseCard from "@/components/CourseCard";
@@ -12,17 +12,14 @@ import { CheckCircle, XCircle, Clock, Calendar, GraduationCap, ArrowRight, BookO
 
 export default function EnrollmentsPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
+  const { enrollments, loading: enrollLoading, initialized: enrollInitialized } = useSelector((state: RootState) => state.enrollment);
   const { courses, loading: coursesLoading } = useSelector((state: RootState) => state.course);
   const { currentUser } = useSelector((state: RootState) => state.user);
   const isAdmin = (currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN");
 
   useEffect(() => {
     dispatch(getCourses());
-    if (currentUser) {
-      dispatch(getUserEnrollments());
-    }
-  }, [dispatch, currentUser]);
+  }, [dispatch]);
 
   const handleEnroll = (courseId: number) => {
     if (currentUser) {
@@ -81,7 +78,7 @@ export default function EnrollmentsPage() {
            <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
         </div>
 
-        {enrollLoading ? (
+        {!enrollInitialized && enrollLoading ? (
            <div className="flex justify-center py-20"><Loader /></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">

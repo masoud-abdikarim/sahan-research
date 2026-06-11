@@ -20,8 +20,10 @@ export default function SettingsPage() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    dispatch(getCurrentUser());
-  }, [dispatch]);
+    if (!currentUser) {
+      dispatch(getCurrentUser());
+    }
+  }, [dispatch, currentUser]);
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();

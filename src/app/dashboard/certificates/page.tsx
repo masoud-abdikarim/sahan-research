@@ -13,20 +13,26 @@ export default function StudentCertificatesPage() {
   const [certificates, setCertificates] = useState<any[]>([]);
   const [eligibleCourses, setEligibleCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchCertificates();
+    if (!currentUser) {
+      setLoading(false);
+      return;
     }
-  }, [currentUser]);
+    fetchCertificates();
+  }, [currentUser?.id]);
 
   const fetchCertificates = async () => {
+    if (!currentUser) return;
+    setLoading(true);
+    setError(null);
     try {
-      const res = await axios.get(`/api/certificates?userId=${currentUser?.id}`);
+      const res = await axios.get(`/api/certificates?userId=${currentUser.id}`);
       setCertificates(res.data.certificates || []);
       setEligibleCourses(res.data.eligibleCourses || []);
-    } catch (error) {
-      console.error("Failed to fetch certificates:", error);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to load certificates");
     } finally {
       setLoading(false);
     }
@@ -80,6 +86,20 @@ export default function StudentCertificatesPage() {
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader /></div>;
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto py-20 text-center">
+        <p className="text-red-500 font-medium mb-4">{error}</p>
+        <button
+          onClick={fetchCertificates}
+          className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto pb-20">
