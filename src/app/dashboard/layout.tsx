@@ -50,7 +50,13 @@ export default function DashboardLayout({
     }
   }, [currentUser, enrollments, enrollLoading, pathname, router]);
 
-  if ((loading && !currentUser) || enrollLoading) {
+  const isAdmin = currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN";
+
+  // 🔒 For admins: never block on enrollment loading (they use a separate slice fetch)
+  // 🔒 For students: block until enrollments are loaded so sidebar/routes are correct
+  const shouldBlockOnEnroll = !isAdmin && enrollLoading;
+
+  if ((loading && !currentUser) || shouldBlockOnEnroll) {
     return <div className="h-screen w-full flex items-center justify-center"><Loader /></div>;
   }
 

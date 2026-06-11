@@ -13,7 +13,11 @@ export async function GET() {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
+    // Only return enrollments where the user still exists (guards against orphaned records from student deletion)
+    const existingUserIds = (await prisma.user.findMany({ select: { id: true } })).map(u => u.id);
+
     const enrollments = await prisma.enrollment.findMany({
+      where: { userId: { in: existingUserIds } },
       include: { course: true, user: { select: { name: true, email: true, phone: true } } }
     });
 
