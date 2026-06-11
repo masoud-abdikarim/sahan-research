@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
     const { courseId } = await req.json();
 
-    // Check if already enrolled
+    // Check if already enrolled in THIS course
     const existingEnrollment = await prisma.enrollment.findUnique({
       where: {
         userId_courseId: {
@@ -101,7 +101,20 @@ export async function POST(req: Request) {
 
     if (existingEnrollment) {
       return NextResponse.json({ 
-        message: "Already enrolled" 
+        message: "Already enrolled in this course" 
+      }, { status: 409 });
+    }
+
+    // 🔒 Security: Check if user has ANY enrollment (PENDING or APPROVED) to prevent multiple requests
+    const anyEnrollment = await prisma.enrollment.findFirst({
+      where: {
+        userId: Number(session.id),
+      }
+    });
+
+    if (anyEnrollment) {
+      return NextResponse.json({ 
+        message: "You already have an active or pending enrollment. You can only request one course at a time." 
       }, { status: 409 });
     }
 

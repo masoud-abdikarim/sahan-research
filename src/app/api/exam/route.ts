@@ -267,6 +267,24 @@ export async function GET(req: NextRequest) {
 
     if (!exam) return NextResponse.json({ message: "Exam not found" }, { status: 404 });
 
+    // 🔒 Security: Students must have an APPROVED enrollment to access exams
+    if (session.role === "USER") {
+      const approvedEnrollment = await prisma.enrollment.findFirst({
+        where: {
+          userId: Number(session.id),
+          courseId: exam.courseId,
+          status: "APPROVED",
+        },
+      });
+
+      if (!approvedEnrollment) {
+        return NextResponse.json(
+          { message: "Access denied. Your enrollment must be approved before accessing exams." },
+          { status: 403 }
+        );
+      }
+    }
+
     return NextResponse.json({ exam }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });

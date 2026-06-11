@@ -6,6 +6,8 @@ import Navbar from "@/components/Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchSession } from "@/redux/slice/userSlice";
+import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
+import { usePathname, useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
 
 export default function DashboardLayout({
@@ -14,16 +16,41 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
+  const pathname = usePathname();
   const { currentUser, loading } = useSelector((state: RootState) => state.user);
+  const { enrollments, loading: enrollLoading } = useSelector((state: RootState) => state.enrollment);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
       dispatch(fetchSession());
+    } else if (currentUser.role === "USER") {
+      dispatch(getUserEnrollments());
     }
   }, [dispatch, currentUser]);
 
-  if (loading && !currentUser) {
+  useEffect(() => {
+    if (currentUser?.role === "USER" && !enrollLoading && enrollments) {
+      const hasApproved = enrollments.some(e => e.status === "APPROVED");
+      const protectedRoutes = [
+        "/dashboard/exams", 
+        "/dashboard/certificates", 
+        "/dashboard/progress", 
+        "/dashboard/history", 
+        "/dashboard/enrollments",
+        "/dashboard/lessons"
+      ];
+      
+      const isTryingToAccessProtected = protectedRoutes.some(route => pathname.startsWith(route));
+      
+      if (!hasApproved && isTryingToAccessProtected) {
+        router.push("/dashboard");
+      }
+    }
+  }, [currentUser, enrollments, enrollLoading, pathname, router]);
+
+  if ((loading && !currentUser) || enrollLoading) {
     return <div className="h-screen w-full flex items-center justify-center"><Loader /></div>;
   }
 

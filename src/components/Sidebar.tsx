@@ -34,8 +34,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { currentUser } = useSelector((state: RootState) => state.user);
+  const { enrollments } = useSelector((state: RootState) => state.enrollment);
   const isAdmin = currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN";
   const isSuperAdmin = currentUser?.role === "SUPERADMIN";
+
+  // Check enrollment status for students
+  const isStudent = currentUser?.role === "USER";
+  const hasApprovedEnrollment = isStudent ? enrollments?.some((e: any) => e.status === "APPROVED") : false;
 
   // Auto-close sidebar on navigation for mobile
   useEffect(() => {
@@ -108,7 +113,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
-  const navigation = isAdmin ? adminNav : studentNav;
+  const restrictedStudentNav = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  ];
+
+  const navigation = isAdmin 
+    ? adminNav 
+    : (hasApprovedEnrollment ? studentNav : restrictedStudentNav);
 
   return (
     <>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma";
+import { getSession } from "@/lib/auth";
 
 
 // ✅ CREATE LESSON (ADD VIDEO)
@@ -64,6 +65,11 @@ export async function POST(req: NextRequest) {
 // ✅ GET LESSONS BY COURSE
 export async function GET(req: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get("courseId");
 
@@ -72,6 +78,24 @@ export async function GET(req: NextRequest) {
         { message: "courseId is required" },
         { status: 400 }
       );
+    }
+
+    // 🔒 Security: Students must have an APPROVED enrollment to access lessons
+    if (session.role === "USER") {
+      const approvedEnrollment = await prisma.enrollment.findFirst({
+        where: {
+          userId: Number(session.id),
+          courseId: Number(courseId),
+          status: "APPROVED",
+        },
+      });
+
+      if (!approvedEnrollment) {
+        return NextResponse.json(
+          { message: "Access denied. Your enrollment must be approved before accessing lessons." },
+          { status: 403 }
+        );
+      }
     }
 
     const lessons = await prisma.lesson.findMany({
