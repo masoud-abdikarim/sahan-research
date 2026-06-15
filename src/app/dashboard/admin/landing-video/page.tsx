@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { UploadDropzone } from "@/lib/uploadthing";
-import { Trash2, Video as VideoIcon, Link as LinkIcon, Save, PlaySquare, AlertCircle } from "lucide-react";
+import { useUploadThing } from "@/lib/uploadthing";
+import { Trash2, Video as VideoIcon, Link as LinkIcon, Save, PlaySquare, AlertCircle, Upload as UploadIcon } from "lucide-react";
 import Loader from "@/components/Loader";
 
 export default function LandingVideoPage() {
@@ -15,6 +15,23 @@ export default function LandingVideoPage() {
   const [inputType, setInputType] = useState<"UPLOAD" | "URL">("URL");
   const [inputUrl, setInputUrl] = useState("");
   const [uploadUrl, setUploadUrl] = useState("");
+
+  const { startUpload, isUploading } = useUploadThing("systemVideoUploader", {
+    onClientUploadComplete: (res) => {
+      if (res && res[0]) {
+        setUploadUrl(res[0].url);
+      }
+    },
+    onUploadError: (error: Error) => {
+      alert(`ERROR! ${error.message}`);
+    },
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      startUpload(Array.from(e.target.files));
+    }
+  };
 
   useEffect(() => {
     fetchVideo();
@@ -170,18 +187,27 @@ export default function LandingVideoPage() {
                 </button>
               </div>
             ) : (
-              <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-6">
-                <UploadDropzone
-                  endpoint="systemVideoUploader"
-                  onClientUploadComplete={(res) => {
-                    if (res && res[0]) {
-                      setUploadUrl(res[0].url);
-                    }
-                  }}
-                  onUploadError={(error: Error) => {
-                    alert(`ERROR! ${error.message}`);
-                  }}
+              <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/ogg"
+                  id="video-upload"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={isUploading}
                 />
+                <label
+                  htmlFor="video-upload"
+                  className={`cursor-pointer flex flex-col items-center justify-center gap-2 p-4 transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                    <UploadIcon size={24} className="text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    {isUploading ? "Uploading... Please wait" : "Click to select a video file"}
+                  </span>
+                  <span className="text-xs text-slate-500">MP4, WebM up to 2GB</span>
+                </label>
               </div>
             )}
           </div>
