@@ -446,6 +446,10 @@ export default function LessonsPage() {
   };
 
   const handleCancel = () => {
+    if (uploadPhase === "uploading" || audioUploadPhase === "uploading") {
+      toast.error("Please wait for the upload to finish before closing.");
+      return;
+    }
     setShowForm(false);
     setEditingLesson(null);
     setFormCourseId("");
@@ -1442,6 +1446,16 @@ export default function LessonsPage() {
                         {uploadPhase === "error" && "Upload failed — try again"}
                       </p>
                     </div>
+                    {uploadPhase !== "uploading" && (
+                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg text-left w-full">
+                        <h4 className="text-xs font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-1.5">
+                          <AlertCircle size={14} /> Upload Optimization Tip
+                        </h4>
+                        <p className="text-[11px] text-amber-700 dark:text-amber-500 leading-relaxed">
+                          For faster uploads, please compress large raw videos using tools like Handbrake or Adobe Media Encoder before uploading. Large files may take significantly longer depending on your network speed.
+                        </p>
+                      </div>
+                    )}
                     {formData.videoUrl && uploadPhase === "complete" && (
                       <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700 bg-black aspect-video">
                         <video

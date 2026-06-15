@@ -15,20 +15,27 @@ export default function LandingVideoPage() {
   const [inputType, setInputType] = useState<"UPLOAD" | "URL">("URL");
   const [inputUrl, setInputUrl] = useState("");
   const [uploadUrl, setUploadUrl] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const { startUpload, isUploading } = useUploadThing("systemVideoUploader", {
     onClientUploadComplete: (res) => {
+      setUploadProgress(100);
       if (res && res[0]) {
         setUploadUrl(res[0].url);
       }
     },
     onUploadError: (error: Error) => {
+      setUploadProgress(0);
       alert(`ERROR! ${error.message}`);
     },
+    onUploadProgress: (p) => {
+      setUploadProgress(p);
+    }
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      setUploadProgress(0);
       startUpload(Array.from(e.target.files));
     }
   };
@@ -198,16 +205,42 @@ export default function LandingVideoPage() {
                 />
                 <label
                   htmlFor="video-upload"
-                  className={`cursor-pointer flex flex-col items-center justify-center gap-2 p-4 transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+                  className={`cursor-pointer flex flex-col items-center justify-center gap-2 p-4 transition-all w-full ${isUploading ? 'cursor-not-allowed' : 'hover:scale-105'}`}
                 >
                   <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
-                    <UploadIcon size={24} className="text-indigo-600 dark:text-indigo-400" />
+                    <UploadIcon size={24} className={`text-indigo-600 dark:text-indigo-400 ${isUploading ? 'animate-bounce' : ''}`} />
                   </div>
                   <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                     {isUploading ? "Uploading... Please wait" : "Click to select a video file"}
                   </span>
                   <span className="text-xs text-slate-500">MP4, WebM up to 2GB</span>
+                  
+                  {isUploading && (
+                    <div className="w-full max-w-xs mt-4">
+                      <div className="flex justify-between text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
+                        <span>Uploading...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="bg-indigo-600 h-2 rounded-full transition-all duration-300 ease-out" 
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </label>
+                
+                {!isUploading && (
+                  <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg text-left max-w-sm w-full">
+                    <h4 className="text-xs font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 mb-1.5">
+                      <AlertCircle size={14} /> Upload Optimization Tip
+                    </h4>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-500 leading-relaxed">
+                      For faster uploads, please compress large raw videos using tools like Handbrake or Adobe Media Encoder before uploading. Large files may take significantly longer depending on your network speed.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
