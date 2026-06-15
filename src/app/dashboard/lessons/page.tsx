@@ -9,7 +9,7 @@ import { getCourses } from "@/redux/slice/courseSlice";
 import { getUserEnrollments } from "@/redux/slice/enrollmentSlice";
 import { markLessonComplete } from "@/redux/slice/progressSlice";
 import Loader from "@/components/Loader";
-import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, Lock, CheckCircle2, Edit, Trash2, X, Star, Layers, BarChart3, BookOpen, GraduationCap, ChevronRight, ArrowRight, Clock, Sparkles, Volume2, Headphones } from "lucide-react";
+import { Plus, Video, PlayCircle, Upload, Link as LinkIcon, FileVideo, Lock, CheckCircle2, Edit, Trash2, X, Star, Layers, BarChart3, BookOpen, GraduationCap, ChevronRight, ArrowRight, Clock, Sparkles, Volume2, Headphones, AlertCircle } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { UploadDropzone } from "@/lib/uploadthing";
