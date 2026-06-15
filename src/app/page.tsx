@@ -264,7 +264,6 @@ export default function LandingPage() {
                 </div>
               </Link>
             </motion.div>
-
             {/* ── SEARCH BOX ── */}
             <div className="hidden lg:flex flex-1 max-w-sm mx-10 relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
